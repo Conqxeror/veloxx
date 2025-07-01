@@ -1,4 +1,4 @@
-//! Velox is a lightweight Rust library for in-memory data processing and analytics.
+//! Veloxx is a lightweight Rust library for in-memory data processing and analytics.
 //! It provides core data structures like DataFrame and Series, along with a suite
 //! of operations for data manipulation, cleaning, aggregation, and basic statistics.
 //!

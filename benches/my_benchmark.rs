@@ -1,9 +1,9 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 use std::collections::BTreeMap;
-use velox::conditions::Condition;
-use velox::dataframe::DataFrame;
-use velox::dataframe::join::JoinType;
-use velox::series::Series;
+use veloxx::conditions::Condition;
+use veloxx::dataframe::DataFrame;
+use veloxx::dataframe::join::JoinType;
+use veloxx::series::Series;
 
 fn bench_dataframe_creation(c: &mut Criterion) {
     c.bench_function("dataframe_creation", |b| {
@@ -41,7 +41,7 @@ fn bench_dataframe_filter(c: &mut Criterion) {
         Series::new_f64("col2", (0..1000).map(|i| Some(i as f64)).collect()),
     );
     let df = DataFrame::new(columns).unwrap();
-    let condition = Condition::Gt("col1".to_string(), velox::types::Value::I32(500));
+    let condition = Condition::Gt("col1".to_string(), veloxx::types::Value::I32(500));
 
     c.bench_function("dataframe_filter", |b| {
         b.iter(|| {
@@ -129,7 +129,7 @@ fn bench_series_apply(c: &mut Criterion) {
             series_i32
                 .apply(|v| {
                     v.map(|val| match val {
-                        velox::types::Value::I32(x) => velox::types::Value::I32(x * 2),
+                        veloxx::types::Value::I32(x) => veloxx::types::Value::I32(x * 2),
                         _ => panic!("Unexpected type"),
                     })
                 })
@@ -142,7 +142,7 @@ fn bench_series_apply(c: &mut Criterion) {
             series_f64
                 .apply(|v| {
                     v.map(|val| match val {
-                        velox::types::Value::F64(x) => velox::types::Value::F64(x * 2.0),
+                        veloxx::types::Value::F64(x) => veloxx::types::Value::F64(x * 2.0),
                         _ => panic!("Unexpected type"),
                     })
                 })
@@ -155,8 +155,8 @@ fn bench_series_apply(c: &mut Criterion) {
             series_string
                 .apply(|v| {
                     v.map(|val| match val {
-                        velox::types::Value::String(s) => {
-                            velox::types::Value::String(format!("{s}-suffix"))
+                        veloxx::types::Value::String(s) => {
+                            veloxx::types::Value::String(format!("{s}-suffix"))
                         }
                         _ => panic!("Unexpected type"),
                     })
@@ -227,8 +227,8 @@ fn bench_dataframe_fill_nulls(c: &mut Criterion) {
         Series::new_f64("col2", data_with_nulls_f64),
     );
     let df = DataFrame::new(columns).unwrap();
-    let fill_value_i32 = velox::types::Value::I32(999);
-    let fill_value_f64 = velox::types::Value::F64(999.99);
+    let fill_value_i32 = veloxx::types::Value::I32(999);
+    let fill_value_f64 = veloxx::types::Value::F64(999.99);
 
     c.bench_function("dataframe_fill_nulls_i32", |b| {
         b.iter(|| {
@@ -253,25 +253,25 @@ fn bench_series_cast(c: &mut Criterion) {
 
     c.bench_function("series_cast_i32_to_f64", |b| {
         b.iter(|| {
-            series_i32.cast(velox::types::DataType::F64).unwrap();
+            series_i32.cast(veloxx::types::DataType::F64).unwrap();
         });
     });
 
     c.bench_function("series_cast_f64_to_i32", |b| {
         b.iter(|| {
-            series_f64.cast(velox::types::DataType::I32).unwrap();
+            series_f64.cast(veloxx::types::DataType::I32).unwrap();
         });
     });
 
     c.bench_function("series_cast_string_to_i32", |b| {
         b.iter(|| {
-            series_string_i32.cast(velox::types::DataType::I32).unwrap();
+            series_string_i32.cast(veloxx::types::DataType::I32).unwrap();
         });
     });
 
     c.bench_function("series_cast_string_to_f64", |b| {
         b.iter(|| {
-            series_string_f64.cast(velox::types::DataType::F64).unwrap();
+            series_string_f64.cast(veloxx::types::DataType::F64).unwrap();
         });
     });
 }
@@ -287,9 +287,9 @@ fn bench_dataframe_with_column(c: &mut Criterion) {
         Series::new_i32("col2", (0..1000).map(Some).collect()),
     );
     let df = DataFrame::new(columns).unwrap();
-    let expr = velox::expressions::Expr::Add(
-        Box::new(velox::expressions::Expr::Column("col1".to_string())),
-        Box::new(velox::expressions::Expr::Column("col2".to_string())),
+    let expr = veloxx::expressions::Expr::Add(
+        Box::new(veloxx::expressions::Expr::Column("col1".to_string())),
+        Box::new(veloxx::expressions::Expr::Column("col2".to_string())),
     );
 
     c.bench_function("dataframe_with_column", |b| {
