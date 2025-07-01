@@ -1,12 +1,12 @@
 use crate::series::Series;
 use std::collections::BTreeMap;
 
-pub mod io;
-pub mod manipulation;
 pub mod cleaning;
-pub mod join;
 pub mod display;
 pub mod group_by;
+pub mod io;
+pub mod join;
+pub mod manipulation;
 pub mod sources;
 
 /// Represents a tabular data structure with named columns, similar to a data frame in other data manipulation libraries.
@@ -34,7 +34,11 @@ impl DataFrame {
         let mut row_count = 0;
         for (i, (col_name, series)) in columns.iter().enumerate() {
             if col_name != series.name() {
-                return Err(format!("Column name mismatch: HashMap key '{}' does not match Series name '{}'.", col_name, series.name()));
+                return Err(format!(
+                    "Column name mismatch: HashMap key '{}' does not match Series name '{}'.",
+                    col_name,
+                    series.name()
+                ));
             }
             if i == 0 {
                 row_count = series.len();

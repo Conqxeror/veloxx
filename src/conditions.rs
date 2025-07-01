@@ -26,12 +26,16 @@ impl Condition {
     pub fn evaluate(&self, df: &DataFrame, row_index: usize) -> Result<bool, String> {
         match self {
             Condition::Eq(col_name, value) => {
-                let series = df.get_column(col_name).ok_or(format!("Column '{col_name}' not found."))?;
+                let series = df
+                    .get_column(col_name)
+                    .ok_or(format!("Column '{col_name}' not found."))?;
                 let cell_value = series.get_value(row_index);
                 Ok(cell_value.as_ref() == Some(value))
             }
             Condition::Gt(col_name, value) => {
-                let series = df.get_column(col_name).ok_or(format!("Column '{col_name}' not found."))?;
+                let series = df
+                    .get_column(col_name)
+                    .ok_or(format!("Column '{col_name}' not found."))?;
                 let cell_value = series.get_value(row_index);
                 match (cell_value.clone(), value) {
                     (Some(Value::I32(a)), Value::I32(b)) => Ok(a > *b),
@@ -40,7 +44,9 @@ impl Condition {
                 }
             }
             Condition::Lt(col_name, value) => {
-                let series = df.get_column(col_name).ok_or(format!("Column '{col_name}' not found."))?;
+                let series = df
+                    .get_column(col_name)
+                    .ok_or(format!("Column '{col_name}' not found."))?;
                 let cell_value = series.get_value(row_index);
                 match (cell_value.clone(), value) {
                     (Some(Value::I32(a)), Value::I32(b)) => Ok(a < *b),
@@ -54,9 +60,7 @@ impl Condition {
             Condition::Or(left, right) => {
                 Ok(left.evaluate(df, row_index)? || right.evaluate(df, row_index)?)
             }
-            Condition::Not(cond) => {
-                Ok(!cond.evaluate(df, row_index)?)
-            }
+            Condition::Not(cond) => Ok(!cond.evaluate(df, row_index)?),
         }
     }
 }

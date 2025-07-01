@@ -45,12 +45,12 @@ impl DataFrame {
 
         for (col_name, series) in self.columns.iter() {
             let new_series = match (series.data_type(), &value) {
-                (crate::types::DataType::I32, Value::I32(_)) |
-                (crate::types::DataType::F64, Value::F64(_)) |
-                (crate::types::DataType::Bool, Value::Bool(_)) |
-                (crate::types::DataType::String, Value::String(_)) => {
+                (crate::types::DataType::I32, Value::I32(_))
+                | (crate::types::DataType::F64, Value::F64(_))
+                | (crate::types::DataType::Bool, Value::Bool(_))
+                | (crate::types::DataType::String, Value::String(_)) => {
                     series.fill_nulls(&value)?
-                },
+                }
                 _ => {
                     // If types don't match, just clone the original series
                     series.clone()

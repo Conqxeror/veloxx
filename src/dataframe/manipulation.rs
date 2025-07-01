@@ -1,4 +1,6 @@
-use crate::{dataframe::DataFrame, series::Series, types::Value, expressions::Expr, conditions::Condition};
+use crate::{
+    conditions::Condition, dataframe::DataFrame, expressions::Expr, series::Series, types::Value,
+};
 use std::collections::BTreeMap;
 
 impl DataFrame {
@@ -84,10 +86,15 @@ impl DataFrame {
             rows.push(row);
         }
 
-        let column_indices: Result<Vec<usize>, String> = by_columns.iter().map(|col_name| {
-            self.column_names().iter().position(|&name| name == col_name)
-                .ok_or(format!("Column '{col_name}' not found for sorting."))
-        }).collect();
+        let column_indices: Result<Vec<usize>, String> = by_columns
+            .iter()
+            .map(|col_name| {
+                self.column_names()
+                    .iter()
+                    .position(|&name| name == col_name)
+                    .ok_or(format!("Column '{col_name}' not found for sorting."))
+            })
+            .collect();
 
         let column_indices = column_indices?;
 
@@ -98,7 +105,9 @@ impl DataFrame {
 
                 let cmp = match (val_a, val_b) {
                     (Some(Value::I32(v_a)), Some(Value::I32(v_b))) => v_a.cmp(v_b),
-                    (Some(Value::F64(v_a)), Some(Value::F64(v_b))) => v_a.partial_cmp(v_b).unwrap_or(std::cmp::Ordering::Equal),
+                    (Some(Value::F64(v_a)), Some(Value::F64(v_b))) => {
+                        v_a.partial_cmp(v_b).unwrap_or(std::cmp::Ordering::Equal)
+                    }
                     (Some(Value::Bool(v_a)), Some(Value::Bool(v_b))) => v_a.cmp(v_b),
                     (Some(Value::String(v_a)), Some(Value::String(v_b))) => v_a.cmp(v_b),
                     (None, None) => std::cmp::Ordering::Equal,
@@ -121,7 +130,10 @@ impl DataFrame {
 
         for row in rows {
             for (col_idx, col_name) in self.column_names().iter().enumerate() {
-                new_columns_data.get_mut(*col_name).unwrap().push(row[col_idx].clone());
+                new_columns_data
+                    .get_mut(*col_name)
+                    .unwrap()
+                    .push(row[col_idx].clone());
             }
         }
 
@@ -129,10 +141,66 @@ impl DataFrame {
         for (col_name, data_vec) in new_columns_data {
             let original_series = self.columns.get(&col_name).unwrap();
             let new_series = match original_series.data_type() {
-                crate::types::DataType::I32 => Series::new_i32(&col_name, data_vec.into_iter().map(|x| x.and_then(|v| if let Value::I32(val) = v { Some(val) } else { None })).collect()),
-                crate::types::DataType::F64 => Series::new_f64(&col_name, data_vec.into_iter().map(|x| x.and_then(|v| if let Value::F64(val) = v { Some(val) } else { None })).collect()),
-                crate::types::DataType::Bool => Series::new_bool(&col_name, data_vec.into_iter().map(|x| x.and_then(|v| if let Value::Bool(val) = v { Some(val) } else { None })).collect()),
-                crate::types::DataType::String => Series::new_string(&col_name, data_vec.into_iter().map(|x| x.and_then(|v| if let Value::String(val) = v { Some(val) } else { None })).collect()),
+                crate::types::DataType::I32 => Series::new_i32(
+                    &col_name,
+                    data_vec
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::I32(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
+                crate::types::DataType::F64 => Series::new_f64(
+                    &col_name,
+                    data_vec
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::F64(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
+                crate::types::DataType::Bool => Series::new_bool(
+                    &col_name,
+                    data_vec
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::Bool(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
+                crate::types::DataType::String => Series::new_string(
+                    &col_name,
+                    data_vec
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::String(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
             };
             new_series_map.insert(col_name, new_series);
         }
@@ -167,20 +235,28 @@ impl DataFrame {
             match evaluated_value {
                 Value::I32(val) => {
                     new_series_data_i32.push(Some(val));
-                    if inferred_type.is_none() { inferred_type = Some(crate::types::DataType::I32); }
-                },
+                    if inferred_type.is_none() {
+                        inferred_type = Some(crate::types::DataType::I32);
+                    }
+                }
                 Value::F64(val) => {
                     new_series_data_f64.push(Some(val));
-                    if inferred_type.is_none() { inferred_type = Some(crate::types::DataType::F64); }
-                },
+                    if inferred_type.is_none() {
+                        inferred_type = Some(crate::types::DataType::F64);
+                    }
+                }
                 Value::Bool(val) => {
                     new_series_data_bool.push(Some(val));
-                    if inferred_type.is_none() { inferred_type = Some(crate::types::DataType::Bool); }
-                },
+                    if inferred_type.is_none() {
+                        inferred_type = Some(crate::types::DataType::Bool);
+                    }
+                }
                 Value::String(val) => {
                     new_series_data_string.push(Some(val));
-                    if inferred_type.is_none() { inferred_type = Some(crate::types::DataType::String); }
-                },
+                    if inferred_type.is_none() {
+                        inferred_type = Some(crate::types::DataType::String);
+                    }
+                }
                 Value::Null => {
                     new_series_data_i32.push(None);
                     new_series_data_f64.push(None);
@@ -193,8 +269,12 @@ impl DataFrame {
         let new_series = match inferred_type {
             Some(crate::types::DataType::I32) => Series::new_i32(new_col_name, new_series_data_i32),
             Some(crate::types::DataType::F64) => Series::new_f64(new_col_name, new_series_data_f64),
-            Some(crate::types::DataType::Bool) => Series::new_bool(new_col_name, new_series_data_bool),
-            Some(crate::types::DataType::String) => Series::new_string(new_col_name, new_series_data_string),
+            Some(crate::types::DataType::Bool) => {
+                Series::new_bool(new_col_name, new_series_data_bool)
+            }
+            Some(crate::types::DataType::String) => {
+                Series::new_string(new_col_name, new_series_data_string)
+            }
             None => return Err("Could not infer type for new column.".to_string()),
         };
 
@@ -255,11 +335,17 @@ impl DataFrame {
         // Check if column names and order are identical
         for i in 0..self_column_names.len() {
             if self_column_names[i] != other_column_names[i] {
-                return Err("Cannot append DataFrames with different column names or order.".to_string());
+                return Err(
+                    "Cannot append DataFrames with different column names or order.".to_string(),
+                );
             }
-            if self.get_column(self_column_names[i]).unwrap().data_type() != 
-               other.get_column(other_column_names[i]).unwrap().data_type() {
-                return Err(format!("Cannot append DataFrames with mismatched data types for column '{}'.", self_column_names[i]));
+            if self.get_column(self_column_names[i]).unwrap().data_type()
+                != other.get_column(other_column_names[i]).unwrap().data_type()
+            {
+                return Err(format!(
+                    "Cannot append DataFrames with mismatched data types for column '{}'.",
+                    self_column_names[i]
+                ));
             }
         }
 
@@ -281,7 +367,10 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a `GroupedDataFrame` or a `String` error message.
-    pub fn group_by(&self, group_columns: Vec<String>) -> Result<crate::dataframe::group_by::GroupedDataFrame, String> {
+    pub fn group_by(
+        &self,
+        group_columns: Vec<String>,
+    ) -> Result<crate::dataframe::group_by::GroupedDataFrame, String> {
         crate::dataframe::group_by::GroupedDataFrame::new(self, group_columns)
     }
 
@@ -309,12 +398,24 @@ impl DataFrame {
 
             match series.data_type() {
                 crate::types::DataType::I32 | crate::types::DataType::F64 => {
-                    means.push(series.mean()?.and_then(|v| if let Value::F64(val) = v { Some(val) } else { None }));
-                    std_devs.push(series.std_dev()?.and_then(|v| if let Value::F64(val) = v { Some(val) } else { None }));
+                    means.push(series.mean()?.and_then(|v| {
+                        if let Value::F64(val) = v {
+                            Some(val)
+                        } else {
+                            None
+                        }
+                    }));
+                    std_devs.push(series.std_dev()?.and_then(|v| {
+                        if let Value::F64(val) = v {
+                            Some(val)
+                        } else {
+                            None
+                        }
+                    }));
                     mins.push(series.min()?);
                     maxs.push(series.max()?);
                     medians.push(series.median()?);
-                },
+                }
                 _ => {
                     means.push(None);
                     std_devs.push(None);
@@ -325,13 +426,41 @@ impl DataFrame {
             }
         }
 
-        descriptions.insert("column".to_string(), Series::new_string("column", column_names_vec.into_iter().map(Some).collect()));
+        descriptions.insert(
+            "column".to_string(),
+            Series::new_string("column", column_names_vec.into_iter().map(Some).collect()),
+        );
         descriptions.insert("count".to_string(), Series::new_i32("count", counts));
         descriptions.insert("mean".to_string(), Series::new_f64("mean", means));
         descriptions.insert("std".to_string(), Series::new_f64("std", std_devs));
-        descriptions.insert("min".to_string(), Series::new_string("min", mins.into_iter().map(|x| x.map(|v| format!("{v:?}"))).collect()));
-        descriptions.insert("max".to_string(), Series::new_string("max", maxs.into_iter().map(|x| x.map(|v| format!("{v:?}"))).collect()));
-        descriptions.insert("median".to_string(), Series::new_string("median", medians.into_iter().map(|x| x.map(|v| format!("{v:?}"))).collect()));
+        descriptions.insert(
+            "min".to_string(),
+            Series::new_string(
+                "min",
+                mins.into_iter()
+                    .map(|x| x.map(|v| format!("{v:?}")))
+                    .collect(),
+            ),
+        );
+        descriptions.insert(
+            "max".to_string(),
+            Series::new_string(
+                "max",
+                maxs.into_iter()
+                    .map(|x| x.map(|v| format!("{v:?}")))
+                    .collect(),
+            ),
+        );
+        descriptions.insert(
+            "median".to_string(),
+            Series::new_string(
+                "median",
+                medians
+                    .into_iter()
+                    .map(|x| x.map(|v| format!("{v:?}")))
+                    .collect(),
+            ),
+        );
 
         DataFrame::new(descriptions)
     }
@@ -347,14 +476,20 @@ impl DataFrame {
     /// # Returns
     /// A `Result` containing the correlation coefficient as `f64`, or a `String` error message.
     pub fn correlation(&self, col1_name: &str, col2_name: &str) -> Result<f64, String> {
-        let series1 = self.get_column(col1_name).ok_or(format!("Column '{col1_name}' not found."))?;
-        let series2 = self.get_column(col2_name).ok_or(format!("Column '{col2_name}' not found."))?;
+        let series1 = self
+            .get_column(col1_name)
+            .ok_or(format!("Column '{col1_name}' not found."))?;
+        let series2 = self
+            .get_column(col2_name)
+            .ok_or(format!("Column '{col2_name}' not found."))?;
 
         let data1: Vec<f64> = series1.to_vec_f64()?;
         let data2: Vec<f64> = series2.to_vec_f64()?;
 
         if data1.len() != data2.len() {
-            return Err("Columns must have the same number of non-null values for correlation.".to_string());
+            return Err(
+                "Columns must have the same number of non-null values for correlation.".to_string(),
+            );
         }
 
         let n = data1.len();
@@ -397,19 +532,28 @@ impl DataFrame {
     /// # Returns
     /// A `Result` containing the covariance as `f64`, or a `String` error message.
     pub fn covariance(&self, col1_name: &str, col2_name: &str) -> Result<f64, String> {
-        let series1 = self.get_column(col1_name).ok_or(format!("Column '{col1_name}' not found."))?;
-        let series2 = self.get_column(col2_name).ok_or(format!("Column '{col2_name}' not found."))?;
+        let series1 = self
+            .get_column(col1_name)
+            .ok_or(format!("Column '{col1_name}' not found."))?;
+        let series2 = self
+            .get_column(col2_name)
+            .ok_or(format!("Column '{col2_name}' not found."))?;
 
         let data1: Vec<f64> = series1.to_vec_f64()?;
         let data2: Vec<f64> = series2.to_vec_f64()?;
 
         if data1.len() != data2.len() {
-            return Err("Columns must have the same number of non-null values for covariance.".to_string());
+            return Err(
+                "Columns must have the same number of non-null values for covariance.".to_string(),
+            );
         }
 
         let n = data1.len();
         if n < 2 {
-            return Err("Cannot compute covariance for columns with less than 2 non-null values.".to_string());
+            return Err(
+                "Cannot compute covariance for columns with less than 2 non-null values."
+                    .to_string(),
+            );
         }
 
         let mean1 = data1.iter().sum::<f64>() / n as f64;

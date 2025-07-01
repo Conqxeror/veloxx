@@ -104,7 +104,10 @@ impl DataFrameSource for Vec<Vec<String>> {
             } else if is_bool {
                 columns.insert(col_name.clone(), Series::new_bool(col_name, col_data_bool));
             } else if is_string {
-                columns.insert(col_name.clone(), Series::new_string(col_name, col_data_string));
+                columns.insert(
+                    col_name.clone(),
+                    Series::new_string(col_name, col_data_string),
+                );
             } else {
                 return Err(format!("Could not infer type for column '{col_name}'."));
             }

@@ -1,9 +1,9 @@
 use crate::{dataframe::DataFrame, series::Series};
 use microjson::JSONValue;
 
-use std::io::Read;
+use csv_core::{ReadFieldResult, Reader};
 use std::collections::BTreeMap;
-use csv_core::{Reader, ReadFieldResult};
+use std::io::Read;
 
 impl DataFrame {
     /// Creates a new `DataFrame` from a CSV file.
@@ -19,9 +19,11 @@ impl DataFrame {
     ///
     /// A `Result` containing the new `DataFrame` or a `String` error message.
     pub fn from_csv(path: &str) -> Result<Self, String> {
-        let mut file = std::fs::File::open(path).map_err(|e| format!("Could not open file: {e}"))?;
+        let mut file =
+            std::fs::File::open(path).map_err(|e| format!("Could not open file: {e}"))?;
         let mut contents = Vec::new();
-        file.read_to_end(&mut contents).map_err(|e| format!("Could not read file: {e}"))?;
+        file.read_to_end(&mut contents)
+            .map_err(|e| format!("Could not read file: {e}"))?;
 
         let mut rdr = Reader::new();
         let mut field_buf = [0; 1024]; // Buffer for a single field
@@ -51,8 +53,10 @@ impl DataFrame {
                         }
                     }
                     break;
-                },
-                ReadFieldResult::OutputFull => return Err("CSV field too large for buffer.".to_string()),
+                }
+                ReadFieldResult::OutputFull => {
+                    return Err("CSV field too large for buffer.".to_string());
+                }
                 ReadFieldResult::Field { record_end } => {
                     if record_end {
                         if column_names.is_none() {
@@ -61,7 +65,7 @@ impl DataFrame {
                         all_rows_as_strings.push(current_row_fields.clone());
                         current_row_fields.clear();
                     }
-                },
+                }
                 ReadFieldResult::End => {
                     if !current_row_fields.is_empty() {
                         if column_names.is_none() {
@@ -70,7 +74,7 @@ impl DataFrame {
                         all_rows_as_strings.push(current_row_fields.clone());
                     }
                     break;
-                },
+                }
             }
         }
 
@@ -162,13 +166,25 @@ impl DataFrame {
 
             // Determine the most specific type
             if is_i32 {
-                columns.insert(col_name.to_string(), Series::new_i32(col_name, col_data_i32));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_i32(col_name, col_data_i32),
+                );
             } else if is_f64 {
-                columns.insert(col_name.to_string(), Series::new_f64(col_name, col_data_f64));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_f64(col_name, col_data_f64),
+                );
             } else if is_bool {
-                columns.insert(col_name.to_string(), Series::new_bool(col_name, col_data_bool));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_bool(col_name, col_data_bool),
+                );
             } else if is_string {
-                columns.insert(col_name.to_string(), Series::new_string(col_name, col_data_string));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_string(col_name, col_data_string),
+                );
             } else {
                 return Err(format!("Could not infer type for column '{col_name}'."));
             }
@@ -191,13 +207,18 @@ impl DataFrame {
     /// # Returns
     ///
     /// A `Result` containing the new `DataFrame` or a `String` error message.
-    pub fn from_vec_of_vec(data: Vec<Vec<String>>, column_names: Vec<String>) -> Result<Self, String> {
+    pub fn from_vec_of_vec(
+        data: Vec<Vec<String>>,
+        column_names: Vec<String>,
+    ) -> Result<Self, String> {
         if data.is_empty() {
             return DataFrame::new(BTreeMap::new());
         }
 
         if data[0].len() != column_names.len() {
-            return Err("Number of columns in data does not match number of column names.".to_string());
+            return Err(
+                "Number of columns in data does not match number of column names.".to_string(),
+            );
         }
 
         let num_rows = data.len();
@@ -274,13 +295,25 @@ impl DataFrame {
 
             // Determine the most specific type
             if is_i32 {
-                columns.insert(col_name.to_string(), Series::new_i32(col_name, col_data_i32));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_i32(col_name, col_data_i32),
+                );
             } else if is_f64 {
-                columns.insert(col_name.to_string(), Series::new_f64(col_name, col_data_f64));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_f64(col_name, col_data_f64),
+                );
             } else if is_bool {
-                columns.insert(col_name.to_string(), Series::new_bool(col_name, col_data_bool));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_bool(col_name, col_data_bool),
+                );
             } else if is_string {
-                columns.insert(col_name.to_string(), Series::new_string(col_name, col_data_string));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_string(col_name, col_data_string),
+                );
             } else {
                 return Err(format!("Could not infer type for column '{col_name}'."));
             }
@@ -302,10 +335,12 @@ impl DataFrame {
     /// A `Result` indicating success or a `String` error message.
     pub fn to_csv(&self, path: &str) -> Result<(), String> {
         use std::io::Write;
-        let mut file = std::fs::File::create(path).map_err(|e| format!("Could not create file: {e}"))?;
+        let mut file =
+            std::fs::File::create(path).map_err(|e| format!("Could not create file: {e}"))?;
 
         let column_names: Vec<&str> = self.column_names().iter().map(|s| s.as_str()).collect();
-        writeln!(file, "{}", column_names.join(",")).map_err(|e| format!("Could not write to file: {e}"))?;
+        writeln!(file, "{}", column_names.join(","))
+            .map_err(|e| format!("Could not write to file: {e}"))?;
 
         for i in 0..self.row_count() {
             let mut row_values: Vec<String> = Vec::new();
@@ -321,7 +356,8 @@ impl DataFrame {
                 };
                 row_values.push(value_str);
             }
-            writeln!(file, "{}", row_values.join(",")).map_err(|e| format!("Could not write to file: {e}"))?;
+            writeln!(file, "{}", row_values.join(","))
+                .map_err(|e| format!("Could not write to file: {e}"))?;
         }
         Ok(())
     }
@@ -335,8 +371,8 @@ impl DataFrame {
     ///   {"col1": 2, "col2": "b"}
     /// ]
     pub fn from_json(path: &str) -> Result<Self, String> {
-        let contents = std::fs::read_to_string(path)
-            .map_err(|e| format!("Could not read file: {e}"))?;
+        let contents =
+            std::fs::read_to_string(path).map_err(|e| format!("Could not read file: {e}"))?;
         let json = JSONValue::load(&contents);
         let arr_iter = match json.iter_array() {
             Ok(arr) => arr,
@@ -379,19 +415,64 @@ impl DataFrame {
         }
         for row in rows {
             for name in &column_names {
-                columns.get_mut(name).unwrap().push(row.get(name).cloned().unwrap_or(None));
+                columns
+                    .get_mut(name)
+                    .unwrap()
+                    .push(row.get(name).cloned().unwrap_or(None));
             }
         }
         let mut series_map = BTreeMap::new();
         for (name, values) in columns {
-            let series = if let Some(Some(crate::types::Value::F64(_))) = values.iter().find(|v| v.is_some()) {
-                Series::new_f64(&name, values.into_iter().map(|v| match v { Some(crate::types::Value::F64(f)) => Some(f), _ => None }).collect())
-            } else if let Some(Some(crate::types::Value::I32(_))) = values.iter().find(|v| v.is_some()) {
-                Series::new_i32(&name, values.into_iter().map(|v| match v { Some(crate::types::Value::I32(i)) => Some(i), _ => None }).collect())
-            } else if let Some(Some(crate::types::Value::Bool(_))) = values.iter().find(|v| v.is_some()) {
-                Series::new_bool(&name, values.into_iter().map(|v| match v { Some(crate::types::Value::Bool(b)) => Some(b), _ => None }).collect())
+            let series = if let Some(Some(crate::types::Value::F64(_))) =
+                values.iter().find(|v| v.is_some())
+            {
+                Series::new_f64(
+                    &name,
+                    values
+                        .into_iter()
+                        .map(|v| match v {
+                            Some(crate::types::Value::F64(f)) => Some(f),
+                            _ => None,
+                        })
+                        .collect(),
+                )
+            } else if let Some(Some(crate::types::Value::I32(_))) =
+                values.iter().find(|v| v.is_some())
+            {
+                Series::new_i32(
+                    &name,
+                    values
+                        .into_iter()
+                        .map(|v| match v {
+                            Some(crate::types::Value::I32(i)) => Some(i),
+                            _ => None,
+                        })
+                        .collect(),
+                )
+            } else if let Some(Some(crate::types::Value::Bool(_))) =
+                values.iter().find(|v| v.is_some())
+            {
+                Series::new_bool(
+                    &name,
+                    values
+                        .into_iter()
+                        .map(|v| match v {
+                            Some(crate::types::Value::Bool(b)) => Some(b),
+                            _ => None,
+                        })
+                        .collect(),
+                )
             } else {
-                Series::new_string(&name, values.into_iter().map(|v| match v { Some(crate::types::Value::String(s)) => Some(s), _ => None }).collect())
+                Series::new_string(
+                    &name,
+                    values
+                        .into_iter()
+                        .map(|v| match v {
+                            Some(crate::types::Value::String(s)) => Some(s),
+                            _ => None,
+                        })
+                        .collect(),
+                )
             };
             series_map.insert(name, series);
         }

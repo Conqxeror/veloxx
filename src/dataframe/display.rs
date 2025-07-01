@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::{dataframe::DataFrame, series::Series};
+use std::fmt;
 
 /// Implements the `Display` trait for `DataFrame`.
 ///
