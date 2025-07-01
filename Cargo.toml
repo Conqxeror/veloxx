@@ -5,8 +5,8 @@ edition = "2024"
 description = "Velox: A high-performance, lightweight Rust library for in-memory data processing and analytics. Featuring DataFrames, Series, CSV/JSON I/O, powerful transformations, aggregations, and statistical functions for efficient data science and engineering."
 license = "MIT"
 authors = ["Wali Mohammad Kadri"]
-homepage = "https://github.com/Conqxeror/velox"
-repository = "https://github.com/Conqxeror/velox"
+homepage = "https://github.com/Conqxeror/veloxx"
+repository = "https://github.com/Conqxeror/veloxx"
 keywords = ["dataframe", "data-processing", "analytics", "high-performance", "lightweight"]
 categories = ["data-structures", "science", "parsing", "api-bindings"]
 
