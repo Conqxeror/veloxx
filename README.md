@@ -1,6 +1,4 @@
-# Veloxx: Lightweight Rust-Powered Data Processing & Analytics Library
-
-![Veloxx Logo](docs/veloxx_logo.png)
+# <img src="docs/veloxx_logo.png" alt="Veloxx Logo" height="70px"> Veloxx: Lightweight Rust-Powered Data Processing & Analytics Library
 
 [![crates.io](https://img.shields.io/crates/v/veloxx.svg)](https://crates.io/crates/veloxx)
 
