@@ -60,7 +60,7 @@ Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-veloxx = "0.1.1" # Or the latest version
+veloxx = "0.1.2" # Or the latest version
 ```
 
 ## Usage Example
