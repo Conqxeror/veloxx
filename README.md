@@ -1,6 +1,8 @@
-# Velox: Lightweight Rust-Powered Data Processing & Analytics Library
+# Veloxx: Lightweight Rust-Powered Data Processing & Analytics Library
 
-Velox is a new Rust library designed for highly performant and **extremely lightweight** in-memory data processing and analytics. It prioritizes minimal dependencies, optimal memory footprint, and compile-time guarantees, making it an ideal choice for resource-constrained environments, high-performance computing, and applications where every byte and cycle counts.
+[![crates.io](https://img.shields.io/crates/v/veloxx.svg)](https://crates.io/crates/veloxx)
+
+Veloxx is a new Rust library designed for highly performant and **extremely lightweight** in-memory data processing and analytics. It prioritizes minimal dependencies, optimal memory footprint, and compile-time guarantees, making it an ideal choice for resource-constrained environments, high-performance computing, and applications where every byte and cycle counts.
 
 ## Core Principles & Design Goals
 
@@ -19,7 +21,7 @@ Velox is a new Rust library designed for highly performant and **extremely light
 ### Data Ingestion & Loading
 *   **From `Vec<Vec<T>>` / Iterator:** Basic in-memory construction from Rust native collections.
 *   **CSV Support:** Minimalistic, highly efficient CSV parser for loading data.
-*   **JSON Support:** Efficient parsing for common JSON structures (planned).
+*   **JSON Support:** Efficient parsing for common JSON structures.
 *   **Custom Data Sources:** Traits/interfaces for users to implement their own data loading mechanisms.
 
 ### Data Cleaning & Preparation
@@ -58,7 +60,7 @@ Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-velox = "0.1.0" # Or the latest version
+veloxx = "0.1.1" # Or the latest version
 ```
 
 ## Usage Example
@@ -66,15 +68,15 @@ velox = "0.1.0" # Or the latest version
 Here's a quick example demonstrating how to create a DataFrame, filter it, and perform a group-by aggregation:
 
 ```rust
-use velox::dataframe::DataFrame;
-use velox::series::Series;
-use velox::types::{Value, DataType};
-use velox::conditions::Condition;
-use std::collections::HashMap;
+use veloxx::dataframe::DataFrame;
+use veloxx::series::Series;
+use veloxx::types::{Value, DataType};
+use veloxx::conditions::Condition;
+use std::collections::BTreeMap; // Changed from HashMap to BTreeMap
 
 fn main() -> Result<(), String> {
     // 1. Create a DataFrame
-    let mut columns = HashMap::new();
+    let mut columns = BTreeMap::new(); // Changed from HashMap to BTreeMap
     columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string()), Some("David".to_string())]));
     columns.insert("age".to_string(), Series::new_i32("age", vec![Some(25), Some(30), Some(22), Some(35)]));
     columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string()), Some("Paris".to_string())]));
@@ -116,10 +118,6 @@ Aggregated DataFrame (average age by city):
 *   **FFI (Foreign Function Interface):** Consider C API for integration with other languages (Python, JavaScript).
 *   **Simple Plotting Integration:** Provide hooks or basic data preparation for common plotting libraries.
 *   **Persistence:** Basic serialization/deserialization formats (e.g., custom binary format, Parquet subset).
-
-## Current Development Status
-
-All compilation and test errors have been resolved, except for JSON parsing. We are currently investigating issues with the `microjson` crate for JSON parsing and may explore alternative solutions.
 
 ## License
 
