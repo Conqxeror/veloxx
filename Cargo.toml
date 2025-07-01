@@ -1,0 +1,21 @@
+[package]
+name = "velox"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+csv-core = "0.1"
+microjson = "0.1.6"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+
+
+
