@@ -45,6 +45,10 @@ impl fmt::Display for DataFrame {
                         let val = v[i].as_ref().map_or("null".to_string(), |x| x.clone());
                         write!(f, "{val: <15}")?;
                     }
+                    Series::DateTime(_, v) => {
+                        let val = v[i].map_or("null".to_string(), |x| x.to_string());
+                        write!(f, "{val: <15}")?;
+                    }
                 }
             }
             writeln!(f)?;

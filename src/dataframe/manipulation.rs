@@ -110,6 +110,7 @@ impl DataFrame {
                     }
                     (Some(Value::Bool(v_a)), Some(Value::Bool(v_b))) => v_a.cmp(v_b),
                     (Some(Value::String(v_a)), Some(Value::String(v_b))) => v_a.cmp(v_b),
+                    (Some(Value::DateTime(v_a)), Some(Value::DateTime(v_b))) => v_a.cmp(v_b),
                     (None, None) => std::cmp::Ordering::Equal,
                     (None, Some(_)) => std::cmp::Ordering::Less, // Nulls come first
                     (Some(_), None) => std::cmp::Ordering::Greater, // Non-nulls come after nulls
@@ -201,6 +202,21 @@ impl DataFrame {
                         })
                         .collect(),
                 ),
+                crate::types::DataType::DateTime => Series::new_datetime(
+                    &col_name,
+                    data_vec
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::DateTime(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
             };
             new_series_map.insert(col_name, new_series);
         }
@@ -227,6 +243,7 @@ impl DataFrame {
         let mut new_series_data_f64: Vec<Option<f64>> = Vec::with_capacity(self.row_count);
         let mut new_series_data_bool: Vec<Option<bool>> = Vec::with_capacity(self.row_count);
         let mut new_series_data_string: Vec<Option<String>> = Vec::with_capacity(self.row_count);
+        let mut new_series_data_datetime: Vec<Option<i64>> = Vec::with_capacity(self.row_count);
 
         let mut inferred_type: Option<crate::types::DataType> = None;
 
@@ -257,11 +274,18 @@ impl DataFrame {
                         inferred_type = Some(crate::types::DataType::String);
                     }
                 }
+                Value::DateTime(val) => {
+                    new_series_data_datetime.push(Some(val));
+                    if inferred_type.is_none() {
+                        inferred_type = Some(crate::types::DataType::DateTime);
+                    }
+                }
                 Value::Null => {
                     new_series_data_i32.push(None);
                     new_series_data_f64.push(None);
                     new_series_data_bool.push(None);
                     new_series_data_string.push(None);
+                    new_series_data_datetime.push(None);
                 }
             }
         }
@@ -274,6 +298,9 @@ impl DataFrame {
             }
             Some(crate::types::DataType::String) => {
                 Series::new_string(new_col_name, new_series_data_string)
+            }
+            Some(crate::types::DataType::DateTime) => {
+                Series::new_datetime(new_col_name, new_series_data_datetime)
             }
             None => return Err("Could not infer type for new column.".to_string()),
         };
@@ -397,7 +424,9 @@ impl DataFrame {
             counts.push(Some(series.count() as i32));
 
             match series.data_type() {
-                crate::types::DataType::I32 | crate::types::DataType::F64 => {
+                crate::types::DataType::I32
+                | crate::types::DataType::F64
+                | crate::types::DataType::DateTime => {
                     means.push(series.mean()?.and_then(|v| {
                         if let Value::F64(val) = v {
                             Some(val)

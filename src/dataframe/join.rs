@@ -273,6 +273,21 @@ impl DataFrame {
                         })
                         .collect(),
                 ),
+                crate::types::DataType::DateTime => Series::new_datetime(
+                    &col_name,
+                    data_vec
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::DateTime(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
             };
             new_columns.insert(col_name, new_series);
         }

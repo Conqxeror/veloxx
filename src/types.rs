@@ -11,6 +11,8 @@ pub enum DataType {
     Bool,
     /// String type.
     String,
+    /// DateTime type, represented as a Unix timestamp (i64).
+    DateTime,
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +31,8 @@ pub enum Value {
     Bool(bool),
     /// A string value.
     String(String),
+    /// A DateTime value, represented as a Unix timestamp (i64).
+    DateTime(i64),
 }
 
 impl Value {
@@ -42,6 +46,7 @@ impl Value {
             Value::F64(_) => DataType::F64,
             Value::Bool(_) => DataType::Bool,
             Value::String(_) => DataType::String,
+            Value::DateTime(_) => DataType::DateTime,
             Value::Null => panic!("Cannot get data type of a Null value"),
         }
     }
@@ -59,6 +64,7 @@ impl PartialEq for Value {
             (Value::F64(l), Value::F64(r)) => l.to_bits() == r.to_bits(), // Compare bitwise for f64
             (Value::Bool(l), Value::Bool(r)) => l == r,
             (Value::String(l), Value::String(r)) => l == r,
+            (Value::DateTime(l), Value::DateTime(r)) => l == r,
             _ => false,
         }
     }
@@ -79,6 +85,7 @@ impl Value {
             Value::F64(_) => 2,
             Value::Bool(_) => 3,
             Value::String(_) => 4,
+            Value::DateTime(_) => 5,
         }
     }
 }
@@ -95,6 +102,7 @@ impl Hash for Value {
             Value::F64(v) => v.to_bits().hash(state), // Hash bitwise for f64
             Value::Bool(v) => v.hash(state),
             Value::String(v) => v.hash(state),
+            Value::DateTime(v) => v.hash(state),
         }
     }
 }

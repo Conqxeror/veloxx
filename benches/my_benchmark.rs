@@ -265,13 +265,17 @@ fn bench_series_cast(c: &mut Criterion) {
 
     c.bench_function("series_cast_string_to_i32", |b| {
         b.iter(|| {
-            series_string_i32.cast(veloxx::types::DataType::I32).unwrap();
+            series_string_i32
+                .cast(veloxx::types::DataType::I32)
+                .unwrap();
         });
     });
 
     c.bench_function("series_cast_string_to_f64", |b| {
         b.iter(|| {
-            series_string_f64.cast(veloxx::types::DataType::F64).unwrap();
+            series_string_f64
+                .cast(veloxx::types::DataType::F64)
+                .unwrap();
         });
     });
 }

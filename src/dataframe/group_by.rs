@@ -129,6 +129,21 @@ impl<'a> GroupedDataFrame<'a> {
                         })
                         .collect(),
                 ),
+                crate::types::DataType::DateTime => Series::new_datetime(
+                    col_name,
+                    data_for_new_series
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::DateTime(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
             };
             new_columns.insert(col_name.clone(), new_series);
         }
@@ -211,6 +226,21 @@ impl<'a> GroupedDataFrame<'a> {
                         .map(|x| {
                             x.and_then(|v| {
                                 if let Value::String(val) = v {
+                                    Some(val)
+                                } else {
+                                    None
+                                }
+                            })
+                        })
+                        .collect(),
+                ),
+                crate::types::DataType::DateTime => Series::new_datetime(
+                    &new_series_name,
+                    aggregated_data
+                        .into_iter()
+                        .map(|x| {
+                            x.and_then(|v| {
+                                if let Value::DateTime(val) = v {
                                     Some(val)
                                 } else {
                                     None

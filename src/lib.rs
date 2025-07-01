@@ -28,6 +28,7 @@ pub mod types;
 mod tests {
     use crate::conditions::Condition;
     use crate::dataframe::DataFrame;
+    use crate::expressions::Expr;
     use crate::series::Series;
     use crate::types::Value;
     use std::collections::BTreeMap;
@@ -632,6 +633,15 @@ mod tests {
     }
 
     #[test]
+    fn test_series_get_value_bool() {
+        let series_bool = Series::new_bool("bool_col", vec![Some(true), Some(false), None]);
+        assert_eq!(series_bool.get_value(0), Some(Value::Bool(true)));
+        assert_eq!(series_bool.get_value(1), Some(Value::Bool(false)));
+        assert_eq!(series_bool.get_value(2), None);
+        assert_eq!(series_bool.get_value(3), None);
+    }
+
+    #[test]
     fn test_dataframe_sort() {
         let mut columns = std::collections::BTreeMap::new();
         columns.insert(
@@ -704,5 +714,20 @@ mod tests {
         let empty_df = DataFrame::new(BTreeMap::new()).unwrap();
         let sorted_empty_df = empty_df.sort(vec!["col1".to_string()], true).unwrap();
         assert_eq!(sorted_empty_df.row_count(), 0);
+    }
+
+    #[test]
+    fn test_expression_evaluation() {
+        let mut columns = std::collections::BTreeMap::new();
+        columns.insert(
+            "c".to_string(),
+            Series::new_bool("c", vec![Some(true), Some(false), Some(true)]),
+        );
+        let df = DataFrame::new(columns).unwrap();
+
+        // Test Not
+        let expr = Expr::Not(Box::new(Expr::Column("c".to_string())));
+        assert_eq!(expr.evaluate(&df, 0).unwrap(), Value::Bool(false));
+        assert_eq!(expr.evaluate(&df, 1).unwrap(), Value::Bool(true));
     }
 }

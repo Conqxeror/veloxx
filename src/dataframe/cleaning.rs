@@ -48,7 +48,8 @@ impl DataFrame {
                 (crate::types::DataType::I32, Value::I32(_))
                 | (crate::types::DataType::F64, Value::F64(_))
                 | (crate::types::DataType::Bool, Value::Bool(_))
-                | (crate::types::DataType::String, Value::String(_)) => {
+                | (crate::types::DataType::String, Value::String(_))
+                | (crate::types::DataType::DateTime, Value::DateTime(_)) => {
                     series.fill_nulls(&value)?
                 }
                 _ => {

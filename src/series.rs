@@ -13,6 +13,8 @@ pub enum Series {
     Bool(String, Vec<Option<bool>>),
     /// A series containing string values.
     String(String, Vec<Option<String>>),
+    /// A series containing DateTime values (Unix timestamp i64).
+    DateTime(String, Vec<Option<i64>>),
 }
 
 impl Series {
@@ -36,6 +38,11 @@ impl Series {
         Series::String(name.to_string(), data)
     }
 
+    /// Creates a new `Series` of DateTime values.
+    pub fn new_datetime(name: &str, data: Vec<Option<i64>>) -> Self {
+        Series::DateTime(name.to_string(), data)
+    }
+
     /// Returns the name of the series.
     pub fn name(&self) -> &str {
         match self {
@@ -43,6 +50,7 @@ impl Series {
             Series::F64(name, _) => name,
             Series::Bool(name, _) => name,
             Series::String(name, _) => name,
+            Series::DateTime(name, _) => name,
         }
     }
 
@@ -53,6 +61,7 @@ impl Series {
             Series::F64(_, v) => v.len(),
             Series::Bool(_, v) => v.len(),
             Series::String(_, v) => v.len(),
+            Series::DateTime(_, v) => v.len(),
         }
     }
 
@@ -68,6 +77,7 @@ impl Series {
             Series::F64(_, _) => DataType::F64,
             Series::Bool(_, _) => DataType::Bool,
             Series::String(_, _) => DataType::String,
+            Series::DateTime(_, _) => DataType::DateTime,
         }
     }
 
@@ -78,6 +88,7 @@ impl Series {
             Series::F64(name, _) => *name = new_name.to_string(),
             Series::Bool(name, _) => *name = new_name.to_string(),
             Series::String(name, _) => *name = new_name.to_string(),
+            Series::DateTime(name, _) => *name = new_name.to_string(),
         }
     }
 
@@ -90,6 +101,7 @@ impl Series {
             Series::String(_, v) => v
                 .get(index)
                 .and_then(|val| val.as_ref().map(|s| Value::String(s.clone()))),
+            Series::DateTime(_, v) => v.get(index).and_then(|&val| val.map(Value::DateTime)),
         }
     }
 
@@ -116,6 +128,11 @@ impl Series {
                 let filtered_data: Vec<Option<String>> =
                     row_indices.iter().map(|&i| data[i].clone()).collect();
                 Ok(Series::String(name, filtered_data))
+            }
+            Series::DateTime(_, data) => {
+                let filtered_data: Vec<Option<i64>> =
+                    row_indices.iter().map(|&i| data[i]).collect();
+                Ok(Series::DateTime(name, filtered_data))
             }
         }
     }
@@ -172,6 +189,17 @@ impl Series {
                     ))
                 }
             }
+            Series::DateTime(_, data) => {
+                if let Value::DateTime(fill_val) = value {
+                    let filled_data: Vec<Option<i64>> =
+                        data.iter().map(|&x| x.or(Some(*fill_val))).collect();
+                    Ok(Series::DateTime(name, filled_data))
+                } else {
+                    Err(format!(
+                        "Type mismatch: Cannot fill DateTime series with {value:?}"
+                    ))
+                }
+            }
         }
     }
 
@@ -211,6 +239,23 @@ impl Series {
                     .map(|x| x.as_ref().and_then(|s| s.parse::<bool>().ok()))
                     .collect();
                 Ok(Series::Bool(name, casted_data))
+            }
+            (Series::I32(_, data), DataType::DateTime) => {
+                let casted_data: Vec<Option<i64>> =
+                    data.iter().map(|&x| x.map(|val| val as i64)).collect();
+                Ok(Series::DateTime(name, casted_data))
+            }
+            (Series::String(_, data), DataType::DateTime) => {
+                let casted_data: Vec<Option<i64>> = data
+                    .iter()
+                    .map(|x| x.as_ref().and_then(|s| s.parse::<i64>().ok()))
+                    .collect();
+                Ok(Series::DateTime(name, casted_data))
+            }
+            (Series::DateTime(_, data), DataType::String) => {
+                let casted_data: Vec<Option<String>> =
+                    data.iter().map(|&x| x.map(|val| val.to_string())).collect();
+                Ok(Series::String(name, casted_data))
             }
             (s, t) if s.data_type() == t => Ok(s.clone()),
             (_, to_type) => Err(format!(
@@ -254,6 +299,11 @@ impl Series {
                 new_data.extend(data2.iter().cloned());
                 Ok(Series::String(new_name, new_data))
             }
+            (Series::DateTime(_, data1), Series::DateTime(_, data2)) => {
+                let mut new_data = data1.to_vec();
+                new_data.extend(data2.iter().cloned());
+                Ok(Series::DateTime(new_name, new_data))
+            }
             _ => Err(
                 "Mismatched series types during append (should be caught by data_type check)."
                     .to_string(),
@@ -282,6 +332,14 @@ impl Series {
                 });
                 Ok(sum_val.map(Value::F64))
             }
+            Series::DateTime(_, data) => {
+                let sum_val = data.iter().fold(None, |acc, &x| match (acc, x) {
+                    (Some(current_sum), Some(val)) => Some(current_sum + val),
+                    (None, Some(val)) => Some(val),
+                    (acc, None) => acc,
+                });
+                Ok(sum_val.map(Value::DateTime))
+            }
             _ => Err(format!(
                 "Sum operation not supported for {:?} series.",
                 self.data_type()
@@ -296,6 +354,7 @@ impl Series {
             Series::F64(_, data) => data.iter().filter(|x| x.is_some()).count(),
             Series::Bool(_, data) => data.iter().filter(|x| x.is_some()).count(),
             Series::String(_, data) => data.iter().filter(|x| x.is_some()).count(),
+            Series::DateTime(_, data) => data.iter().filter(|x| x.is_some()).count(),
         }
     }
 
@@ -314,6 +373,10 @@ impl Series {
                     .filter_map(|&x| x)
                     .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                 Ok(min_val.map(Value::F64))
+            }
+            Series::DateTime(_, data) => {
+                let min_val = data.iter().filter_map(|&x| x).min();
+                Ok(min_val.map(Value::DateTime))
             }
             _ => Err(format!(
                 "Min operation not supported for {:?} series.",
@@ -337,6 +400,10 @@ impl Series {
                     .filter_map(|&x| x)
                     .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                 Ok(max_val.map(Value::F64))
+            }
+            Series::DateTime(_, data) => {
+                let max_val = data.iter().filter_map(|&x| x).max();
+                Ok(max_val.map(Value::DateTime))
             }
             _ => Err(format!(
                 "Max operation not supported for {:?} series.",
@@ -366,6 +433,15 @@ impl Series {
                     Ok(None)
                 } else {
                     Ok(Some(Value::F64(sum_val / count_val)))
+                }
+            }
+            Series::DateTime(_, data) => {
+                let sum_val: i64 = data.iter().filter_map(|&x| x).sum();
+                let count_val = data.iter().filter(|&x| x.is_some()).count() as i64;
+                if count_val == 0 {
+                    Ok(None)
+                } else {
+                    Ok(Some(Value::F64(sum_val as f64 / count_val as f64)))
                 }
             }
             _ => Err(format!(
@@ -410,6 +486,22 @@ impl Series {
                 } else {
                     // Odd number of elements
                     Ok(Some(Value::F64(non_null_data[mid])))
+                }
+            }
+            Series::DateTime(_, data) => {
+                let mut non_null_data: Vec<i64> = data.iter().filter_map(|&x| x).collect();
+                if non_null_data.is_empty() {
+                    return Ok(None);
+                }
+                non_null_data.sort_unstable();
+                let mid = non_null_data.len() / 2;
+                if non_null_data.len() % 2 == 0 {
+                    // Even number of elements
+                    let median_val = (non_null_data[mid - 1] + non_null_data[mid]) as f64 / 2.0;
+                    Ok(Some(Value::F64(median_val)))
+                } else {
+                    // Odd number of elements
+                    Ok(Some(Value::F64(non_null_data[mid] as f64)))
                 }
             }
             _ => Err(format!(
@@ -645,6 +737,12 @@ impl Series {
                 unique_data.dedup();
                 Ok(Series::String(name, unique_data))
             }
+            Series::DateTime(_, data) => {
+                let mut unique_data: Vec<Option<i64>> = data.to_vec();
+                unique_data.sort_unstable();
+                unique_data.dedup();
+                Ok(Series::DateTime(name, unique_data))
+            }
         }
     }
 
@@ -655,6 +753,9 @@ impl Series {
         match self {
             Series::I32(_, data) => Ok(data.iter().filter_map(|&x| x.map(|v| v as f64)).collect()),
             Series::F64(_, data) => Ok(data.iter().filter_map(|&x| x).collect()),
+            Series::DateTime(_, data) => {
+                Ok(data.iter().filter_map(|&x| x.map(|v| v as f64)).collect())
+            }
             _ => Err(format!(
                 "Cannot convert series of type {:?} to Vec<f64>.",
                 self.data_type()
@@ -795,6 +896,19 @@ impl Series {
                     .into_iter()
                     .map(|v| {
                         if let Some(Value::String(val)) = v {
+                            Some(val)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect(),
+            )),
+            Some(DataType::DateTime) => Ok(Series::new_datetime(
+                &name,
+                new_values
+                    .into_iter()
+                    .map(|v| {
+                        if let Some(Value::DateTime(val)) = v {
                             Some(val)
                         } else {
                             None

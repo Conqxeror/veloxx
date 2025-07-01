@@ -103,10 +103,12 @@ impl DataFrame {
             let mut col_data_f64: Vec<Option<f64>> = Vec::with_capacity(num_rows);
             let mut col_data_bool: Vec<Option<bool>> = Vec::with_capacity(num_rows);
             let mut col_data_string: Vec<Option<String>> = Vec::with_capacity(num_rows);
+            let mut col_data_datetime: Vec<Option<i64>> = Vec::with_capacity(num_rows);
 
             let mut is_i32 = true;
             let mut is_f64 = true;
             let mut is_bool = true;
+            let mut is_datetime = true;
             let is_string = true; // Always possible to be a string
 
             for data_row in all_rows_as_strings.iter().take(num_rows) {
@@ -154,6 +156,20 @@ impl DataFrame {
                     }
                 }
 
+                // Try parsing as datetime (i64 for Unix timestamp)
+                if is_datetime {
+                    match cell_val.parse::<i64>() {
+                        Ok(val) => col_data_datetime.push(Some(val)),
+                        Err(_) => {
+                            if cell_val.is_empty() {
+                                col_data_datetime.push(None);
+                            } else {
+                                is_datetime = false;
+                            }
+                        }
+                    }
+                }
+
                 // Always possible to be a string
                 if is_string {
                     if cell_val.is_empty() {
@@ -179,6 +195,11 @@ impl DataFrame {
                 columns.insert(
                     col_name.to_string(),
                     Series::new_bool(col_name, col_data_bool),
+                );
+            } else if is_datetime {
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_datetime(col_name, col_data_datetime),
                 );
             } else if is_string {
                 columns.insert(
@@ -232,11 +253,13 @@ impl DataFrame {
             let mut col_data_f64: Vec<Option<f64>> = Vec::with_capacity(num_rows);
             let mut col_data_bool: Vec<Option<bool>> = Vec::with_capacity(num_rows);
             let mut col_data_string: Vec<Option<String>> = Vec::with_capacity(num_rows);
+            let mut col_data_datetime: Vec<Option<i64>> = Vec::with_capacity(num_rows);
 
             let mut is_i32 = true;
             let mut is_f64 = true;
             let mut is_bool = true;
-            let is_string = true;
+            let mut is_datetime = true;
+            let is_string = true; // Always possible to be a string
 
             for data_row in data.iter().take(num_rows) {
                 let cell_val = &data_row[col_idx];
@@ -283,6 +306,20 @@ impl DataFrame {
                     }
                 }
 
+                // Try parsing as datetime (i64 for Unix timestamp)
+                if is_datetime {
+                    match cell_val.parse::<i64>() {
+                        Ok(val) => col_data_datetime.push(Some(val)),
+                        Err(_) => {
+                            if cell_val.is_empty() {
+                                col_data_datetime.push(None);
+                            } else {
+                                is_datetime = false;
+                            }
+                        }
+                    }
+                }
+
                 // Always possible to be a string
                 if is_string {
                     if cell_val.is_empty() {
@@ -308,6 +345,11 @@ impl DataFrame {
                 columns.insert(
                     col_name.to_string(),
                     Series::new_bool(col_name, col_data_bool),
+                );
+            } else if is_datetime {
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_datetime(col_name, col_data_datetime),
                 );
             } else if is_string {
                 columns.insert(
@@ -351,6 +393,7 @@ impl DataFrame {
                     Some(crate::types::Value::F64(v)) => v.to_string(),
                     Some(crate::types::Value::Bool(v)) => v.to_string(),
                     Some(crate::types::Value::String(v)) => v.to_string(),
+                    Some(crate::types::Value::DateTime(v)) => v.to_string(),
                     Some(crate::types::Value::Null) => "".to_string(),
                     None => "".to_string(),
                 };
@@ -398,6 +441,8 @@ impl DataFrame {
                     Some(crate::types::Value::String(s.to_string()))
                 } else if let Ok(b) = v.read_boolean() {
                     Some(crate::types::Value::Bool(b))
+                } else if let Ok(dt) = v.read_integer() {
+                    Some(crate::types::Value::DateTime(dt as i64))
                 } else {
                     None
                 };
@@ -458,6 +503,19 @@ impl DataFrame {
                         .into_iter()
                         .map(|v| match v {
                             Some(crate::types::Value::Bool(b)) => Some(b),
+                            _ => None,
+                        })
+                        .collect(),
+                )
+            } else if let Some(Some(crate::types::Value::DateTime(_))) =
+                values.iter().find(|v| v.is_some())
+            {
+                Series::new_datetime(
+                    &name,
+                    values
+                        .into_iter()
+                        .map(|v| match v {
+                            Some(crate::types::Value::DateTime(dt)) => Some(dt),
                             _ => None,
                         })
                         .collect(),

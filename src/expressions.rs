@@ -14,6 +14,24 @@ pub enum Expr {
     Multiply(Box<Expr>, Box<Expr>),
     /// Represents a division operation between two expressions.
     Divide(Box<Expr>, Box<Expr>),
+    /// Represents an equality comparison operation between two expressions.
+    Equals(Box<Expr>, Box<Expr>),
+    /// Represents a not-equals comparison operation between two expressions.
+    NotEquals(Box<Expr>, Box<Expr>),
+    /// Represents a greater-than comparison operation between two expressions.
+    GreaterThan(Box<Expr>, Box<Expr>),
+    /// Represents a less-than comparison operation between two expressions.
+    LessThan(Box<Expr>, Box<Expr>),
+    /// Represents a greater-than-or-equal comparison operation between two expressions.
+    GreaterThanOrEqual(Box<Expr>, Box<Expr>),
+    /// Represents a less-than-or-equal comparison operation between two expressions.
+    LessThanOrEqual(Box<Expr>, Box<Expr>),
+    /// Represents a logical AND operation between two expressions.
+    And(Box<Expr>, Box<Expr>),
+    /// Represents a logical OR operation between two expressions.
+    Or(Box<Expr>, Box<Expr>),
+    /// Represents a logical NOT operation on an expression.
+    Not(Box<Expr>),
 }
 
 impl Expr {
@@ -79,6 +97,75 @@ impl Expr {
                         Ok(Value::F64(l / r))
                     }
                     _ => Err("Unsupported types for division".to_string()),
+                }
+            }
+            Expr::Equals(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                Ok(Value::Bool(left_val == right_val))
+            }
+            Expr::NotEquals(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                Ok(Value::Bool(left_val != right_val))
+            }
+            Expr::GreaterThan(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                match (left_val, right_val) {
+                    (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l > r)),
+                    (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l > r)),
+                    _ => Err("Unsupported types for comparison".to_string()),
+                }
+            }
+            Expr::LessThan(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                match (left_val, right_val) {
+                    (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l < r)),
+                    (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l < r)),
+                    _ => Err("Unsupported types for comparison".to_string()),
+                }
+            }
+            Expr::GreaterThanOrEqual(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                match (left_val, right_val) {
+                    (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l >= r)),
+                    (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l >= r)),
+                    _ => Err("Unsupported types for comparison".to_string()),
+                }
+            }
+            Expr::LessThanOrEqual(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                match (left_val, right_val) {
+                    (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l <= r)),
+                    (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l <= r)),
+                    _ => Err("Unsupported types for comparison".to_string()),
+                }
+            }
+            Expr::And(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                match (left_val, right_val) {
+                    (Value::Bool(l), Value::Bool(r)) => Ok(Value::Bool(l && r)),
+                    _ => Err("Unsupported types for logical AND".to_string()),
+                }
+            }
+            Expr::Or(left, right) => {
+                let left_val = left.evaluate(df, row_index)?;
+                let right_val = right.evaluate(df, row_index)?;
+                match (left_val, right_val) {
+                    (Value::Bool(l), Value::Bool(r)) => Ok(Value::Bool(l || r)),
+                    _ => Err("Unsupported types for logical OR".to_string()),
+                }
+            }
+            Expr::Not(expr) => {
+                let val = expr.evaluate(df, row_index)?;
+                match val {
+                    Value::Bool(b) => Ok(Value::Bool(!b)),
+                    _ => Err("Unsupported type for logical NOT".to_string()),
                 }
             }
         }
