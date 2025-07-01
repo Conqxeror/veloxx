@@ -6,6 +6,8 @@
 //! compile-time guarantees, making it suitable for high-performance and
 //! resource-constrained environments.
 
+//! ![Veloxx Logo](https://raw.githubusercontent.com/Conqxeror/veloxx/main/docs/veloxx_logo.png)
+
 /// Defines conditions used for filtering DataFrames, supporting various comparison
 /// and logical operations.
 pub mod conditions;

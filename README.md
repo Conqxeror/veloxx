@@ -1,5 +1,7 @@
 # Veloxx: Lightweight Rust-Powered Data Processing & Analytics Library
 
+![Veloxx Logo](docs/veloxx_logo.png)
+
 [![crates.io](https://img.shields.io/crates/v/veloxx.svg)](https://crates.io/crates/veloxx)
 
 Veloxx is a new Rust library designed for highly performant and **extremely lightweight** in-memory data processing and analytics. It prioritizes minimal dependencies, optimal memory footprint, and compile-time guarantees, making it an ideal choice for resource-constrained environments, high-performance computing, and applications where every byte and cycle counts.
