@@ -1,6 +1,5 @@
 use crate::types::{DataType, Value};
 
-
 /// Represents a single-typed, named column of data within a DataFrame.
 ///
 /// Supports various data types including integers, floats, booleans, and strings.
@@ -88,7 +87,9 @@ impl Series {
             Series::I32(_, v) => v.get(index).and_then(|&val| val.map(Value::I32)),
             Series::F64(_, v) => v.get(index).and_then(|&val| val.map(Value::F64)),
             Series::Bool(_, v) => v.get(index).and_then(|&val| val.map(Value::Bool)),
-            Series::String(_, v) => v.get(index).and_then(|val| val.as_ref().map(|s| Value::String(s.clone()))),
+            Series::String(_, v) => v
+                .get(index)
+                .and_then(|val| val.as_ref().map(|s| Value::String(s.clone()))),
         }
     }
 
@@ -97,19 +98,23 @@ impl Series {
         let name = self.name().to_string();
         match self {
             Series::I32(_, data) => {
-                let filtered_data: Vec<Option<i32>> = row_indices.iter().map(|&i| data[i]).collect();
+                let filtered_data: Vec<Option<i32>> =
+                    row_indices.iter().map(|&i| data[i]).collect();
                 Ok(Series::I32(name, filtered_data))
             }
             Series::F64(_, data) => {
-                let filtered_data: Vec<Option<f64>> = row_indices.iter().map(|&i| data[i]).collect();
+                let filtered_data: Vec<Option<f64>> =
+                    row_indices.iter().map(|&i| data[i]).collect();
                 Ok(Series::F64(name, filtered_data))
             }
             Series::Bool(_, data) => {
-                let filtered_data: Vec<Option<bool>> = row_indices.iter().map(|&i| data[i]).collect();
+                let filtered_data: Vec<Option<bool>> =
+                    row_indices.iter().map(|&i| data[i]).collect();
                 Ok(Series::Bool(name, filtered_data))
             }
             Series::String(_, data) => {
-                let filtered_data: Vec<Option<String>> = row_indices.iter().map(|&i| data[i].clone()).collect();
+                let filtered_data: Vec<Option<String>> =
+                    row_indices.iter().map(|&i| data[i].clone()).collect();
                 Ok(Series::String(name, filtered_data))
             }
         }
@@ -123,34 +128,48 @@ impl Series {
         match self {
             Series::I32(_, data) => {
                 if let Value::I32(fill_val) = value {
-                    let filled_data: Vec<Option<i32>> = data.iter().map(|&x| x.or(Some(*fill_val))).collect();
+                    let filled_data: Vec<Option<i32>> =
+                        data.iter().map(|&x| x.or(Some(*fill_val))).collect();
                     Ok(Series::I32(name, filled_data))
                 } else {
-                    Err(format!("Type mismatch: Cannot fill I32 series with {value:?}"))
+                    Err(format!(
+                        "Type mismatch: Cannot fill I32 series with {value:?}"
+                    ))
                 }
             }
             Series::F64(_, data) => {
                 if let Value::F64(fill_val) = value {
-                    let filled_data: Vec<Option<f64>> = data.iter().map(|&x| x.or(Some(*fill_val))).collect();
+                    let filled_data: Vec<Option<f64>> =
+                        data.iter().map(|&x| x.or(Some(*fill_val))).collect();
                     Ok(Series::F64(name, filled_data))
                 } else {
-                    Err(format!("Type mismatch: Cannot fill F64 series with {value:?}"))
+                    Err(format!(
+                        "Type mismatch: Cannot fill F64 series with {value:?}"
+                    ))
                 }
             }
             Series::Bool(_, data) => {
                 if let Value::Bool(fill_val) = value {
-                    let filled_data: Vec<Option<bool>> = data.iter().map(|&x| x.or(Some(*fill_val))).collect();
+                    let filled_data: Vec<Option<bool>> =
+                        data.iter().map(|&x| x.or(Some(*fill_val))).collect();
                     Ok(Series::Bool(name, filled_data))
                 } else {
-                    Err(format!("Type mismatch: Cannot fill Bool series with {value:?}"))
+                    Err(format!(
+                        "Type mismatch: Cannot fill Bool series with {value:?}"
+                    ))
                 }
             }
             Series::String(_, data) => {
                 if let Value::String(fill_val) = value {
-                    let filled_data: Vec<Option<String>> = data.iter().map(|x| x.clone().or(Some(fill_val.clone()))).collect();
+                    let filled_data: Vec<Option<String>> = data
+                        .iter()
+                        .map(|x| x.clone().or(Some(fill_val.clone())))
+                        .collect();
                     Ok(Series::String(name, filled_data))
                 } else {
-                    Err(format!("Type mismatch: Cannot fill String series with {value:?}"))
+                    Err(format!(
+                        "Type mismatch: Cannot fill String series with {value:?}"
+                    ))
                 }
             }
         }
@@ -163,35 +182,42 @@ impl Series {
         let name = self.name().to_string();
         match (self, to_type) {
             (Series::I32(_, data), DataType::F64) => {
-                let casted_data: Vec<Option<f64>> = data.iter().map(|&x| x.map(|val| val as f64)).collect();
+                let casted_data: Vec<Option<f64>> =
+                    data.iter().map(|&x| x.map(|val| val as f64)).collect();
                 Ok(Series::F64(name, casted_data))
             }
             (Series::F64(_, data), DataType::I32) => {
-                let casted_data: Vec<Option<i32>> = data.iter().map(|&x| x.map(|val| val as i32)).collect();
+                let casted_data: Vec<Option<i32>> =
+                    data.iter().map(|&x| x.map(|val| val as i32)).collect();
                 Ok(Series::I32(name, casted_data))
             }
             (Series::String(_, data), DataType::I32) => {
-                let casted_data: Vec<Option<i32>> = data.iter().map(|x| {
-                    x.as_ref().and_then(|s| s.parse::<i32>().ok())
-                }).collect();
+                let casted_data: Vec<Option<i32>> = data
+                    .iter()
+                    .map(|x| x.as_ref().and_then(|s| s.parse::<i32>().ok()))
+                    .collect();
                 Ok(Series::I32(name, casted_data))
             }
             (Series::String(_, data), DataType::F64) => {
-                let casted_data: Vec<Option<f64>> = data.iter().map(|x| {
-                    x.as_ref().and_then(|s| s.parse::<f64>().ok())
-                }).collect();
+                let casted_data: Vec<Option<f64>> = data
+                    .iter()
+                    .map(|x| x.as_ref().and_then(|s| s.parse::<f64>().ok()))
+                    .collect();
                 Ok(Series::F64(name, casted_data))
             }
             (Series::String(_, data), DataType::Bool) => {
-                let casted_data: Vec<Option<bool>> = data.iter().map(|x| {
-                    x.as_ref().and_then(|s| s.parse::<bool>().ok())
-                }).collect();
+                let casted_data: Vec<Option<bool>> = data
+                    .iter()
+                    .map(|x| x.as_ref().and_then(|s| s.parse::<bool>().ok()))
+                    .collect();
                 Ok(Series::Bool(name, casted_data))
             }
-            (s, t) if s.data_type() == t => {
-                Ok(s.clone())
-            }
-            (_, to_type) => Err(format!("Unsupported cast from {:?} to {:?}", self.data_type(), to_type)),
+            (s, t) if s.data_type() == t => Ok(s.clone()),
+            (_, to_type) => Err(format!(
+                "Unsupported cast from {:?} to {:?}",
+                self.data_type(),
+                to_type
+            )),
         }
     }
 
@@ -200,7 +226,11 @@ impl Series {
     /// Returns an error if the series have different data types.
     pub fn append(&self, other: &Series) -> Result<Self, String> {
         if self.data_type() != other.data_type() {
-            return Err(format!("Cannot append Series of different types: {:?} and {:?}", self.data_type(), other.data_type()));
+            return Err(format!(
+                "Cannot append Series of different types: {:?} and {:?}",
+                self.data_type(),
+                other.data_type()
+            ));
         }
         let new_name = self.name().to_string();
         match (self, other) {
@@ -224,7 +254,10 @@ impl Series {
                 new_data.extend(data2.iter().cloned());
                 Ok(Series::String(new_name, new_data))
             }
-            _ => Err("Mismatched series types during append (should be caught by data_type check).".to_string()),
+            _ => Err(
+                "Mismatched series types during append (should be caught by data_type check)."
+                    .to_string(),
+            ),
         }
     }
 
@@ -234,26 +267,25 @@ impl Series {
     pub fn sum(&self) -> Result<Option<Value>, String> {
         match self {
             Series::I32(_, data) => {
-                let sum_val = data.iter().fold(None, |acc, &x| {
-                    match (acc, x) {
-                        (Some(current_sum), Some(val)) => Some(current_sum + val),
-                        (None, Some(val)) => Some(val),
-                        (acc, None) => acc,
-                    }
+                let sum_val = data.iter().fold(None, |acc, &x| match (acc, x) {
+                    (Some(current_sum), Some(val)) => Some(current_sum + val),
+                    (None, Some(val)) => Some(val),
+                    (acc, None) => acc,
                 });
                 Ok(sum_val.map(Value::I32))
             }
             Series::F64(_, data) => {
-                let sum_val = data.iter().fold(None, |acc, &x| {
-                    match (acc, x) {
-                        (Some(current_sum), Some(val)) => Some(current_sum + val),
-                        (None, Some(val)) => Some(val),
-                        (acc, None) => acc,
-                    }
+                let sum_val = data.iter().fold(None, |acc, &x| match (acc, x) {
+                    (Some(current_sum), Some(val)) => Some(current_sum + val),
+                    (None, Some(val)) => Some(val),
+                    (acc, None) => acc,
                 });
                 Ok(sum_val.map(Value::F64))
             }
-            _ => Err(format!("Sum operation not supported for {:?} series.", self.data_type())),
+            _ => Err(format!(
+                "Sum operation not supported for {:?} series.",
+                self.data_type()
+            )),
         }
     }
 
@@ -277,10 +309,16 @@ impl Series {
                 Ok(min_val.map(Value::I32))
             }
             Series::F64(_, data) => {
-                let min_val = data.iter().filter_map(|&x| x).min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+                let min_val = data
+                    .iter()
+                    .filter_map(|&x| x)
+                    .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                 Ok(min_val.map(Value::F64))
             }
-            _ => Err(format!("Min operation not supported for {:?} series.", self.data_type())),
+            _ => Err(format!(
+                "Min operation not supported for {:?} series.",
+                self.data_type()
+            )),
         }
     }
 
@@ -294,10 +332,16 @@ impl Series {
                 Ok(max_val.map(Value::I32))
             }
             Series::F64(_, data) => {
-                let max_val = data.iter().filter_map(|&x| x).max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+                let max_val = data
+                    .iter()
+                    .filter_map(|&x| x)
+                    .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                 Ok(max_val.map(Value::F64))
             }
-            _ => Err(format!("Max operation not supported for {:?} series.", self.data_type())),
+            _ => Err(format!(
+                "Max operation not supported for {:?} series.",
+                self.data_type()
+            )),
         }
     }
 
@@ -324,7 +368,10 @@ impl Series {
                     Ok(Some(Value::F64(sum_val / count_val)))
                 }
             }
-            _ => Err(format!("Mean operation not supported for {:?} series.", self.data_type())),
+            _ => Err(format!(
+                "Mean operation not supported for {:?} series.",
+                self.data_type()
+            )),
         }
     }
 
@@ -365,7 +412,10 @@ impl Series {
                     Ok(Some(Value::F64(non_null_data[mid])))
                 }
             }
-            _ => Err(format!("Median operation not supported for {:?} series.", self.data_type())),
+            _ => Err(format!(
+                "Median operation not supported for {:?} series.",
+                self.data_type()
+            )),
         }
     }
 
@@ -375,13 +425,18 @@ impl Series {
     pub fn std_dev(&self) -> Result<Option<Value>, String> {
         match self {
             Series::I32(_, data) => {
-                let non_null_data: Vec<f64> = data.iter().filter_map(|&x| x.map(|v| v as f64)).collect();
+                let non_null_data: Vec<f64> =
+                    data.iter().filter_map(|&x| x.map(|v| v as f64)).collect();
                 let n = non_null_data.len();
                 if n < 2 {
                     return Ok(None);
                 }
                 let mean = non_null_data.iter().sum::<f64>() / n as f64;
-                let variance = non_null_data.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (n - 1) as f64;
+                let variance = non_null_data
+                    .iter()
+                    .map(|x| (x - mean).powi(2))
+                    .sum::<f64>()
+                    / (n - 1) as f64;
                 Ok(Some(Value::F64(variance.sqrt())))
             }
             Series::F64(_, data) => {
@@ -391,10 +446,17 @@ impl Series {
                     return Ok(None);
                 }
                 let mean = non_null_data.iter().sum::<f64>() / n as f64;
-                let variance = non_null_data.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (n - 1) as f64;
+                let variance = non_null_data
+                    .iter()
+                    .map(|x| (x - mean).powi(2))
+                    .sum::<f64>()
+                    / (n - 1) as f64;
                 Ok(Some(Value::F64(variance.sqrt())))
             }
-            _ => Err(format!("Standard deviation operation not supported for {:?} series.", self.data_type())),
+            _ => Err(format!(
+                "Standard deviation operation not supported for {:?} series.",
+                self.data_type()
+            )),
         }
     }
 
@@ -404,35 +466,51 @@ impl Series {
     /// for the series' data types.
     pub fn correlation(&self, other: &Series) -> Result<Option<Value>, String> {
         if self.len() != other.len() {
-            return Err("Series must have the same length for correlation calculation.".to_string());
+            return Err(
+                "Series must have the same length for correlation calculation.".to_string(),
+            );
         }
 
         match (self, other) {
             (Series::I32(_, data1), Series::I32(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
-                    .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val as f64, y_val as f64))))
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
+                    .filter_map(|(&x, &y)| {
+                        x.and_then(|x_val| y.map(|y_val| (x_val as f64, y_val as f64)))
+                    })
                     .unzip();
                 Self::calculate_correlation(&x_vals, &y_vals)
             }
             (Series::F64(_, data1), Series::F64(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
                     .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val, y_val))))
                     .unzip();
                 Self::calculate_correlation(&x_vals, &y_vals)
             }
             (Series::I32(_, data1), Series::F64(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
                     .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val as f64, y_val))))
                     .unzip();
                 Self::calculate_correlation(&x_vals, &y_vals)
             }
             (Series::F64(_, data1), Series::I32(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
                     .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val, y_val as f64))))
                     .unzip();
                 Self::calculate_correlation(&x_vals, &y_vals)
             }
-            _ => Err(format!("Correlation not supported for series of types {:?} and {:?}", self.data_type(), other.data_type())),
+            _ => Err(format!(
+                "Correlation not supported for series of types {:?} and {:?}",
+                self.data_type(),
+                other.data_type()
+            )),
         }
     }
 
@@ -448,7 +526,9 @@ impl Series {
         let mean_x = sum_x / n as f64;
         let mean_y = sum_y / n as f64;
 
-        let numerator: f64 = x_vals.iter().zip(y_vals.iter())
+        let numerator: f64 = x_vals
+            .iter()
+            .zip(y_vals.iter())
             .map(|(&x, &y)| (x - mean_x) * (y - mean_y))
             .sum();
 
@@ -475,30 +555,44 @@ impl Series {
 
         match (self, other) {
             (Series::I32(_, data1), Series::I32(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
-                    .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val as f64, y_val as f64))))
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
+                    .filter_map(|(&x, &y)| {
+                        x.and_then(|x_val| y.map(|y_val| (x_val as f64, y_val as f64)))
+                    })
                     .unzip();
                 Self::calculate_covariance(&x_vals, &y_vals)
             }
             (Series::F64(_, data1), Series::F64(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
                     .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val, y_val))))
                     .unzip();
                 Self::calculate_covariance(&x_vals, &y_vals)
             }
             (Series::I32(_, data1), Series::F64(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
                     .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val as f64, y_val))))
                     .unzip();
                 Self::calculate_covariance(&x_vals, &y_vals)
             }
             (Series::F64(_, data1), Series::I32(_, data2)) => {
-                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1.iter().zip(data2.iter())
+                let (x_vals, y_vals): (Vec<f64>, Vec<f64>) = data1
+                    .iter()
+                    .zip(data2.iter())
                     .filter_map(|(&x, &y)| x.and_then(|x_val| y.map(|y_val| (x_val, y_val as f64))))
                     .unzip();
                 Self::calculate_covariance(&x_vals, &y_vals)
             }
-            _ => Err(format!("Covariance not supported for series of types {:?} and {:?}", self.data_type(), other.data_type())),
+            _ => Err(format!(
+                "Covariance not supported for series of types {:?} and {:?}",
+                self.data_type(),
+                other.data_type()
+            )),
         }
     }
 
@@ -514,7 +608,9 @@ impl Series {
         let mean_x = sum_x / n as f64;
         let mean_y = sum_y / n as f64;
 
-        let numerator: f64 = x_vals.iter().zip(y_vals.iter())
+        let numerator: f64 = x_vals
+            .iter()
+            .zip(y_vals.iter())
             .map(|(&x, &y)| (x - mean_x) * (y - mean_y))
             .sum();
 
@@ -559,7 +655,10 @@ impl Series {
         match self {
             Series::I32(_, data) => Ok(data.iter().filter_map(|&x| x.map(|v| v as f64)).collect()),
             Series::F64(_, data) => Ok(data.iter().filter_map(|&x| x).collect()),
-            _ => Err(format!("Cannot convert series of type {:?} to Vec<f64>.", self.data_type())),
+            _ => Err(format!(
+                "Cannot convert series of type {:?} to Vec<f64>.",
+                self.data_type()
+            )),
         }
     }
 
@@ -581,13 +680,15 @@ impl Series {
                         last_known_idx = Some(i);
                     } else if let Some(prev_idx) = last_known_idx {
                         // Find next non-null value
-                        let next_known_idx = (i..interpolated_data.len())
-                            .find(|&j| interpolated_data[j].is_some());
+                        let next_known_idx =
+                            (i..interpolated_data.len()).find(|&j| interpolated_data[j].is_some());
 
                         if let Some(next_idx) = next_known_idx {
                             let prev_val = interpolated_data[prev_idx].unwrap() as f64;
                             let next_val = interpolated_data[next_idx].unwrap() as f64;
-                            let interpolated_val = prev_val + (next_val - prev_val) * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
+                            let interpolated_val = prev_val
+                                + (next_val - prev_val)
+                                    * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
                             interpolated_data[i] = Some(interpolated_val as i32);
                         }
                     }
@@ -604,20 +705,25 @@ impl Series {
                         last_known_idx = Some(i);
                     } else if let Some(prev_idx) = last_known_idx {
                         // Find next non-null value
-                        let next_known_idx = (i..interpolated_data.len())
-                            .find(|&j| interpolated_data[j].is_some());
+                        let next_known_idx =
+                            (i..interpolated_data.len()).find(|&j| interpolated_data[j].is_some());
 
                         if let Some(next_idx) = next_known_idx {
                             let prev_val = interpolated_data[prev_idx].unwrap();
                             let next_val = interpolated_data[next_idx].unwrap();
-                            let interpolated_val = prev_val + (next_val - prev_val) * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
+                            let interpolated_val = prev_val
+                                + (next_val - prev_val)
+                                    * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
                             interpolated_data[i] = Some(interpolated_val);
                         }
                     }
                 }
                 Ok(Series::F64(name, interpolated_data))
             }
-            _ => Err(format!("Interpolate nulls operation not supported for {:?} series.", self.data_type())),
+            _ => Err(format!(
+                "Interpolate nulls operation not supported for {:?} series.",
+                self.data_type()
+            )),
         }
     }
 
@@ -648,33 +754,55 @@ impl Series {
                 &name,
                 new_values
                     .into_iter()
-                    .map(|v| if let Some(Value::I32(val)) = v { Some(val) } else { None })
+                    .map(|v| {
+                        if let Some(Value::I32(val)) = v {
+                            Some(val)
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
             )),
             Some(DataType::F64) => Ok(Series::new_f64(
                 &name,
                 new_values
                     .into_iter()
-                    .map(|v| if let Some(Value::F64(val)) = v { Some(val) } else { None })
+                    .map(|v| {
+                        if let Some(Value::F64(val)) = v {
+                            Some(val)
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
             )),
             Some(DataType::Bool) => Ok(Series::new_bool(
                 &name,
                 new_values
                     .into_iter()
-                    .map(|v| if let Some(Value::Bool(val)) = v { Some(val) } else { None })
+                    .map(|v| {
+                        if let Some(Value::Bool(val)) = v {
+                            Some(val)
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
             )),
             Some(DataType::String) => Ok(Series::new_string(
                 &name,
                 new_values
                     .into_iter()
-                    .map(|v| if let Some(Value::String(val)) = v { Some(val) } else { None })
+                    .map(|v| {
+                        if let Some(Value::String(val)) = v {
+                            Some(val)
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
             )),
             None => Ok(Series::new_string(&name, vec![None; self.len()])), // All nulls, default to String
-            
         }
     }
 }
-
