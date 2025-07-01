@@ -7,7 +7,7 @@ license = "MIT"
 authors = ["Wali Mohammad Kadri"]
 homepage = "https://github.com/Conqxeror/velox"
 repository = "https://github.com/Conqxeror/velox"
-keywords = ["dataframe", "series", "data-processing", "analytics", "lightweight", "high-performance", "csv", "json", "statistics", "data-science"]
+keywords = ["dataframe", "data-processing", "analytics", "high-performance", "lightweight"]
 categories = ["data-structures", "science", "parsing", "api-bindings"]
 
 [lib]
