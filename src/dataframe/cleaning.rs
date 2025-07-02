@@ -7,20 +7,13 @@ impl DataFrame {
     /// # Returns
     /// A `Result` containing a new `DataFrame` with null rows dropped, or a `String` error message.
     pub fn drop_nulls(&self) -> Result<Self, String> {
-        let mut row_indices_to_keep: Vec<usize> = Vec::new();
-
-        for i in 0..self.row_count {
-            let mut has_null = false;
-            for (_, series) in self.columns.iter() {
-                if series.get_value(i).is_none() {
-                    has_null = true;
-                    break;
-                }
-            }
-            if !has_null {
-                row_indices_to_keep.push(i);
-            }
-        }
+        let row_indices_to_keep: Vec<usize> = (0..self.row_count)
+            .filter(|&i| {
+                self.columns
+                    .values()
+                    .all(|series| series.get_value(i).is_some())
+            })
+            .collect();
 
         let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
         for (col_name, series) in self.columns.iter() {
@@ -44,18 +37,10 @@ impl DataFrame {
         let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
 
         for (col_name, series) in self.columns.iter() {
-            let new_series = match (series.data_type(), &value) {
-                (crate::types::DataType::I32, Value::I32(_))
-                | (crate::types::DataType::F64, Value::F64(_))
-                | (crate::types::DataType::Bool, Value::Bool(_))
-                | (crate::types::DataType::String, Value::String(_))
-                | (crate::types::DataType::DateTime, Value::DateTime(_)) => {
-                    series.fill_nulls(&value)?
-                }
-                _ => {
-                    // If types don't match, just clone the original series
-                    series.clone()
-                }
+            let new_series = if series.data_type() == value.data_type() {
+                series.fill_nulls(&value)?
+            } else {
+                series.clone()
             };
             new_columns.insert(col_name.clone(), new_series);
         }

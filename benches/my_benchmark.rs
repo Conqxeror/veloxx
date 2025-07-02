@@ -127,11 +127,8 @@ fn bench_series_apply(c: &mut Criterion) {
     c.bench_function("series_apply_i32", |b| {
         b.iter(|| {
             series_i32
-                .apply(|v| {
-                    v.map(|val| match val {
-                        veloxx::types::Value::I32(x) => veloxx::types::Value::I32(x * 2),
-                        _ => panic!("Unexpected type"),
-                    })
+                .apply_i32(|v| {
+                    v.map(|x| x * 2)
                 })
                 .unwrap();
         });
@@ -140,11 +137,8 @@ fn bench_series_apply(c: &mut Criterion) {
     c.bench_function("series_apply_f64", |b| {
         b.iter(|| {
             series_f64
-                .apply(|v| {
-                    v.map(|val| match val {
-                        veloxx::types::Value::F64(x) => veloxx::types::Value::F64(x * 2.0),
-                        _ => panic!("Unexpected type"),
-                    })
+                .apply_f64(|v| {
+                    v.map(|x| x * 2.0)
                 })
                 .unwrap();
         });
@@ -153,13 +147,8 @@ fn bench_series_apply(c: &mut Criterion) {
     c.bench_function("series_apply_string", |b| {
         b.iter(|| {
             series_string
-                .apply(|v| {
-                    v.map(|val| match val {
-                        veloxx::types::Value::String(s) => {
-                            veloxx::types::Value::String(format!("{s}-suffix"))
-                        }
-                        _ => panic!("Unexpected type"),
-                    })
+                .apply_string(|v| {
+                    v.map(|s| format!("{s}-suffix"))
                 })
                 .unwrap();
         });
@@ -187,19 +176,19 @@ fn bench_dataframe_from_vec_of_vec(c: &mut Criterion) {
 
 fn bench_dataframe_drop_nulls(c: &mut Criterion) {
     let mut columns = BTreeMap::new();
-    let data_with_nulls_i32: Vec<Option<i32>> = (0..1000)
-        .map(|i| if i % 10 == 0 { None } else { Some(i) })
-        .collect();
-    let data_with_nulls_f64: Vec<Option<f64>> = (0..1000)
-        .map(|i| if i % 10 == 0 { None } else { Some(i as f64) })
-        .collect();
     columns.insert(
         "col1".to_string(),
-        Series::new_i32("col1", data_with_nulls_i32),
+        Series::new_i32(
+            "col1",
+            (0..1000).map(|i| if i % 10 == 0 { None } else { Some(i) }).collect(),
+        ),
     );
     columns.insert(
         "col2".to_string(),
-        Series::new_f64("col2", data_with_nulls_f64),
+        Series::new_f64(
+            "col2",
+            (0..1000).map(|i| if i % 10 == 0 { None } else { Some(i as f64) }).collect(),
+        ),
     );
     let df = DataFrame::new(columns).unwrap();
 
@@ -211,34 +200,38 @@ fn bench_dataframe_drop_nulls(c: &mut Criterion) {
 }
 
 fn bench_dataframe_fill_nulls(c: &mut Criterion) {
-    let mut columns = BTreeMap::new();
     let data_with_nulls_i32: Vec<Option<i32>> = (0..1000)
         .map(|i| if i % 10 == 0 { None } else { Some(i) })
         .collect();
     let data_with_nulls_f64: Vec<Option<f64>> = (0..1000)
         .map(|i| if i % 10 == 0 { None } else { Some(i as f64) })
         .collect();
-    columns.insert(
+
+    let mut columns_i32 = BTreeMap::new();
+    columns_i32.insert(
         "col1".to_string(),
-        Series::new_i32("col1", data_with_nulls_i32),
+        Series::new_i32("col1", data_with_nulls_i32.clone()),
     );
-    columns.insert(
-        "col2".to_string(),
-        Series::new_f64("col2", data_with_nulls_f64),
-    );
-    let df = DataFrame::new(columns).unwrap();
+    let df_i32 = DataFrame::new(columns_i32).unwrap();
     let fill_value_i32 = veloxx::types::Value::I32(999);
+
+    let mut columns_f64 = BTreeMap::new();
+    columns_f64.insert(
+        "col1".to_string(),
+        Series::new_f64("col1", data_with_nulls_f64.clone()),
+    );
+    let df_f64 = DataFrame::new(columns_f64).unwrap();
     let fill_value_f64 = veloxx::types::Value::F64(999.99);
 
     c.bench_function("dataframe_fill_nulls_i32", |b| {
         b.iter(|| {
-            df.fill_nulls(fill_value_i32.clone()).unwrap();
+            df_i32.fill_nulls(fill_value_i32.clone()).unwrap();
         });
     });
 
     c.bench_function("dataframe_fill_nulls_f64", |b| {
         b.iter(|| {
-            df.fill_nulls(fill_value_f64.clone()).unwrap();
+            df_f64.fill_nulls(fill_value_f64.clone()).unwrap();
         });
     });
 }
@@ -249,7 +242,7 @@ fn bench_series_cast(c: &mut Criterion) {
     let series_string_i32 =
         Series::new_string("data", (0..1000).map(|i| Some(i.to_string())).collect());
     let series_string_f64 =
-        Series::new_string("data", (0..1000).map(|i| Some(format!("{i}.0"))).collect());
+        Series::new_string("data", (0..1000).map(|i| Some(format!("{}.0", i))).collect());
 
     c.bench_function("series_cast_i32_to_f64", |b| {
         b.iter(|| {
@@ -408,9 +401,28 @@ fn bench_series_interpolate_nulls(c: &mut Criterion) {
             .collect(),
     );
 
-    c.bench_function("series_interpolate_nulls", |b| {
+    c.bench_function("series_interpolate_nulls_i32", |b| {
         b.iter(|| {
             series_i32.interpolate_nulls().unwrap();
+        });
+    });
+
+    let series_f64 = Series::new_f64(
+        "data",
+        (0..1000)
+            .map(|i| {
+                if i % 5 == 0 {
+                    None
+                } else {
+                    Some(i as f64)
+                }
+            })
+            .collect(),
+    );
+
+    c.bench_function("series_interpolate_nulls_f64", |b| {
+        b.iter(|| {
+            series_f64.interpolate_nulls().unwrap();
         });
     });
 }

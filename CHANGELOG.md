@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1 - 2025-07-02
+
+### Improved
+- Major performance improvements across all core DataFrame and Series operations, including:
+  - Optimized join, filter, sort, and aggregation logic.
+  - Faster unique value extraction and null interpolation.
+  - Type-specific apply methods for Series.
+  - More efficient CSV/JSON ingestion and type inference.
+- All benchmarks show significant speedups (see README and benchmarks).
+
 ## 0.2.0 - 2025-07-02
 
 ### Added

@@ -1,4 +1,5 @@
 use crate::types::{DataType, Value};
+use std::collections::HashSet;
 
 /// Represents a single-typed, named column of data within a DataFrame.
 ///
@@ -209,54 +210,46 @@ impl Series {
     pub fn cast(&self, to_type: DataType) -> Result<Self, String> {
         let name = self.name().to_string();
         match (self, to_type) {
-            (Series::I32(_, data), DataType::F64) => {
-                let casted_data: Vec<Option<f64>> =
-                    data.iter().map(|&x| x.map(|val| val as f64)).collect();
-                Ok(Series::F64(name, casted_data))
-            }
-            (Series::F64(_, data), DataType::I32) => {
-                let casted_data: Vec<Option<i32>> =
-                    data.iter().map(|&x| x.map(|val| val as i32)).collect();
-                Ok(Series::I32(name, casted_data))
-            }
-            (Series::String(_, data), DataType::I32) => {
-                let casted_data: Vec<Option<i32>> = data
-                    .iter()
+            (Series::I32(_, data), DataType::F64) => Ok(Series::F64(
+                name,
+                data.iter().map(|&x| x.map(|val| val as f64)).collect(),
+            )),
+            (Series::F64(_, data), DataType::I32) => Ok(Series::I32(
+                name,
+                data.iter().map(|&x| x.map(|val| val as i32)).collect(),
+            )),
+            (Series::String(_, data), DataType::I32) => Ok(Series::I32(
+                name,
+                data.iter()
                     .map(|x| x.as_ref().and_then(|s| s.parse::<i32>().ok()))
-                    .collect();
-                Ok(Series::I32(name, casted_data))
-            }
-            (Series::String(_, data), DataType::F64) => {
-                let casted_data: Vec<Option<f64>> = data
-                    .iter()
+                    .collect::<Vec<Option<i32>>>(),
+            )),
+            (Series::String(_, data), DataType::F64) => Ok(Series::F64(
+                name,
+                data.iter()
                     .map(|x| x.as_ref().and_then(|s| s.parse::<f64>().ok()))
-                    .collect();
-                Ok(Series::F64(name, casted_data))
-            }
-            (Series::String(_, data), DataType::Bool) => {
-                let casted_data: Vec<Option<bool>> = data
-                    .iter()
+                    .collect::<Vec<Option<f64>>>(),
+            )),
+            (Series::String(_, data), DataType::Bool) => Ok(Series::Bool(
+                name,
+                data.iter()
                     .map(|x| x.as_ref().and_then(|s| s.parse::<bool>().ok()))
-                    .collect();
-                Ok(Series::Bool(name, casted_data))
-            }
-            (Series::I32(_, data), DataType::DateTime) => {
-                let casted_data: Vec<Option<i64>> =
-                    data.iter().map(|&x| x.map(|val| val as i64)).collect();
-                Ok(Series::DateTime(name, casted_data))
-            }
-            (Series::String(_, data), DataType::DateTime) => {
-                let casted_data: Vec<Option<i64>> = data
-                    .iter()
+                    .collect(),
+            )),
+            (Series::I32(_, data), DataType::DateTime) => Ok(Series::DateTime(
+                name,
+                data.iter().map(|&x| x.map(|val| val as i64)).collect(),
+            )),
+            (Series::String(_, data), DataType::DateTime) => Ok(Series::DateTime(
+                name,
+                data.iter()
                     .map(|x| x.as_ref().and_then(|s| s.parse::<i64>().ok()))
-                    .collect();
-                Ok(Series::DateTime(name, casted_data))
-            }
-            (Series::DateTime(_, data), DataType::String) => {
-                let casted_data: Vec<Option<String>> =
-                    data.iter().map(|&x| x.map(|val| val.to_string())).collect();
-                Ok(Series::String(name, casted_data))
-            }
+                    .collect(),
+            )),
+            (Series::DateTime(_, data), DataType::String) => Ok(Series::String(
+                name,
+                data.iter().map(|&x| x.map(|val| val.to_string())).collect(),
+            )),
             (s, t) if s.data_type() == t => Ok(s.clone()),
             (_, to_type) => Err(format!(
                 "Unsupported cast from {:?} to {:?}",
@@ -714,9 +707,17 @@ impl Series {
         let name = self.name().to_string();
         match self {
             Series::I32(_, data) => {
-                let mut unique_data: Vec<Option<i32>> = data.to_vec();
-                unique_data.sort_unstable();
-                unique_data.dedup();
+                let mut unique_set = HashSet::new();
+                let unique_data: Vec<Option<i32>> = data
+                    .iter()
+                    .filter_map(|&x| {
+                        if unique_set.insert(x) {
+                            Some(x)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
                 Ok(Series::I32(name, unique_data))
             }
             Series::F64(_, data) => {
@@ -726,21 +727,45 @@ impl Series {
                 Ok(Series::F64(name, unique_data))
             }
             Series::Bool(_, data) => {
-                let mut unique_data: Vec<Option<bool>> = data.to_vec();
-                unique_data.sort_unstable();
-                unique_data.dedup();
+                let mut unique_set = HashSet::new();
+                let unique_data: Vec<Option<bool>> = data
+                    .iter()
+                    .filter_map(|&x| {
+                        if unique_set.insert(x) {
+                            Some(x)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
                 Ok(Series::Bool(name, unique_data))
             }
             Series::String(_, data) => {
-                let mut unique_data: Vec<Option<String>> = data.to_vec();
-                unique_data.sort_unstable();
-                unique_data.dedup();
+                let mut unique_set = HashSet::new();
+                let unique_data: Vec<Option<String>> = data
+                    .iter()
+                    .filter_map(|x| {
+                        if unique_set.insert(x.clone()) {
+                            Some(x.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
                 Ok(Series::String(name, unique_data))
             }
             Series::DateTime(_, data) => {
-                let mut unique_data: Vec<Option<i64>> = data.to_vec();
-                unique_data.sort_unstable();
-                unique_data.dedup();
+                let mut unique_set = HashSet::new();
+                let unique_data: Vec<Option<i64>> = data
+                    .iter()
+                    .filter_map(|&x| {
+                        if unique_set.insert(x) {
+                            Some(x)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
                 Ok(Series::DateTime(name, unique_data))
             }
         }
@@ -772,6 +797,78 @@ impl Series {
         let name = self.name().to_string();
         match self {
             Series::I32(_, data) => {
+                let mut interpolated_data = Vec::with_capacity(data.len());
+                let mut last_known_idx: Option<usize> = None;
+                let mut next_known_indices: Vec<Option<usize>> = vec![None; data.len()];
+                let mut last_non_null_idx: Option<usize> = None;
+
+                // Pre-calculate next known indices
+                for i in (0..data.len()).rev() {
+                    if data[i].is_some() {
+                        last_non_null_idx = Some(i);
+                    }
+                    next_known_indices[i] = last_non_null_idx;
+                }
+
+                // Forward pass for interpolation
+                for i in 0..data.len() {
+                    if data[i].is_some() {
+                        interpolated_data.push(data[i]);
+                        last_known_idx = Some(i);
+                    } else if let Some(prev_idx) = last_known_idx {
+                        if let Some(next_idx) = next_known_indices[i] {
+                            let prev_val = data[prev_idx].unwrap() as f64;
+                            let next_val = data[next_idx].unwrap() as f64;
+                            let interpolated_val = prev_val
+                                + (next_val - prev_val)
+                                    * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
+                            interpolated_data.push(Some(interpolated_val as i32));
+                        } else {
+                            interpolated_data.push(None);
+                        }
+                    } else {
+                        interpolated_data.push(None);
+                    }
+                }
+                Ok(Series::I32(name, interpolated_data))
+            }
+            Series::F64(_, data) => {
+                let mut interpolated_data = Vec::with_capacity(data.len());
+                let mut last_known_idx: Option<usize> = None;
+                let mut next_known_indices: Vec<Option<usize>> = vec![None; data.len()];
+                let mut last_non_null_idx: Option<usize> = None;
+
+                // Pre-calculate next known indices
+                for i in (0..data.len()).rev() {
+                    if data[i].is_some() {
+                        last_non_null_idx = Some(i);
+                    }
+                    next_known_indices[i] = last_non_null_idx;
+                }
+
+                // Forward pass for interpolation
+                for i in 0..data.len() {
+                    if data[i].is_some() {
+                        interpolated_data.push(data[i]);
+                        last_known_idx = Some(i);
+                    } else if let Some(prev_idx) = last_known_idx {
+                        if let Some(next_idx) = next_known_indices[i] {
+                            let prev_val = data[prev_idx].unwrap();
+                            let next_val = data[next_idx].unwrap();
+                            let interpolated_val = prev_val
+                                + (next_val - prev_val)
+                                    * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
+                            interpolated_data.push(Some(interpolated_val));
+                        } else {
+                            interpolated_data.push(None);
+                        }
+                    } else {
+                        interpolated_data.push(None);
+                    }
+                }
+                Ok(Series::F64(name, interpolated_data))
+            }
+            Series::DateTime(_, data) => {
                 let mut interpolated_data = data.clone();
                 let mut last_known_idx: Option<usize> = None;
 
@@ -790,36 +887,11 @@ impl Series {
                             let interpolated_val = prev_val
                                 + (next_val - prev_val)
                                     * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
-                            interpolated_data[i] = Some(interpolated_val as i32);
+                            interpolated_data[i] = Some(interpolated_val as i64);
                         }
                     }
                 }
-                Ok(Series::I32(name, interpolated_data))
-            }
-            Series::F64(_, data) => {
-                let mut interpolated_data = data.clone();
-                let mut last_known_idx: Option<usize> = None;
-
-                // Forward pass
-                for i in 0..interpolated_data.len() {
-                    if interpolated_data[i].is_some() {
-                        last_known_idx = Some(i);
-                    } else if let Some(prev_idx) = last_known_idx {
-                        // Find next non-null value
-                        let next_known_idx =
-                            (i..interpolated_data.len()).find(|&j| interpolated_data[j].is_some());
-
-                        if let Some(next_idx) = next_known_idx {
-                            let prev_val = interpolated_data[prev_idx].unwrap();
-                            let next_val = interpolated_data[next_idx].unwrap();
-                            let interpolated_val = prev_val
-                                + (next_val - prev_val)
-                                    * ((i - prev_idx) as f64 / (next_idx - prev_idx) as f64);
-                            interpolated_data[i] = Some(interpolated_val);
-                        }
-                    }
-                }
-                Ok(Series::F64(name, interpolated_data))
+                Ok(Series::DateTime(name, interpolated_data))
             }
             _ => Err(format!(
                 "Interpolate nulls operation not supported for {:?} series.",
@@ -828,95 +900,96 @@ impl Series {
         }
     }
 
-    /// Applies a function to each element of the series, returning a new series.
+    /// Applies a function to each element of the series, returning a new series of the same type.
     ///
-    /// The function `f` takes an `Option<Value>` and returns an `Option<Value>`.
-    /// The type of the new series is inferred from the first non-null value returned by `f`.
-    pub fn apply<F>(&self, f: F) -> Result<Self, String>
+    /// The function `f` takes an `Option<T>` (where `T` is the series' underlying type) and returns an `Option<T>`.
+    /// This method is type-specific and avoids the overhead of `Value` enum conversions.
+    pub fn apply_i32<F>(&self, f: F) -> Result<Self, String>
     where
-        F: Fn(Option<Value>) -> Option<Value>,
+        F: Fn(Option<i32>) -> Option<i32>,
     {
         let name = self.name().to_string();
-        let mut new_values: Vec<Option<Value>> = Vec::with_capacity(self.len());
-        let mut inferred_type: Option<DataType> = None;
-
-        for i in 0..self.len() {
-            let original_value = self.get_value(i);
-            let transformed_value = f(original_value);
-
-            if inferred_type.is_none() && transformed_value.is_some() {
-                inferred_type = transformed_value.as_ref().map(|v| v.data_type());
+        match self {
+            Series::I32(_, data) => {
+                let new_data = data.iter().map(|&x| f(x)).collect();
+                Ok(Series::I32(name, new_data))
             }
-            new_values.push(transformed_value);
+            _ => Err(format!(
+                "Apply operation not supported for {:?} series with apply_i32.",
+                self.data_type()
+            )),
         }
+    }
 
-        match inferred_type {
-            Some(DataType::I32) => Ok(Series::new_i32(
-                &name,
-                new_values
-                    .into_iter()
-                    .map(|v| {
-                        if let Some(Value::I32(val)) = v {
-                            Some(val)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect(),
+    /// Applies a function to each element of the series, returning a new series of the same type.
+    pub fn apply_f64<F>(&self, f: F) -> Result<Self, String>
+    where
+        F: Fn(Option<f64>) -> Option<f64>,
+    {
+        let name = self.name().to_string();
+        match self {
+            Series::F64(_, data) => {
+                let new_data = data.iter().map(|&x| f(x)).collect();
+                Ok(Series::F64(name, new_data))
+            }
+            _ => Err(format!(
+                "Apply operation not supported for {:?} series with apply_f64.",
+                self.data_type()
             )),
-            Some(DataType::F64) => Ok(Series::new_f64(
-                &name,
-                new_values
-                    .into_iter()
-                    .map(|v| {
-                        if let Some(Value::F64(val)) = v {
-                            Some(val)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect(),
+        }
+    }
+
+    /// Applies a function to each element of the series, returning a new series of the same type.
+    pub fn apply_bool<F>(&self, f: F) -> Result<Self, String>
+    where
+        F: Fn(Option<bool>) -> Option<bool>,
+    {
+        let name = self.name().to_string();
+        match self {
+            Series::Bool(_, data) => {
+                let new_data = data.iter().map(|&x| f(x)).collect();
+                Ok(Series::Bool(name, new_data))
+            }
+            _ => Err(format!(
+                "Apply operation not supported for {:?} series with apply_bool.",
+                self.data_type()
             )),
-            Some(DataType::Bool) => Ok(Series::new_bool(
-                &name,
-                new_values
-                    .into_iter()
-                    .map(|v| {
-                        if let Some(Value::Bool(val)) = v {
-                            Some(val)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect(),
+        }
+    }
+
+    /// Applies a function to each element of the series, returning a new series of the same type.
+    pub fn apply_string<F>(&self, f: F) -> Result<Self, String>
+    where
+        F: Fn(Option<&String>) -> Option<String>,
+    {
+        let name = self.name().to_string();
+        match self {
+            Series::String(_, data) => {
+                let new_data = data.iter().map(|x| f(x.as_ref())).collect();
+                Ok(Series::String(name, new_data))
+            }
+            _ => Err(format!(
+                "Apply operation not supported for {:?} series with apply_string.",
+                self.data_type()
             )),
-            Some(DataType::String) => Ok(Series::new_string(
-                &name,
-                new_values
-                    .into_iter()
-                    .map(|v| {
-                        if let Some(Value::String(val)) = v {
-                            Some(val)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect(),
+        }
+    }
+
+    /// Applies a function to each element of the series, returning a new series of the same type.
+    pub fn apply_datetime<F>(&self, f: F) -> Result<Self, String>
+    where
+        F: Fn(Option<i64>) -> Option<i64>,
+    {
+        let name = self.name().to_string();
+        match self {
+            Series::DateTime(_, data) => {
+                let new_data = data.iter().map(|&x| f(x)).collect();
+                Ok(Series::DateTime(name, new_data))
+            }
+            _ => Err(format!(
+                "Apply operation not supported for {:?} series with apply_datetime.",
+                self.data_type()
             )),
-            Some(DataType::DateTime) => Ok(Series::new_datetime(
-                &name,
-                new_values
-                    .into_iter()
-                    .map(|v| {
-                        if let Some(Value::DateTime(val)) = v {
-                            Some(val)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect(),
-            )),
-            None => Ok(Series::new_string(&name, vec![None; self.len()])), // All nulls, default to String
         }
     }
 }

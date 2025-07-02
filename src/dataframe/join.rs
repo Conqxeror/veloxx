@@ -47,131 +47,6 @@ impl DataFrame {
             ));
         }
 
-        // Collect data from both DataFrames into a common format for easier processing
-        let mut self_rows: Vec<BTreeMap<String, Option<Value>>> = Vec::new();
-        for i in 0..self.row_count {
-            let mut row_map: BTreeMap<String, Option<Value>> = BTreeMap::new();
-            for col_name in self.column_names() {
-                row_map.insert(
-                    col_name.clone(),
-                    self.get_column(col_name).unwrap().get_value(i),
-                );
-            }
-            self_rows.push(row_map);
-        }
-
-        let mut other_rows: Vec<BTreeMap<String, Option<Value>>> = Vec::new();
-        for i in 0..other.row_count {
-            let mut row_map: BTreeMap<String, Option<Value>> = BTreeMap::new();
-            for col_name in other.column_names() {
-                row_map.insert(
-                    col_name.clone(),
-                    other.get_column(col_name).unwrap().get_value(i),
-                );
-            }
-            other_rows.push(row_map);
-        }
-
-        let mut joined_rows: Vec<BTreeMap<String, Option<Value>>> = Vec::new();
-
-        match join_type {
-            JoinType::Inner => {
-                for self_row in self_rows.iter() {
-                    if let Some(self_join_val) = self_row.get(on_column).and_then(|v| v.as_ref()) {
-                        for other_row in other_rows.iter() {
-                            if let Some(other_join_val) =
-                                other_row.get(on_column).and_then(|v| v.as_ref())
-                            {
-                                if self_join_val == other_join_val {
-                                    let mut new_row = self_row.clone();
-                                    for (key, value) in other_row.iter() {
-                                        if key != on_column {
-                                            new_row.insert(key.clone(), value.clone());
-                                        }
-                                    }
-                                    joined_rows.push(new_row);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            JoinType::Left => {
-                for self_row in self_rows.iter() {
-                    let mut matched = false;
-                    if let Some(self_join_val) = self_row.get(on_column).and_then(|v| v.as_ref()) {
-                        for other_row in other_rows.iter() {
-                            if let Some(other_join_val) =
-                                other_row.get(on_column).and_then(|v| v.as_ref())
-                            {
-                                if self_join_val == other_join_val {
-                                    let mut new_row = self_row.clone();
-                                    for (key, value) in other_row.iter() {
-                                        if key != on_column {
-                                            new_row.insert(key.clone(), value.clone());
-                                        }
-                                    }
-                                    joined_rows.push(new_row);
-                                    matched = true;
-                                }
-                            }
-                        }
-                    }
-                    if !matched {
-                        let mut new_row = self_row.clone();
-                        for col_name in other_col_names.iter() {
-                            if col_name != on_column {
-                                new_row.insert(col_name.clone(), None);
-                            }
-                        }
-                        joined_rows.push(new_row);
-                    }
-                }
-            }
-            JoinType::Right => {
-                for other_row in other_rows.iter() {
-                    let mut matched = false;
-                    if let Some(other_join_val) = other_row.get(on_column).and_then(|v| v.as_ref())
-                    {
-                        for self_row in self_rows.iter() {
-                            if let Some(self_join_val) =
-                                self_row.get(on_column).and_then(|v| v.as_ref())
-                            {
-                                if self_join_val == other_join_val {
-                                    let mut new_row = self_row.clone();
-                                    for (key, value) in other_row.iter() {
-                                        if key != on_column {
-                                            new_row.insert(key.clone(), value.clone());
-                                        }
-                                    }
-                                    joined_rows.push(new_row);
-                                    matched = true;
-                                }
-                            }
-                        }
-                    }
-                    if !matched {
-                        let mut new_row = other_row.clone();
-                        for col_name in self_col_names.iter() {
-                            if col_name != on_column {
-                                new_row.insert(col_name.clone(), None);
-                            }
-                        }
-                        joined_rows.push(new_row);
-                    }
-                }
-            }
-        }
-
-        if joined_rows.is_empty()
-            && (join_type == JoinType::Inner || (self.row_count == 0 && other.row_count == 0))
-        {
-            return Ok(DataFrame {
-                columns: BTreeMap::new(),
-                row_count: 0,
-            });
-        }
-
         // Determine all unique column names and their types
         let mut all_column_names: Vec<String> = Vec::new();
         let mut column_types: BTreeMap<String, crate::types::DataType> = BTreeMap::new();
@@ -193,19 +68,141 @@ impl DataFrame {
             }
         }
 
-        // Initialize new Series for each column
+        // Initialize new Series data vectors
         let mut series_data: BTreeMap<String, Vec<Option<Value>>> = BTreeMap::new();
         for col_name in all_column_names.iter() {
-            series_data.insert(col_name.clone(), Vec::with_capacity(joined_rows.len()));
+            series_data.insert(col_name.clone(), Vec::new());
         }
 
-        // Populate new Series data
-        for row_map in joined_rows.iter() {
-            for col_name in all_column_names.iter() {
-                series_data
-                    .get_mut(col_name)
-                    .unwrap()
-                    .push(row_map.get(col_name).unwrap_or(&None).clone());
+        match join_type {
+            JoinType::Inner => {
+                let mut other_join_map: std::collections::HashMap<Value, Vec<usize>> =
+                    std::collections::HashMap::new();
+                let other_on_series = other.get_column(on_column).unwrap();
+                for i in 0..other.row_count() {
+                    if let Some(val) = other_on_series.get_value(i) {
+                        other_join_map.entry(val).or_default().push(i);
+                    }
+                }
+
+                let self_on_series = self.get_column(on_column).unwrap();
+                for i in 0..self.row_count() {
+                    if let Some(self_join_val) = self_on_series.get_value(i) {
+                        if let Some(other_indices) = other_join_map.get(&self_join_val) {
+                            for &other_idx in other_indices {
+                                // Populate data for all columns
+                                for col_name in all_column_names.iter() {
+                                    let value = if self_col_names.contains(col_name) {
+                                        self.get_column(col_name).unwrap().get_value(i)
+                                    } else {
+                                        other.get_column(col_name).unwrap().get_value(other_idx)
+                                    };
+                                    series_data.get_mut(col_name).unwrap().push(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            JoinType::Left => {
+                // Left join logic (similar optimization can be applied)
+                let mut other_join_map: std::collections::HashMap<Value, Vec<usize>> =
+                    std::collections::HashMap::new();
+                let other_on_series = other.get_column(on_column).unwrap();
+                for i in 0..other.row_count() {
+                    if let Some(val) = other_on_series.get_value(i) {
+                        other_join_map.entry(val).or_default().push(i);
+                    }
+                }
+
+                let self_on_series = self.get_column(on_column).unwrap();
+                for i in 0..self.row_count() {
+                    if let Some(self_join_val) = self_on_series.get_value(i) {
+                        if let Some(other_indices) = other_join_map.get(&self_join_val) {
+                            for &other_idx in other_indices {
+                                // Matched row
+                                for col_name in all_column_names.iter() {
+                                    let value = if self_col_names.contains(col_name) {
+                                        self.get_column(col_name).unwrap().get_value(i)
+                                    } else {
+                                        other.get_column(col_name).unwrap().get_value(other_idx)
+                                    };
+                                    series_data.get_mut(col_name).unwrap().push(value);
+                                }
+                            }
+                        } else {
+                            // Unmatched self_row
+                            for col_name in all_column_names.iter() {
+                                let value = if self_col_names.contains(col_name) {
+                                    self.get_column(col_name).unwrap().get_value(i)
+                                } else {
+                                    None
+                                };
+                                series_data.get_mut(col_name).unwrap().push(value);
+                            }
+                        }
+                    } else {
+                        // self_row has null in on_column, treat as unmatched for now
+                        for col_name in all_column_names.iter() {
+                            let value = if self_col_names.contains(col_name) {
+                                self.get_column(col_name).unwrap().get_value(i)
+                            } else {
+                                None
+                            };
+                            series_data.get_mut(col_name).unwrap().push(value);
+                        }
+                    }
+                }
+            }
+            JoinType::Right => {
+                // Right join logic (similar optimization can be applied)
+                let mut self_join_map: std::collections::HashMap<Value, Vec<usize>> =
+                    std::collections::HashMap::new();
+                let self_on_series = self.get_column(on_column).unwrap();
+                for i in 0..self.row_count() {
+                    if let Some(val) = self_on_series.get_value(i) {
+                        self_join_map.entry(val).or_default().push(i);
+                    }
+                }
+
+                let other_on_series = other.get_column(on_column).unwrap();
+                for i in 0..other.row_count() {
+                    if let Some(other_join_val) = other_on_series.get_value(i) {
+                        if let Some(self_indices) = self_join_map.get(&other_join_val) {
+                            for &self_idx in self_indices {
+                                // Matched row
+                                for col_name in all_column_names.iter() {
+                                    let value = if other_col_names.contains(col_name) {
+                                        other.get_column(col_name).unwrap().get_value(i)
+                                    } else {
+                                        self.get_column(col_name).unwrap().get_value(self_idx)
+                                    };
+                                    series_data.get_mut(col_name).unwrap().push(value);
+                                }
+                            }
+                        } else {
+                            // Unmatched other_row
+                            for col_name in all_column_names.iter() {
+                                let value = if other_col_names.contains(col_name) {
+                                    other.get_column(col_name).unwrap().get_value(i)
+                                } else {
+                                    None
+                                };
+                                series_data.get_mut(col_name).unwrap().push(value);
+                            }
+                        }
+                    } else {
+                        // other_row has null in on_column, treat as unmatched for now
+                        for col_name in all_column_names.iter() {
+                            let value = if other_col_names.contains(col_name) {
+                                other.get_column(col_name).unwrap().get_value(i)
+                            } else {
+                                None
+                            };
+                            series_data.get_mut(col_name).unwrap().push(value);
+                        }
+                    }
+                }
             }
         }
 

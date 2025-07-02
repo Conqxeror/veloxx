@@ -2,6 +2,8 @@
 
 [![crates.io](https://img.shields.io/crates/v/veloxx.svg)](https://crates.io/crates/veloxx)
 
+> **New in 0.2.1:** Major performance improvements across all core operations. See CHANGELOG for details.
+
 Veloxx is a new Rust library designed for highly performant and **extremely lightweight** in-memory data processing and analytics. It prioritizes minimal dependencies, optimal memory footprint, and compile-time guarantees, making it an ideal choice for resource-constrained environments, high-performance computing, and applications where every byte and cycle counts.
 
 ## Core Principles & Design Goals
@@ -60,7 +62,7 @@ Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-veloxx = "0.2.0" # Or the latest version
+veloxx = "0.2.1" # Or the latest version
 ```
 
 ## Usage Example
@@ -121,7 +123,6 @@ Filtered DataFrame (users logged in after {}):
 
     Ok(())
 }
-```
 ```
 
 ## Non-Functional Requirements

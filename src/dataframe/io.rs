@@ -180,34 +180,34 @@ impl DataFrame {
                 }
             }
 
-            // Determine the most specific type
-            if is_i32 {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_i32(col_name, col_data_i32),
-                );
+            let inferred_type = if is_i32 {
+                crate::types::DataType::I32
             } else if is_f64 {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_f64(col_name, col_data_f64),
-                );
+                crate::types::DataType::F64
             } else if is_bool {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_bool(col_name, col_data_bool),
-                );
+                crate::types::DataType::Bool
             } else if is_datetime {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_datetime(col_name, col_data_datetime),
-                );
-            } else if is_string {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_string(col_name, col_data_string),
-                );
+                crate::types::DataType::DateTime
             } else {
-                return Err(format!("Could not infer type for column '{col_name}'."));
+                crate::types::DataType::String
+            };
+
+            match inferred_type {
+                crate::types::DataType::I32 => {
+                    columns.insert(col_name.to_string(), Series::new_i32(col_name, col_data_i32));
+                }
+                crate::types::DataType::F64 => {
+                    columns.insert(col_name.to_string(), Series::new_f64(col_name, col_data_f64));
+                }
+                crate::types::DataType::Bool => {
+                    columns.insert(col_name.to_string(), Series::new_bool(col_name, col_data_bool));
+                }
+                crate::types::DataType::DateTime => {
+                    columns.insert(col_name.to_string(), Series::new_datetime(col_name, col_data_datetime));
+                }
+                crate::types::DataType::String => {
+                    columns.insert(col_name.to_string(), Series::new_string(col_name, col_data_string));
+                }
             }
         }
 
@@ -249,113 +249,99 @@ impl DataFrame {
 
         for (col_idx, column_name) in column_names.iter().enumerate().take(num_cols) {
             let col_name = &column_name;
-            let mut col_data_i32: Vec<Option<i32>> = Vec::with_capacity(num_rows);
-            let mut col_data_f64: Vec<Option<f64>> = Vec::with_capacity(num_rows);
-            let mut col_data_bool: Vec<Option<bool>> = Vec::with_capacity(num_rows);
-            let mut col_data_string: Vec<Option<String>> = Vec::with_capacity(num_rows);
-            let mut col_data_datetime: Vec<Option<i64>> = Vec::with_capacity(num_rows);
-
-            let mut is_i32 = true;
-            let mut is_f64 = true;
-            let mut is_bool = true;
-            let mut is_datetime = true;
+            let mut all_i32 = true;
+            let mut all_f64 = true;
+            let mut all_bool = true;
+            let mut all_datetime = true;
             let is_string = true; // Always possible to be a string
 
             for data_row in data.iter().take(num_rows) {
                 let cell_val = &data_row[col_idx];
 
-                // Try parsing as i32
-                if is_i32 {
-                    match cell_val.parse::<i32>() {
-                        Ok(val) => col_data_i32.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_i32.push(None);
-                            } else {
-                                is_i32 = false;
-                            }
-                        }
-                    }
+                if all_i32 && cell_val.parse::<i32>().is_err() && !cell_val.is_empty() {
+                    all_i32 = false;
                 }
-
-                // Try parsing as f64
-                if is_f64 {
-                    match cell_val.parse::<f64>() {
-                        Ok(val) => col_data_f64.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_f64.push(None);
-                            } else {
-                                is_f64 = false;
-                            }
-                        }
-                    }
+                if all_f64 && cell_val.parse::<f64>().is_err() && !cell_val.is_empty() {
+                    all_f64 = false;
                 }
-
-                // Try parsing as bool
-                if is_bool {
-                    match cell_val.parse::<bool>() {
-                        Ok(val) => col_data_bool.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_bool.push(None);
-                            } else {
-                                is_bool = false;
-                            }
-                        }
-                    }
+                if all_bool && cell_val.parse::<bool>().is_err() && !cell_val.is_empty() {
+                    all_bool = false;
                 }
-
-                // Try parsing as datetime (i64 for Unix timestamp)
-                if is_datetime {
-                    match cell_val.parse::<i64>() {
-                        Ok(val) => col_data_datetime.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_datetime.push(None);
-                            } else {
-                                is_datetime = false;
-                            }
-                        }
-                    }
-                }
-
-                // Always possible to be a string
-                if is_string {
-                    if cell_val.is_empty() {
-                        col_data_string.push(None);
-                    } else {
-                        col_data_string.push(Some(cell_val.clone()));
-                    }
+                if all_datetime && cell_val.parse::<i64>().is_err() && !cell_val.is_empty() {
+                    all_datetime = false;
                 }
             }
 
-            // Determine the most specific type
-            if is_i32 {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_i32(col_name, col_data_i32),
-                );
-            } else if is_f64 {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_f64(col_name, col_data_f64),
-                );
-            } else if is_bool {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_bool(col_name, col_data_bool),
-                );
-            } else if is_datetime {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_datetime(col_name, col_data_datetime),
-                );
+            if all_i32 {
+                let col_data: Vec<Option<i32>> = data
+                    .iter()
+                    .take(num_rows)
+                    .map(|data_row| {
+                        let cell_val = &data_row[col_idx];
+                        if cell_val.is_empty() {
+                            None
+                        } else {
+                            cell_val.parse::<i32>().ok()
+                        }
+                    })
+                    .collect();
+                columns.insert(col_name.to_string(), Series::new_i32(col_name, col_data));
+            } else if all_f64 {
+                let col_data: Vec<Option<f64>> = data
+                    .iter()
+                    .take(num_rows)
+                    .map(|data_row| {
+                        let cell_val = &data_row[col_idx];
+                        if cell_val.is_empty() {
+                            None
+                        } else {
+                            cell_val.parse::<f64>().ok()
+                        }
+                    })
+                    .collect();
+                columns.insert(col_name.to_string(), Series::new_f64(col_name, col_data));
+            } else if all_bool {
+                let col_data: Vec<Option<bool>> = data
+                    .iter()
+                    .take(num_rows)
+                    .map(|data_row| {
+                        let cell_val = &data_row[col_idx];
+                        if cell_val.is_empty() {
+                            None
+                        } else {
+                            cell_val.parse::<bool>().ok()
+                        }
+                    })
+                    .collect();
+                columns.insert(col_name.to_string(), Series::new_bool(col_name, col_data));
+            } else if all_datetime {
+                let col_data: Vec<Option<i64>> = data
+                    .iter()
+                    .take(num_rows)
+                    .map(|data_row| {
+                        let cell_val = &data_row[col_idx];
+                        if cell_val.is_empty() {
+                            None
+                        } else {
+                            cell_val.parse::<i64>().ok()
+                        }
+                    })
+                    .collect();
+                columns.insert(col_name.to_string(), Series::new_datetime(col_name, col_data));
             } else if is_string {
-                columns.insert(
-                    col_name.to_string(),
-                    Series::new_string(col_name, col_data_string),
-                );
+                let col_data: Vec<Option<String>> = data
+                    .iter()
+                    .take(num_rows)
+                    .map(|data_row| {
+                        let cell_val = &data_row[col_idx];
+                        if cell_val.is_empty() {
+                            None
+                        } else {
+                            Some(cell_val.clone())
+                        }
+                    })
+                    .collect();
+                columns.insert(col_name.to_string(), Series::new_string(col_name, col_data));
             } else {
                 return Err(format!("Could not infer type for column '{col_name}'."));
             }

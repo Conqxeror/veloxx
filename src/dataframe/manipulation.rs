@@ -1,5 +1,5 @@
 use crate::{
-    conditions::Condition, dataframe::DataFrame, expressions::Expr, series::Series, types::Value,
+    conditions::Condition, dataframe::DataFrame, expressions::Expr, series::Series, types::{DataType, Value},
 };
 use std::collections::BTreeMap;
 
@@ -239,70 +239,54 @@ impl DataFrame {
             return Err(format!("Column '{new_col_name}' already exists."));
         }
 
-        let mut new_series_data_i32: Vec<Option<i32>> = Vec::with_capacity(self.row_count);
-        let mut new_series_data_f64: Vec<Option<f64>> = Vec::with_capacity(self.row_count);
-        let mut new_series_data_bool: Vec<Option<bool>> = Vec::with_capacity(self.row_count);
-        let mut new_series_data_string: Vec<Option<String>> = Vec::with_capacity(self.row_count);
-        let mut new_series_data_datetime: Vec<Option<i64>> = Vec::with_capacity(self.row_count);
-
+        let mut evaluated_values: Vec<Value> = Vec::with_capacity(self.row_count);
         let mut inferred_type: Option<crate::types::DataType> = None;
 
         for i in 0..self.row_count {
             let evaluated_value = expr.evaluate(self, i)?;
-            match evaluated_value {
-                Value::I32(val) => {
-                    new_series_data_i32.push(Some(val));
-                    if inferred_type.is_none() {
-                        inferred_type = Some(crate::types::DataType::I32);
-                    }
-                }
-                Value::F64(val) => {
-                    new_series_data_f64.push(Some(val));
-                    if inferred_type.is_none() {
-                        inferred_type = Some(crate::types::DataType::F64);
-                    }
-                }
-                Value::Bool(val) => {
-                    new_series_data_bool.push(Some(val));
-                    if inferred_type.is_none() {
-                        inferred_type = Some(crate::types::DataType::Bool);
-                    }
-                }
-                Value::String(val) => {
-                    new_series_data_string.push(Some(val));
-                    if inferred_type.is_none() {
-                        inferred_type = Some(crate::types::DataType::String);
-                    }
-                }
-                Value::DateTime(val) => {
-                    new_series_data_datetime.push(Some(val));
-                    if inferred_type.is_none() {
-                        inferred_type = Some(crate::types::DataType::DateTime);
-                    }
-                }
-                Value::Null => {
-                    new_series_data_i32.push(None);
-                    new_series_data_f64.push(None);
-                    new_series_data_bool.push(None);
-                    new_series_data_string.push(None);
-                    new_series_data_datetime.push(None);
-                }
+            if inferred_type.is_none() && evaluated_value != Value::Null {
+                inferred_type = Some(evaluated_value.data_type());
             }
+            evaluated_values.push(evaluated_value);
         }
 
         let new_series = match inferred_type {
-            Some(crate::types::DataType::I32) => Series::new_i32(new_col_name, new_series_data_i32),
-            Some(crate::types::DataType::F64) => Series::new_f64(new_col_name, new_series_data_f64),
-            Some(crate::types::DataType::Bool) => {
-                Series::new_bool(new_col_name, new_series_data_bool)
-            }
-            Some(crate::types::DataType::String) => {
-                Series::new_string(new_col_name, new_series_data_string)
-            }
-            Some(crate::types::DataType::DateTime) => {
-                Series::new_datetime(new_col_name, new_series_data_datetime)
-            }
-            None => return Err("Could not infer type for new column.".to_string()),
+            Some(DataType::I32) => Series::new_i32(
+                new_col_name,
+                evaluated_values
+                    .into_iter()
+                    .map(|v| if let Value::I32(x) = v { Some(x) } else { None })
+                    .collect(),
+            ),
+            Some(DataType::F64) => Series::new_f64(
+                new_col_name,
+                evaluated_values
+                    .into_iter()
+                    .map(|v| if let Value::F64(x) = v { Some(x) } else { None })
+                    .collect(),
+            ),
+            Some(DataType::Bool) => Series::new_bool(
+                new_col_name,
+                evaluated_values
+                    .into_iter()
+                    .map(|v| if let Value::Bool(x) = v { Some(x) } else { None })
+                    .collect(),
+            ),
+            Some(DataType::String) => Series::new_string(
+                new_col_name,
+                evaluated_values
+                    .into_iter()
+                    .map(|v| if let Value::String(x) = v { Some(x) } else { None })
+                    .collect(),
+            ),
+            Some(DataType::DateTime) => Series::new_datetime(
+                new_col_name,
+                evaluated_values
+                    .into_iter()
+                    .map(|v| if let Value::DateTime(x) = v { Some(x) } else { None })
+                    .collect(),
+            ),
+            None => Series::new_string(new_col_name, vec![None; self.row_count]), // All nulls, default to String
         };
 
         new_columns.insert(new_col_name.to_string(), new_series);
