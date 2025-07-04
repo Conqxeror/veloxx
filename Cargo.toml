@@ -12,10 +12,14 @@ categories = ["data-structures", "science", "parsing", "api-bindings"]
 
 [lib]
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 csv-core = "0.1"
 microjson = "0.1.6"
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+pyo3 = { version = "0.21.2", optional = true, features = ["extension-module"] }
 
 [dev-dependencies]
 criterion = "0.5"
@@ -23,6 +27,13 @@ criterion = "0.5"
 [[bench]]
 name = "my_benchmark"
 harness = false
+
+[features]
+python = ["pyo3"]
+
+[package.metadata.commands]
+test-python = "D:\\Projects\\Velox\\velox\\venv\\Scripts\\python.exe -m pytest D:\\Projects\\Velox\\velox\\test_veloxx.py"
+test-wasm = "node D:\\Projects\\Velox\\velox\\test_wasm.js"
 
 
 

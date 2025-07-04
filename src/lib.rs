@@ -24,6 +24,11 @@ pub mod series;
 /// used to represent data within Series and DataFrames.
 pub mod types;
 
+#[cfg(feature = "python")]
+mod python_bindings;
+
+pub mod wasm_bindings;
+
 #[cfg(test)]
 mod tests {
     use crate::conditions::Condition;

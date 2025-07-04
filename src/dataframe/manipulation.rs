@@ -301,7 +301,6 @@ impl DataFrame {
     /// # Returns
     /// A `Result` containing a new `DataFrame` with only the rows that satisfy the condition, or a `String` error message.
     pub fn filter(&self, condition: &Condition) -> Result<Self, String> {
-        let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
         let mut row_indices_to_keep: Vec<usize> = Vec::new();
 
         for i in 0..self.row_count {
@@ -309,16 +308,27 @@ impl DataFrame {
                 row_indices_to_keep.push(i);
             }
         }
+        self.filter_by_indices(&row_indices_to_keep)
+    }
 
-        if row_indices_to_keep.is_empty() {
+    /// Filters the `DataFrame` based on a list of row indices.
+    ///
+    /// # Arguments
+    /// * `row_indices` - A slice of `usize` containing the indices of the rows to keep.
+    ///
+    /// # Returns
+    /// A `Result` containing a new `DataFrame` with only the specified rows, or a `String` error message.
+    pub fn filter_by_indices(&self, row_indices: &[usize]) -> Result<Self, String> {
+        if row_indices.is_empty() {
             return Ok(DataFrame {
                 columns: BTreeMap::new(),
                 row_count: 0,
             });
         }
 
+        let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
         for (col_name, series) in self.columns.iter() {
-            let new_series = series.filter(&row_indices_to_keep)?;
+            let new_series = series.filter(row_indices)?;
             new_columns.insert(col_name.clone(), new_series);
         }
 

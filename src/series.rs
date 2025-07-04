@@ -371,6 +371,10 @@ impl Series {
                 let min_val = data.iter().filter_map(|&x| x).min();
                 Ok(min_val.map(Value::DateTime))
             }
+            Series::String(_, data) => {
+                let min_val = data.iter().filter_map(|x| x.as_ref()).min_by(|a, b| a.cmp(b));
+                Ok(min_val.map(|s| Value::String(s.clone())))
+            }
             _ => Err(format!(
                 "Min operation not supported for {:?} series.",
                 self.data_type()
@@ -397,6 +401,10 @@ impl Series {
             Series::DateTime(_, data) => {
                 let max_val = data.iter().filter_map(|&x| x).max();
                 Ok(max_val.map(Value::DateTime))
+            }
+            Series::String(_, data) => {
+                let max_val = data.iter().filter_map(|x| x.as_ref()).max_by(|a, b| a.cmp(b));
+                Ok(max_val.map(|s| Value::String(s.clone())))
             }
             _ => Err(format!(
                 "Max operation not supported for {:?} series.",
