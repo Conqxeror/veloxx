@@ -2,6 +2,7 @@ use crate::{
     conditions::Condition, dataframe::DataFrame, expressions::Expr, series::Series, types::{DataType, Value},
 };
 use std::collections::BTreeMap;
+use crate::error::VeloxxError;
 
 impl DataFrame {
     /// Selects a subset of columns from the `DataFrame`.
@@ -11,13 +12,13 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with only the selected columns, or a `String` error message if a column is not found.
-    pub fn select_columns(&self, names: Vec<String>) -> Result<Self, String> {
+    pub fn select_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
         let mut selected_columns = BTreeMap::new();
         for name in names {
             if let Some(series) = self.columns.get(&name) {
                 selected_columns.insert(name, series.clone());
             } else {
-                return Err(format!("Column '{name}' not found."));
+                return Err(VeloxxError::ColumnNotFound(name));
             }
         }
         DataFrame::new(selected_columns)
@@ -30,11 +31,11 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` without the dropped columns, or a `String` error message if a column is not found.
-    pub fn drop_columns(&self, names: Vec<String>) -> Result<Self, String> {
+    pub fn drop_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
         let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
         for name in names {
             if new_columns.remove(&name).is_none() {
-                return Err(format!("Column '{name}' not found."));
+                return Err(VeloxxError::ColumnNotFound(name));
             }
         }
         DataFrame::new(new_columns)
@@ -49,17 +50,17 @@ impl DataFrame {
     /// # Returns
     /// A `Result` containing a new `DataFrame` with the column renamed, or a `String` error message
     /// if the old column is not found or the new name already exists.
-    pub fn rename_column(&self, old_name: &str, new_name: &str) -> Result<Self, String> {
+    pub fn rename_column(&self, old_name: &str, new_name: &str) -> Result<Self, VeloxxError> {
         let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
         if let Some(mut series) = new_columns.remove(old_name) {
             if new_columns.contains_key(new_name) {
-                return Err(format!("Column with new name '{new_name}' already exists."));
+                return Err(VeloxxError::InvalidOperation(format!("Column with new name '{new_name}' already exists.")));
             }
             series.set_name(new_name);
             new_columns.insert(new_name.to_string(), series);
             DataFrame::new(new_columns)
         } else {
-            Err(format!("Column '{old_name}' not found."))
+            Err(VeloxxError::ColumnNotFound(old_name.to_string()))
         }
     }
 
@@ -71,7 +72,7 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new sorted `DataFrame` or a `String` error message if a column is not found.
-    pub fn sort(&self, by_columns: Vec<String>, ascending: bool) -> Result<Self, String> {
+    pub fn sort(&self, by_columns: Vec<String>, ascending: bool) -> Result<Self, VeloxxError> {
         if self.row_count == 0 {
             return Ok(self.clone());
         }
@@ -86,13 +87,13 @@ impl DataFrame {
             rows.push(row);
         }
 
-        let column_indices: Result<Vec<usize>, String> = by_columns
+        let column_indices: Result<Vec<usize>, VeloxxError> = by_columns
             .iter()
             .map(|col_name| {
                 self.column_names()
                     .iter()
                     .position(|&name| name == col_name)
-                    .ok_or(format!("Column '{col_name}' not found for sorting."))
+                    .ok_or(VeloxxError::ColumnNotFound(format!("Column '{col_name}' not found for sorting.")))
             })
             .collect();
 
@@ -233,10 +234,10 @@ impl DataFrame {
     /// # Returns
     /// A `Result` containing a new `DataFrame` with the added column, or a `String` error message
     /// if the column already exists or the expression cannot be evaluated.
-    pub fn with_column(&self, new_col_name: &str, expr: &Expr) -> Result<Self, String> {
+    pub fn with_column(&self, new_col_name: &str, expr: &Expr) -> Result<Self, VeloxxError> {
         let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
         if new_columns.contains_key(new_col_name) {
-            return Err(format!("Column '{new_col_name}' already exists."));
+            return Err(VeloxxError::InvalidOperation(format!("Column '{new_col_name}' already exists.")));
         }
 
         let mut evaluated_values: Vec<Value> = Vec::with_capacity(self.row_count);
@@ -300,7 +301,7 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with only the rows that satisfy the condition, or a `String` error message.
-    pub fn filter(&self, condition: &Condition) -> Result<Self, String> {
+    pub fn filter(&self, condition: &Condition) -> Result<Self, VeloxxError> {
         let mut row_indices_to_keep: Vec<usize> = Vec::new();
 
         for i in 0..self.row_count {
@@ -318,7 +319,7 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with only the specified rows, or a `String` error message.
-    pub fn filter_by_indices(&self, row_indices: &[usize]) -> Result<Self, String> {
+    pub fn filter_by_indices(&self, row_indices: &[usize]) -> Result<Self, VeloxxError> {
         if row_indices.is_empty() {
             return Ok(DataFrame {
                 columns: BTreeMap::new(),
@@ -345,9 +346,9 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with rows from both DataFrames, or a `String` error message.
-    pub fn append(&self, other: &DataFrame) -> Result<Self, String> {
+    pub fn append(&self, other: &DataFrame) -> Result<Self, VeloxxError> {
         if self.column_count() != other.column_count() {
-            return Err("Cannot append DataFrames with different number of columns.".to_string());
+            return Err(VeloxxError::InvalidOperation("Cannot append DataFrames with different number of columns.".to_string()));
         }
 
         let self_column_names: Vec<&String> = self.column_names();
@@ -357,16 +358,16 @@ impl DataFrame {
         for i in 0..self_column_names.len() {
             if self_column_names[i] != other_column_names[i] {
                 return Err(
-                    "Cannot append DataFrames with different column names or order.".to_string(),
+                    VeloxxError::InvalidOperation("Cannot append DataFrames with different column names or order.".to_string()),
                 );
             }
             if self.get_column(self_column_names[i]).unwrap().data_type()
                 != other.get_column(other_column_names[i]).unwrap().data_type()
             {
-                return Err(format!(
+                return Err(VeloxxError::DataTypeMismatch(format!(
                     "Cannot append DataFrames with mismatched data types for column '{}'.",
                     self_column_names[i]
-                ));
+                )));
             }
         }
 
@@ -391,7 +392,7 @@ impl DataFrame {
     pub fn group_by(
         &self,
         group_columns: Vec<String>,
-    ) -> Result<crate::dataframe::group_by::GroupedDataFrame, String> {
+    ) -> Result<crate::dataframe::group_by::GroupedDataFrame, VeloxxError> {
         crate::dataframe::group_by::GroupedDataFrame::new(self, group_columns)
     }
 
@@ -402,7 +403,7 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with descriptive statistics, or a `String` error message.
-    pub fn describe(&self) -> Result<DataFrame, String> {
+    pub fn describe(&self) -> Result<DataFrame, VeloxxError> {
         let mut descriptions: BTreeMap<String, Series> = BTreeMap::new();
         let mut counts: Vec<Option<i32>> = Vec::new();
         let mut means: Vec<Option<f64>> = Vec::new();
@@ -498,26 +499,26 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing the correlation coefficient as `f64`, or a `String` error message.
-    pub fn correlation(&self, col1_name: &str, col2_name: &str) -> Result<f64, String> {
+    pub fn correlation(&self, col1_name: &str, col2_name: &str) -> Result<f64, VeloxxError> {
         let series1 = self
             .get_column(col1_name)
-            .ok_or(format!("Column '{col1_name}' not found."))?;
+            .ok_or(VeloxxError::ColumnNotFound(col1_name.to_string()))?;
         let series2 = self
             .get_column(col2_name)
-            .ok_or(format!("Column '{col2_name}' not found."))?;
+            .ok_or(VeloxxError::ColumnNotFound(col2_name.to_string()))?;
 
         let data1: Vec<f64> = series1.to_vec_f64()?;
         let data2: Vec<f64> = series2.to_vec_f64()?;
 
         if data1.len() != data2.len() {
             return Err(
-                "Columns must have the same number of non-null values for correlation.".to_string(),
+                VeloxxError::InvalidOperation("Columns must have the same number of non-null values for correlation.".to_string()),
             );
         }
 
         let n = data1.len();
         if n == 0 {
-            return Err("Cannot compute correlation for empty columns.".to_string());
+            return Err(VeloxxError::InvalidOperation("Cannot compute correlation for empty columns.".to_string()));
         }
 
         let mean1 = data1.iter().sum::<f64>() / n as f64;
@@ -535,7 +536,7 @@ impl DataFrame {
             sum_sq_diff2 += diff2.powi(2);
         }
 
-        let denominator = (sum_sq_diff1 * sum_sq_diff2).sqrt();
+        let denominator = (sum_sq_diff1 * sum_sq_diff2).sqrt() as f64;
 
         if denominator == 0.0 {
             Ok(0.0) // Handle cases where one or both series have zero variance
@@ -554,28 +555,28 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing the covariance as `f64`, or a `String` error message.
-    pub fn covariance(&self, col1_name: &str, col2_name: &str) -> Result<f64, String> {
+    pub fn covariance(&self, col1_name: &str, col2_name: &str) -> Result<f64, VeloxxError> {
         let series1 = self
             .get_column(col1_name)
-            .ok_or(format!("Column '{col1_name}' not found."))?;
+            .ok_or(VeloxxError::ColumnNotFound(col1_name.to_string()))?;
         let series2 = self
             .get_column(col2_name)
-            .ok_or(format!("Column '{col2_name}' not found."))?;
+            .ok_or(VeloxxError::ColumnNotFound(col2_name.to_string()))?;
 
         let data1: Vec<f64> = series1.to_vec_f64()?;
         let data2: Vec<f64> = series2.to_vec_f64()?;
 
         if data1.len() != data2.len() {
             return Err(
-                "Columns must have the same number of non-null values for covariance.".to_string(),
+                VeloxxError::InvalidOperation("Columns must have the same number of non-null values for covariance.".to_string()),
             );
         }
 
         let n = data1.len();
         if n < 2 {
             return Err(
-                "Cannot compute covariance for columns with less than 2 non-null values."
-                    .to_string(),
+                VeloxxError::InvalidOperation("Cannot compute covariance for columns with less than 2 non-null values."
+                    .to_string()),
             );
         }
 

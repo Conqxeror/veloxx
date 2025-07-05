@@ -1,5 +1,6 @@
 use crate::dataframe::DataFrame;
 use crate::types::Value;
+use crate::error::VeloxxError;
 
 /// Defines conditions that can be used to filter rows in a `DataFrame`.
 #[derive(Debug)]
@@ -23,35 +24,35 @@ impl Condition {
     ///
     /// Returns `true` if the condition is met, `false` otherwise.
     /// Returns an error if a specified column is not found or if types are incomparable.
-    pub fn evaluate(&self, df: &DataFrame, row_index: usize) -> Result<bool, String> {
+    pub fn evaluate(&self, df: &DataFrame, row_index: usize) -> Result<bool, VeloxxError> {
         match self {
             Condition::Eq(col_name, value) => {
                 let series = df
                     .get_column(col_name)
-                    .ok_or(format!("Column '{col_name}' not found."))?;
+                    .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
                 let cell_value = series.get_value(row_index);
                 Ok(cell_value.as_ref() == Some(value))
             }
             Condition::Gt(col_name, value) => {
                 let series = df
                     .get_column(col_name)
-                    .ok_or(format!("Column '{col_name}' not found."))?;
+                    .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
                 let cell_value = series.get_value(row_index);
                 match (cell_value.clone(), value) {
                     (Some(Value::I32(a)), Value::I32(b)) => Ok(a > *b),
                     (Some(Value::F64(a)), Value::F64(b)) => Ok(a > *b),
-                    _ => Err(format!("Cannot compare {cell_value:?} and {value:?}")),
+                    _ => Err(VeloxxError::InvalidOperation(format!("Cannot compare {cell_value:?} and {value:?}"))),
                 }
             }
             Condition::Lt(col_name, value) => {
                 let series = df
                     .get_column(col_name)
-                    .ok_or(format!("Column '{col_name}' not found."))?;
+                    .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
                 let cell_value = series.get_value(row_index);
                 match (cell_value.clone(), value) {
                     (Some(Value::I32(a)), Value::I32(b)) => Ok(a < *b),
                     (Some(Value::F64(a)), Value::F64(b)) => Ok(a < *b),
-                    _ => Err(format!("Cannot compare {cell_value:?} and {value:?}")),
+                    _ => Err(VeloxxError::InvalidOperation(format!("Cannot compare {cell_value:?} and {value:?}"))),
                 }
             }
             Condition::And(left, right) => {

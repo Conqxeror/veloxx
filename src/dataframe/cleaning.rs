@@ -1,12 +1,13 @@
 use crate::{dataframe::DataFrame, series::Series, types::Value};
 use std::collections::BTreeMap;
+use crate::error::VeloxxError;
 
 impl DataFrame {
     /// Removes rows from the `DataFrame` that contain any null values.
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with null rows dropped, or a `String` error message.
-    pub fn drop_nulls(&self) -> Result<Self, String> {
+    pub fn drop_nulls(&self) -> Result<Self, VeloxxError> {
         let row_indices_to_keep: Vec<usize> = (0..self.row_count)
             .filter(|&i| {
                 self.columns
@@ -33,7 +34,7 @@ impl DataFrame {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with nulls filled, or a `String` error message.
-    pub fn fill_nulls(&self, value: Value) -> Result<Self, String> {
+    pub fn fill_nulls(&self, value: Value) -> Result<Self, VeloxxError> {
         let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
 
         for (col_name, series) in self.columns.iter() {

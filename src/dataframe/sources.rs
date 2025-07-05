@@ -1,10 +1,11 @@
 use crate::dataframe::DataFrame;
 use crate::series::Series;
 use std::collections::BTreeMap;
+use crate::error::VeloxxError;
 
 /// A trait for types that can be converted into a `DataFrame`.
 pub trait DataFrameSource {
-    fn to_dataframe(&self) -> Result<DataFrame, String>;
+    fn to_dataframe(&self) -> Result<DataFrame, VeloxxError>;
 }
 
 impl DataFrameSource for Vec<Vec<String>> {
@@ -16,7 +17,7 @@ impl DataFrameSource for Vec<Vec<String>> {
     ///
     /// # Returns
     /// A `Result` containing the new `DataFrame` or a `String` error message.
-    fn to_dataframe(&self) -> Result<DataFrame, String> {
+    fn to_dataframe(&self) -> Result<DataFrame, VeloxxError> {
         if self.is_empty() {
             return DataFrame::new(BTreeMap::new());
         }
@@ -109,7 +110,7 @@ impl DataFrameSource for Vec<Vec<String>> {
                     Series::new_string(col_name, col_data_string),
                 );
             } else {
-                return Err(format!("Could not infer type for column '{col_name}'."));
+                return Err(VeloxxError::Parsing(format!("Could not infer type for column '{col_name}'.")));
             }
         }
 

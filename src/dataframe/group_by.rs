@@ -1,4 +1,7 @@
-use crate::{dataframe::DataFrame, series::Series, types::Value};
+use crate::{dataframe::DataFrame, series::Series, types::{Value, FlatValue}};
+use std::collections::HashMap;
+use crate::error::VeloxxError;
+use bincode::{encode_to_vec, decode_from_slice, config};
 
 /// Represents a `DataFrame` that has been grouped by one or more columns.
 ///
@@ -8,7 +11,7 @@ use crate::{dataframe::DataFrame, series::Series, types::Value};
 pub struct GroupedDataFrame<'a> {
     dataframe: &'a DataFrame,
     group_columns: Vec<String>,
-    groups: std::collections::BTreeMap<Vec<Value>, Vec<usize>>,
+    groups: HashMap<Vec<u8>, Vec<usize>>,
 }
 
 impl<'a> GroupedDataFrame<'a> {
@@ -20,19 +23,20 @@ impl<'a> GroupedDataFrame<'a> {
     ///
     /// # Returns
     /// A `Result` containing the new `GroupedDataFrame` or a `String` error message if a group column is not found.
-    pub fn new(dataframe: &'a DataFrame, group_columns: Vec<String>) -> Result<Self, String> {
-        let mut groups: std::collections::BTreeMap<Vec<Value>, Vec<usize>> =
-            std::collections::BTreeMap::new();
+    pub fn new(dataframe: &'a DataFrame, group_columns: Vec<String>) -> Result<Self, VeloxxError> {
+        let mut groups: HashMap<Vec<u8>, Vec<usize>> =
+            HashMap::new();
 
         for i in 0..dataframe.row_count() {
-            let mut key = Vec::with_capacity(group_columns.len());
+            let mut key_values: Vec<FlatValue> = Vec::with_capacity(group_columns.len());
             for col_name in group_columns.iter() {
                 let series = dataframe
                     .get_column(col_name)
-                    .ok_or(format!("Group column '{col_name}' not found."))?;
-                key.push(series.get_value(i).unwrap_or(Value::Null));
+                    .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
+                key_values.push(series.get_value(i).unwrap_or(Value::Null).into());
             }
-            groups.entry(key).or_default().push(i);
+            let serialized_key = encode_to_vec(key_values, config::standard()).map_err(|e| VeloxxError::InvalidOperation(format!("Failed to serialize group key: {}", e)))?;
+            groups.entry(serialized_key).or_default().push(i);
         }
 
         Ok(GroupedDataFrame {
@@ -50,11 +54,17 @@ impl<'a> GroupedDataFrame<'a> {
     ///
     /// # Returns
     /// A `Result` containing a new `DataFrame` with the aggregated results, or a `String` error message.
-    pub fn agg(&self, aggregations: Vec<(&str, &str)>) -> Result<DataFrame, String> {
+    pub fn agg(&self, aggregations: Vec<(&str, &str)>) -> Result<DataFrame, VeloxxError> {
         let mut new_columns: std::collections::BTreeMap<String, Series> =
             std::collections::BTreeMap::new();
-        let mut group_keys: Vec<Vec<Value>> = self.groups.keys().cloned().collect();
-        group_keys.sort_unstable(); // Ensure consistent order of groups
+        let group_keys_serialized: Vec<Vec<u8>> = self.groups.keys().map(|k| k.clone()).collect();
+
+        // Deserialize keys for sorting and further processing
+        let group_keys: Vec<Vec<Value>> = group_keys_serialized.into_iter().map(|key_bytes| {
+            decode_from_slice(&key_bytes, config::standard()).map(|(val, _): (Vec<FlatValue>, _)| val.into_iter().map(|fv| fv.into()).collect()).map_err(|e| VeloxxError::InvalidOperation(format!("Failed to deserialize group key: {}", e)))
+        }).collect::<Result<Vec<Vec<Value>>, VeloxxError>>()?;
+
+        // group_keys.sort_unstable(); // Ensure consistent order of groups
 
         // Add group columns to new_columns
         for col_name in self.group_columns.iter() {
@@ -152,11 +162,12 @@ impl<'a> GroupedDataFrame<'a> {
             let original_series = self
                 .dataframe
                 .get_column(col_name)
-                .ok_or(format!("Column '{col_name}' not found for aggregation."))?;
+                .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
             let mut aggregated_data: Vec<Option<Value>> = Vec::with_capacity(group_keys.len());
 
             for key in group_keys.iter() {
-                let row_indices = self.groups.get(key).unwrap();
+                let serialized_key = encode_to_vec(key, config::standard()).map_err(|e| VeloxxError::InvalidOperation(format!("Failed to serialize group key for lookup: {}", e)))?;
+                let row_indices = self.groups.get(&serialized_key).unwrap();
                 let series_for_group = original_series.filter(row_indices)?;
 
                 let aggregated_value = match agg_func {
@@ -167,12 +178,12 @@ impl<'a> GroupedDataFrame<'a> {
                     "mean" => series_for_group.mean()?,
                     "median" => series_for_group.median()?,
                     "std_dev" => series_for_group.std_dev()?,
-                    _ => return Err(format!("Unsupported aggregation function: {agg_func}")),
+                    _ => return Err(VeloxxError::Unsupported(format!("Unsupported aggregation function: {}", agg_func))),
                 };
                 aggregated_data.push(aggregated_value);
             }
 
-            let new_series_name = format!("{col_name}_{agg_func}");
+            let new_series_name = format!("{}_{}", col_name, agg_func);
             let new_series = match original_series.data_type() {
                 crate::types::DataType::I32 => Series::new_i32(
                     &new_series_name,

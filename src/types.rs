@@ -1,7 +1,8 @@
 use std::hash::{Hash, Hasher};
+use serde::{Serialize, Deserialize};
 
 /// Defines the possible data types for a `Series` or `Value`.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash, Serialize, Deserialize, bincode::Encode, bincode::Decode)]
 pub enum DataType {
     /// 32-bit signed integer type.
     I32,
@@ -15,7 +16,7 @@ pub enum DataType {
     DateTime,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, bincode::Encode, bincode::Decode)]
 /// Represents a single data point within a `Series` or `DataFrame`.
 ///
 /// This enum can hold various types of data, including integers, floats, booleans, and strings,
@@ -119,17 +120,48 @@ impl PartialOrd for Value {
 }
 
 impl Ord for Value {
-    /// Implements the `Ord` trait for `Value`.
-    ///
-    /// This provides a total ordering for `Value` instances, which is necessary for sorting.
-    /// For incomparable types (e.g., `I32` and `String`), a consistent but arbitrary ordering is defined
-    /// based on the discriminant of the `Value` enum variants.
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap_or_else(|| {
-            // Define a consistent ordering for incomparable types (e.g., different variants)
-            // This is arbitrary but necessary for a total order.
-            // For example, order by variant discriminant, then by value.
-            self.discriminant().cmp(&other.discriminant())
-        })
+        match (self, other) {
+            (Value::F64(l), Value::F64(r)) => l.total_cmp(r),
+            _ => self.partial_cmp(other).unwrap_or_else(|| {
+                self.discriminant().cmp(&other.discriminant())
+            }),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, bincode::Encode, bincode::Decode)]
+pub enum FlatValue {
+    Null,
+    I32(i32),
+    F64(u64), // Store bit representation
+    Bool(bool),
+    String(Vec<u8>), // Store byte representation
+    DateTime(i64),
+}
+
+impl From<Value> for FlatValue {
+    fn from(value: Value) -> Self {
+        match value {
+            Value::Null => FlatValue::Null,
+            Value::I32(v) => FlatValue::I32(v),
+            Value::F64(v) => FlatValue::F64(v.to_bits()),
+            Value::Bool(v) => FlatValue::Bool(v),
+            Value::String(v) => FlatValue::String(v.into_bytes()),
+            Value::DateTime(v) => FlatValue::DateTime(v),
+        }
+    }
+}
+
+impl From<FlatValue> for Value {
+    fn from(flat_value: FlatValue) -> Self {
+        match flat_value {
+            FlatValue::Null => Value::Null,
+            FlatValue::I32(v) => Value::I32(v),
+            FlatValue::F64(v) => Value::F64(f64::from_bits(v)),
+            FlatValue::Bool(v) => Value::Bool(v),
+            FlatValue::String(v) => Value::String(String::from_utf8(v).unwrap_or_default()), // Handle potential UTF-8 errors
+            FlatValue::DateTime(v) => Value::DateTime(v),
+        }
     }
 }

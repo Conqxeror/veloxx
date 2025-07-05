@@ -1,9 +1,9 @@
 use crate::{dataframe::DataFrame, series::Series};
 use microjson::JSONValue;
-
 use csv_core::{ReadFieldResult, Reader};
 use std::collections::BTreeMap;
 use std::io::Read;
+use crate::error::VeloxxError;
 
 impl DataFrame {
     /// Creates a new `DataFrame` from a CSV file.
@@ -18,27 +18,28 @@ impl DataFrame {
     /// # Returns
     ///
     /// A `Result` containing the new `DataFrame` or a `String` error message.
-    pub fn from_csv(path: &str) -> Result<Self, String> {
+    pub fn from_csv(path: &str) -> Result<Self, VeloxxError> {
         let mut file =
-            std::fs::File::open(path).map_err(|e| format!("Could not open file: {e}"))?;
+            std::fs::File::open(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)
-            .map_err(|e| format!("Could not read file: {e}"))?;
+            .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
 
         let mut rdr = Reader::new();
         let mut field_buf = [0; 1024]; // Buffer for a single field
 
-        let mut column_names: Option<Vec<String>> = None;
+        let mut column_names: Vec<String> = Vec::new();
         let mut all_rows_as_strings: Vec<Vec<String>> = Vec::new();
         let mut current_row_fields: Vec<String> = Vec::new();
 
         let mut bytes = contents.as_slice();
+        let mut is_header = true;
 
         loop {
             let (result, bytes_consumed, bytes_written) = rdr.read_field(bytes, &mut field_buf);
 
             let field_str = String::from_utf8(field_buf[..bytes_written].to_vec())
-                .map_err(|e| format!("Invalid UTF-8 in CSV: {e}"))?;
+                .map_err(|e| VeloxxError::Parsing(e.to_string()))?;
             current_row_fields.push(field_str);
 
             bytes = &bytes[bytes_consumed..];
@@ -46,8 +47,8 @@ impl DataFrame {
             match result {
                 ReadFieldResult::InputEmpty => {
                     if !current_row_fields.is_empty() {
-                        if column_names.is_none() {
-                            column_names = Some(current_row_fields.clone());
+                        if is_header {
+                            column_names = current_row_fields.clone();
                         } else {
                             all_rows_as_strings.push(current_row_fields.clone());
                         }
@@ -55,35 +56,40 @@ impl DataFrame {
                     break;
                 }
                 ReadFieldResult::OutputFull => {
-                    return Err("CSV field too large for buffer.".to_string());
+                    return Err(VeloxxError::Parsing("CSV field too large for buffer.".to_string()));
                 }
                 ReadFieldResult::Field { record_end } => {
                     if record_end {
-                        if column_names.is_none() {
-                            column_names = Some(current_row_fields.clone());
+                        if is_header {
+                            column_names = current_row_fields.clone();
+                            is_header = false;
+                        } else {
+                            all_rows_as_strings.push(current_row_fields.clone());
                         }
-                        all_rows_as_strings.push(current_row_fields.clone());
                         current_row_fields.clear();
                     }
                 }
                 ReadFieldResult::End => {
                     if !current_row_fields.is_empty() {
-                        if column_names.is_none() {
-                            column_names = Some(current_row_fields.clone());
+                        if is_header {
+                            column_names = current_row_fields.clone();
+                        } else {
+                            all_rows_as_strings.push(current_row_fields.clone());
                         }
-                        all_rows_as_strings.push(current_row_fields.clone());
                     }
                     break;
                 }
             }
         }
 
-        if column_names.is_none() {
-            return Err("CSV file is empty or contains no header.".to_string());
+        if column_names.is_empty() {
+            return Err(VeloxxError::Parsing("CSV file is empty or contains no header.".to_string()));
         }
 
-        let header = column_names.unwrap();
-        if all_rows_as_strings.is_empty() {
+        let header = column_names;
+        let data_rows = all_rows_as_strings.clone();
+
+        if data_rows.is_empty() {
             // If only header exists, create an empty DataFrame with correct columns
             let mut columns: BTreeMap<String, Series> = BTreeMap::new();
             for col_name in header {
@@ -94,7 +100,7 @@ impl DataFrame {
 
         // Infer types and create Series
         let num_cols = header.len();
-        let num_rows = all_rows_as_strings.len();
+        let num_rows = data_rows.len();
         let mut columns: BTreeMap<String, Series> = BTreeMap::new();
 
         for (col_idx, header_item) in header.iter().enumerate().take(num_cols) {
@@ -231,14 +237,14 @@ impl DataFrame {
     pub fn from_vec_of_vec(
         data: Vec<Vec<String>>,
         column_names: Vec<String>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, VeloxxError> {
         if data.is_empty() {
             return DataFrame::new(BTreeMap::new());
         }
 
         if data[0].len() != column_names.len() {
             return Err(
-                "Number of columns in data does not match number of column names.".to_string(),
+                VeloxxError::InvalidOperation("Number of columns in data does not match number of column names.".to_string()),
             );
         }
 
@@ -343,7 +349,7 @@ impl DataFrame {
                     .collect();
                 columns.insert(col_name.to_string(), Series::new_string(col_name, col_data));
             } else {
-                return Err(format!("Could not infer type for column '{col_name}'."));
+                return Err(VeloxxError::Parsing(format!("Could not infer type for column '{col_name}'.")));
             }
         }
 
@@ -361,14 +367,14 @@ impl DataFrame {
     /// # Returns
     ///
     /// A `Result` indicating success or a `String` error message.
-    pub fn to_csv(&self, path: &str) -> Result<(), String> {
+    pub fn to_csv(&self, path: &str) -> Result<(), VeloxxError> {
         use std::io::Write;
         let mut file =
-            std::fs::File::create(path).map_err(|e| format!("Could not create file: {e}"))?;
+            std::fs::File::create(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
 
         let column_names: Vec<&str> = self.column_names().iter().map(|s| s.as_str()).collect();
         writeln!(file, "{}", column_names.join(","))
-            .map_err(|e| format!("Could not write to file: {e}"))?;
+            .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
 
         for i in 0..self.row_count() {
             let mut row_values: Vec<String> = Vec::new();
@@ -386,7 +392,7 @@ impl DataFrame {
                 row_values.push(value_str);
             }
             writeln!(file, "{}", row_values.join(","))
-                .map_err(|e| format!("Could not write to file: {e}"))?;
+                .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
         }
         Ok(())
     }
@@ -399,25 +405,25 @@ impl DataFrame {
     ///   {"col1": 1, "col2": "a"},
     ///   {"col1": 2, "col2": "b"}
     /// ]
-    pub fn from_json(path: &str) -> Result<Self, String> {
+    pub fn from_json(path: &str) -> Result<Self, VeloxxError> {
         let contents =
-            std::fs::read_to_string(path).map_err(|e| format!("Could not read file: {e}"))?;
+            std::fs::read_to_string(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
         let json = JSONValue::load(&contents);
         let arr_iter = match json.iter_array() {
             Ok(arr) => arr,
-            Err(_) => return Err("JSON root must be an array".to_string()),
+            Err(_) => return Err(VeloxxError::Parsing("JSON root must be an array".to_string())),
         };
         let mut rows = Vec::new();
         for row_val in arr_iter {
             let obj_iter = match row_val.iter_object() {
                 Ok(obj) => obj,
-                Err(_) => return Err("Each row must be a JSON object".to_string()),
+                Err(_) => return Err(VeloxxError::Parsing("Each row must be a JSON object".to_string())),
             };
             let mut row = std::collections::BTreeMap::new();
             for entry in obj_iter {
                 let (k, v) = match entry {
                     Ok((k, v)) => (k, v),
-                    Err(_) => return Err("Error reading key-value pair".to_string()),
+                    Err(_) => return Err(VeloxxError::Parsing("Error reading key-value pair".to_string())),
                 };
                 let value = if let Ok(f) = v.read_float() {
                     Some(crate::types::Value::F64(f as f64))
@@ -437,7 +443,7 @@ impl DataFrame {
             rows.push(row);
         }
         if rows.is_empty() {
-            return Err("JSON array is empty".to_string());
+            return Err(VeloxxError::Parsing("JSON array is empty".to_string()));
         }
         let column_names: Vec<String> = rows[0].keys().cloned().collect();
         let mut columns: BTreeMap<String, Vec<Option<crate::types::Value>>> = BTreeMap::new();

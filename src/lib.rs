@@ -1,11 +1,93 @@
 //! Veloxx is a lightweight Rust library for in-memory data processing and analytics.
-//! It provides core data structures like DataFrame and Series, along with a suite
+//! It provides core data structures like `DataFrame` and `Series`, along with a suite
 //! of operations for data manipulation, cleaning, aggregation, and basic statistics.
 //!
 //! The library prioritizes minimal dependencies, optimal memory footprint, and
 //! compile-time guarantees, making it suitable for high-performance and
 //! resource-constrained environments.
-
+//!
+//! # Getting Started
+//!
+//! Add `veloxx` to your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! veloxx = "0.2"
+//! ```
+//!
+//! # Examples
+//!
+//! ## Creating a DataFrame
+//!
+//! ```rust
+//! use veloxx::dataframe::DataFrame;
+//! use veloxx::series::Series;
+//! use std::collections::BTreeMap;
+//!
+//! let mut columns = BTreeMap::new();
+//! columns.insert(
+//!     "name".to_string(),
+//!     Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string())]),
+//! );
+//! columns.insert(
+//!     "age".to_string(),
+//!     Series::new_i32("age", vec![Some(30), Some(24)]),
+//! );
+//!
+//! let df = DataFrame::new(columns).unwrap();
+//! println!("Initial DataFrame:\n{}", df);
+//! ```
+//!
+//! ## Filtering a DataFrame
+//!
+//! ```rust
+//! use veloxx::dataframe::DataFrame;
+//! use veloxx::series::Series;
+//! use veloxx::conditions::Condition;
+//! use veloxx::types::Value;
+//! use std::collections::BTreeMap;
+//!
+//! let mut columns = BTreeMap::new();
+//! columns.insert(
+//!     "name".to_string(),
+//!     Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]),
+//! );
+//! columns.insert(
+//!     "age".to_string(),
+//!     Series::new_i32("age", vec![Some(30), Some(24), Some(35)]),
+//! );
+//!
+//! let df = DataFrame::new(columns).unwrap();
+//!
+//! let condition = Condition::Gt("age".to_string(), Value::I32(30));
+//! let filtered_df = df.filter(&condition).unwrap();
+//! println!("Filtered DataFrame (age > 30):\n{}", filtered_df);
+//! ```
+//!
+//! ## Performing Aggregations
+//!
+//! ```rust
+//! use veloxx::dataframe::DataFrame;
+//! use veloxx::series::Series;
+//! use std::collections::BTreeMap;
+//!
+//! let mut columns = BTreeMap::new();
+//! columns.insert(
+//!     "city".to_string(),
+//!     Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string())]),
+//! );
+//! columns.insert(
+//!     "sales".to_string(),
+//!     Series::new_f64("sales", vec![Some(100.0), Some(150.0), Some(200.0)]),
+//! );
+//!
+//! let df = DataFrame::new(columns).unwrap();
+//!
+//! let grouped_df = df.group_by(vec!["city".to_string()]).unwrap();
+//! let aggregated_df = grouped_df.agg(vec![("sales", "sum")]).unwrap();
+//! println!("Aggregated Sales by City:\n{}", aggregated_df);
+//! ```
+//!
 //! ![Veloxx Logo](https://raw.githubusercontent.com/Conqxeror/veloxx/main/docs/veloxx_logo.png)
 
 /// Defines conditions used for filtering DataFrames, supporting various comparison
@@ -23,10 +105,13 @@ pub mod series;
 /// Defines the fundamental data types (`DataType`) and value (`Value`) enums
 /// used to represent data within Series and DataFrames.
 pub mod types;
+/// Defines the custom error type `VeloxxError` for unified error handling.
+pub mod error;
 
 #[cfg(feature = "python")]
 mod python_bindings;
 
+#[cfg(feature = "wasm")]
 pub mod wasm_bindings;
 
 #[cfg(test)]
@@ -37,6 +122,7 @@ mod tests {
     use crate::series::Series;
     use crate::types::Value;
     use std::collections::BTreeMap;
+    use crate::error::VeloxxError;
 
     #[test]
     fn test_dataframe_new() {
@@ -77,7 +163,7 @@ mod tests {
         );
 
         let err = DataFrame::new(columns).unwrap_err();
-        assert_eq!(err, "All series in a DataFrame must have the same length.");
+        assert_eq!(err, VeloxxError::InvalidOperation("All series in a DataFrame must have the same length.".to_string()));
     }
 
     #[test]
@@ -209,7 +295,7 @@ mod tests {
         let err = DataFrame::from_vec_of_vec(mismatched_data, mismatched_column_names).unwrap_err();
         assert_eq!(
             err,
-            "Number of columns in data does not match number of column names."
+            VeloxxError::InvalidOperation("Number of columns in data does not match number of column names.".to_string())
         );
     }
 
@@ -244,7 +330,7 @@ mod tests {
         let err = df
             .select_columns(vec!["col1".to_string(), "non_existent".to_string()])
             .unwrap_err();
-        assert_eq!(err, "Column 'non_existent' not found.");
+        assert_eq!(err, VeloxxError::ColumnNotFound("non_existent".to_string()));
 
         // Select all columns
         let all_columns_df = df
@@ -286,7 +372,7 @@ mod tests {
         let err = df
             .drop_columns(vec!["col1".to_string(), "non_existent".to_string()])
             .unwrap_err();
-        assert_eq!(err, "Column 'non_existent' not found.");
+        assert_eq!(err, VeloxxError::ColumnNotFound("non_existent".to_string()));
 
         // Drop all columns
         let empty_df = df
@@ -321,11 +407,11 @@ mod tests {
 
         // Try to rename a non-existent column
         let err = df.rename_column("non_existent", "new_name").unwrap_err();
-        assert_eq!(err, "Column 'non_existent' not found.");
+        assert_eq!(err, VeloxxError::ColumnNotFound("non_existent".to_string()));
 
         // Try to rename to an existing column name
         let err = df.rename_column("col1", "col2").unwrap_err();
-        assert_eq!(err, "Column with new name 'col2' already exists.");
+        assert_eq!(err, VeloxxError::InvalidOperation("Column with new name 'col2' already exists.".to_string()));
     }
 
     #[test]
@@ -425,7 +511,7 @@ mod tests {
         // Test with non-existent column in condition
         let condition = Condition::Eq("non_existent".to_string(), Value::I32(10));
         let err = df.filter(&condition).unwrap_err();
-        assert_eq!(err, "Column 'non_existent' not found.");
+        assert_eq!(err, VeloxxError::ColumnNotFound("non_existent".to_string()));
     }
 
     #[test]
@@ -627,7 +713,7 @@ mod tests {
         let err = series_i32_unsupported
             .cast(crate::types::DataType::String)
             .unwrap_err();
-        assert!(err.contains("Unsupported cast from I32 to String"));
+        assert!(err.to_string().contains("Unsupported cast from I32 to String"));
 
         // Test casting to same type
         let series_i32_same_type = Series::new_i32("int_col", vec![Some(1), Some(2)]);
@@ -713,7 +799,7 @@ mod tests {
 
         // Test with non-existent column
         let err = df.sort(vec!["non_existent".to_string()], true).unwrap_err();
-        assert_eq!(err, "Column 'non_existent' not found for sorting.");
+        assert_eq!(err, VeloxxError::ColumnNotFound("Column 'non_existent' not found for sorting.".to_string()));
 
         // Test with empty DataFrame
         let empty_df = DataFrame::new(BTreeMap::new()).unwrap();

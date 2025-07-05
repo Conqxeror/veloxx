@@ -1,5 +1,6 @@
 use crate::series::Series;
 use std::collections::BTreeMap;
+use crate::error::VeloxxError;
 
 pub mod cleaning;
 pub mod display;
@@ -23,7 +24,7 @@ impl DataFrame {
     ///
     /// Returns an error if the series have inconsistent lengths or if column names
     /// in the BTreeMap do not match the names within the Series.
-    pub fn new(columns: BTreeMap<String, Series>) -> Result<Self, String> {
+    pub fn new(columns: BTreeMap<String, Series>) -> Result<Self, VeloxxError> {
         if columns.is_empty() {
             return Ok(DataFrame {
                 columns,
@@ -34,16 +35,16 @@ impl DataFrame {
         let mut row_count = 0;
         for (i, (col_name, series)) in columns.iter().enumerate() {
             if col_name != series.name() {
-                return Err(format!(
+                return Err(VeloxxError::InvalidOperation(format!(
                     "Column name mismatch: HashMap key '{}' does not match Series name '{}'.",
                     col_name,
                     series.name()
-                ));
+                )));
             }
             if i == 0 {
                 row_count = series.len();
             } else if series.len() != row_count {
-                return Err("All series in a DataFrame must have the same length.".to_string());
+                return Err(VeloxxError::InvalidOperation("All series in a DataFrame must have the same length.".to_string()));
             }
         }
 

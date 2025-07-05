@@ -1,5 +1,6 @@
 use crate::{dataframe::DataFrame, series::Series, types::Value};
 use std::collections::BTreeMap;
+use crate::error::VeloxxError;
 
 #[derive(PartialEq)]
 /// Defines the type of join to be performed between two DataFrames.
@@ -27,7 +28,7 @@ impl DataFrame {
         other: &DataFrame,
         on_column: &str,
         join_type: JoinType,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, VeloxxError> {
         let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
 
         let self_col_names: Vec<String> =
@@ -37,14 +38,14 @@ impl DataFrame {
 
         // Check if join column exists in both DataFrames
         if !self_col_names.contains(&on_column.to_string()) {
-            return Err(format!(
+            return Err(VeloxxError::ColumnNotFound(format!(
                 "Join column '{on_column}' not found in left DataFrame."
-            ));
+            )));
         }
         if !other_col_names.contains(&on_column.to_string()) {
-            return Err(format!(
+            return Err(VeloxxError::ColumnNotFound(format!(
                 "Join column '{on_column}' not found in right DataFrame."
-            ));
+            )));
         }
 
         // Determine all unique column names and their types

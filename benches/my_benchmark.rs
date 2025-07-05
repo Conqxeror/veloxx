@@ -4,6 +4,7 @@ use veloxx::conditions::Condition;
 use veloxx::dataframe::DataFrame;
 use veloxx::dataframe::join::JoinType;
 use veloxx::series::Series;
+use veloxx::types::{DataType, Value};
 
 fn bench_dataframe_creation(c: &mut Criterion) {
     c.bench_function("dataframe_creation", |b| {
@@ -25,7 +26,7 @@ fn bench_dataframe_creation(c: &mut Criterion) {
 fn bench_dataframe_from_csv(c: &mut Criterion) {
     c.bench_function("dataframe_from_csv", |b| {
         b.iter(|| {
-            DataFrame::from_csv("test.csv").unwrap();
+            DataFrame::from_csv("examples/test.csv").unwrap();
         });
     });
 }
@@ -41,7 +42,7 @@ fn bench_dataframe_filter(c: &mut Criterion) {
         Series::new_f64("col2", (0..1000).map(|i| Some(i as f64)).collect()),
     );
     let df = DataFrame::new(columns).unwrap();
-    let condition = Condition::Gt("col1".to_string(), veloxx::types::Value::I32(500));
+    let condition = Condition::Gt("col1".to_string(), Value::I32(500));
 
     c.bench_function("dataframe_filter", |b| {
         b.iter(|| {
@@ -63,6 +64,108 @@ fn bench_series_sum(c: &mut Criterion) {
     c.bench_function("series_sum_f64", |b| {
         b.iter(|| {
             series_f64.sum().unwrap();
+        });
+    });
+}
+
+fn bench_series_min(c: &mut Criterion) {
+    let series_i32 = Series::new_i32("data", (0..1000).map(Some).collect());
+    let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
+
+    c.bench_function("series_min_i32", |b| {
+        b.iter(|| {
+            series_i32.min().unwrap();
+        });
+    });
+
+    c.bench_function("series_min_f64", |b| {
+        b.iter(|| {
+            series_f64.min().unwrap();
+        });
+    });
+}
+
+fn bench_series_max(c: &mut Criterion) {
+    let series_i32 = Series::new_i32("data", (0..1000).map(Some).collect());
+    let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
+
+    c.bench_function("series_max_i32", |b| {
+        b.iter(|| {
+            series_i32.max().unwrap();
+        });
+    });
+
+    c.bench_function("series_max_f64", |b| {
+        b.iter(|| {
+            series_f64.max().unwrap();
+        });
+    });
+}
+
+fn bench_series_mean(c: &mut Criterion) {
+    let series_i32 = Series::new_i32("data", (0..1000).map(Some).collect());
+    let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
+
+    c.bench_function("series_mean_i32", |b| {
+        b.iter(|| {
+            series_i32.mean().unwrap();
+        });
+    });
+
+    c.bench_function("series_mean_f64", |b| {
+        b.iter(|| {
+            series_f64.mean().unwrap();
+        });
+    });
+}
+
+fn bench_series_median(c: &mut Criterion) {
+    let series_i32 = Series::new_i32("data", (0..1000).map(Some).collect());
+    let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
+
+    c.bench_function("series_median_i32", |b| {
+        b.iter(|| {
+            series_i32.median().unwrap();
+        });
+    });
+
+    c.bench_function("series_median_f64", |b| {
+        b.iter(|| {
+            series_f64.median().unwrap();
+        });
+    });
+}
+
+fn bench_series_std_dev(c: &mut Criterion) {
+    let series_i32 = Series::new_i32("data", (0..1000).map(Some).collect());
+    let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
+
+    c.bench_function("series_std_dev_i32", |b| {
+        b.iter(|| {
+            series_i32.std_dev().unwrap();
+        });
+    });
+
+    c.bench_function("series_std_dev_f64", |b| {
+        b.iter(|| {
+            series_f64.std_dev().unwrap();
+        });
+    });
+}
+
+fn bench_series_to_vec_f64(c: &mut Criterion) {
+    let series_i32 = Series::new_i32("data", (0..1000).map(Some).collect());
+    let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
+
+    c.bench_function("series_to_vec_f64_i32", |b| {
+        b.iter(|| {
+            series_i32.to_vec_f64().unwrap();
+        });
+    });
+
+    c.bench_function("series_to_vec_f64_f64", |b| {
+        b.iter(|| {
+            series_f64.to_vec_f64().unwrap();
         });
     });
 }
@@ -121,7 +224,7 @@ fn bench_series_apply(c: &mut Criterion) {
     let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
     let series_string = Series::new_string(
         "data",
-        (0..1000).map(|i| Some(format!("value{i}"))).collect(),
+        (0..1000).map(|i| Some(format!("value{}", i))).collect(),
     );
 
     c.bench_function("series_apply_i32", |b| {
@@ -148,7 +251,7 @@ fn bench_series_apply(c: &mut Criterion) {
         b.iter(|| {
             series_string
                 .apply_string(|v| {
-                    v.map(|s| format!("{s}-suffix"))
+                    v.map(|s| format!("{}-suffix", s))
                 })
                 .unwrap();
         });
@@ -213,7 +316,7 @@ fn bench_dataframe_fill_nulls(c: &mut Criterion) {
         Series::new_i32("col1", data_with_nulls_i32.clone()),
     );
     let df_i32 = DataFrame::new(columns_i32).unwrap();
-    let fill_value_i32 = veloxx::types::Value::I32(999);
+    let fill_value_i32 = Value::I32(999);
 
     let mut columns_f64 = BTreeMap::new();
     columns_f64.insert(
@@ -221,7 +324,7 @@ fn bench_dataframe_fill_nulls(c: &mut Criterion) {
         Series::new_f64("col1", data_with_nulls_f64.clone()),
     );
     let df_f64 = DataFrame::new(columns_f64).unwrap();
-    let fill_value_f64 = veloxx::types::Value::F64(999.99);
+    let fill_value_f64 = Value::F64(999.99);
 
     c.bench_function("dataframe_fill_nulls_i32", |b| {
         b.iter(|| {
@@ -246,20 +349,20 @@ fn bench_series_cast(c: &mut Criterion) {
 
     c.bench_function("series_cast_i32_to_f64", |b| {
         b.iter(|| {
-            series_i32.cast(veloxx::types::DataType::F64).unwrap();
+            series_i32.cast(DataType::F64).unwrap();
         });
     });
 
     c.bench_function("series_cast_f64_to_i32", |b| {
         b.iter(|| {
-            series_f64.cast(veloxx::types::DataType::I32).unwrap();
+            series_f64.cast(DataType::I32).unwrap();
         });
     });
 
     c.bench_function("series_cast_string_to_i32", |b| {
         b.iter(|| {
             series_string_i32
-                .cast(veloxx::types::DataType::I32)
+                .cast(DataType::I32)
                 .unwrap();
         });
     });
@@ -267,7 +370,7 @@ fn bench_series_cast(c: &mut Criterion) {
     c.bench_function("series_cast_string_to_f64", |b| {
         b.iter(|| {
             series_string_f64
-                .cast(veloxx::types::DataType::F64)
+                .cast(DataType::F64)
                 .unwrap();
         });
     });
@@ -430,7 +533,45 @@ fn bench_series_interpolate_nulls(c: &mut Criterion) {
 fn bench_dataframe_from_json(c: &mut Criterion) {
     c.bench_function("dataframe_from_json", |b| {
         b.iter(|| {
-            DataFrame::from_json("test.json").unwrap();
+            DataFrame::from_json("examples/test.json").unwrap();
+        });
+    });
+}
+
+fn bench_dataframe_to_csv(c: &mut Criterion) {
+    let mut columns = BTreeMap::new();
+    columns.insert(
+        "col1".to_string(),
+        Series::new_i32("col1", (0..1000).map(Some).collect()),
+    );
+    columns.insert(
+        "col2".to_string(),
+        Series::new_f64("col2", (0..1000).map(|i| Some(i as f64)).collect()),
+    );
+    let df = DataFrame::new(columns).unwrap();
+
+    c.bench_function("dataframe_to_csv", |b| {
+        b.iter(|| {
+            df.to_csv("target/test.csv").unwrap();
+        });
+    });
+}
+
+fn bench_dataframe_to_vec_of_vec(c: &mut Criterion) {
+    let mut columns = BTreeMap::new();
+    columns.insert(
+        "col1".to_string(),
+        Series::new_i32("col1", (0..1000).map(Some).collect()),
+    );
+    columns.insert(
+        "col2".to_string(),
+        Series::new_f64("col2", (0..1000).map(|i| Some(i as f64)).collect()),
+    );
+    let df = DataFrame::new(columns).unwrap();
+
+    c.bench_function("dataframe_to_vec_of_vec", |b| {
+        b.iter(|| {
+            df.to_vec_of_vec();
         });
     });
 }
@@ -441,6 +582,12 @@ criterion_group!(
     bench_dataframe_from_csv,
     bench_dataframe_filter,
     bench_series_sum,
+    bench_series_min,
+    bench_series_max,
+    bench_series_mean,
+    bench_series_median,
+    bench_series_std_dev,
+    bench_series_to_vec_f64,
     bench_dataframe_sort,
     bench_dataframe_join,
     bench_series_apply,
@@ -455,6 +602,8 @@ criterion_group!(
     bench_dataframe_covariance,
     bench_series_unique,
     bench_series_interpolate_nulls,
-    bench_dataframe_from_json
+    bench_dataframe_from_json,
+    bench_dataframe_to_csv,
+    bench_dataframe_to_vec_of_vec
 );
 criterion_main!(benches);

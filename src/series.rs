@@ -1,5 +1,6 @@
 use crate::types::{DataType, Value};
 use std::collections::HashSet;
+use crate::error::VeloxxError;
 
 /// Represents a single-typed, named column of data within a DataFrame.
 ///
@@ -107,7 +108,7 @@ impl Series {
     }
 
     /// Filters the series based on the provided row indices.
-    pub fn filter(&self, row_indices: &[usize]) -> Result<Self, String> {
+    pub fn filter(&self, row_indices: &[usize]) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
             Series::I32(_, data) => {
@@ -141,7 +142,7 @@ impl Series {
     /// Fills null values in the series with a specified value.
     ///
     /// Returns an error if the fill value's type does not match the series' data type.
-    pub fn fill_nulls(&self, value: &Value) -> Result<Self, String> {
+    pub fn fill_nulls(&self, value: &Value) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
             Series::I32(_, data) => {
@@ -150,9 +151,9 @@ impl Series {
                         data.iter().map(|&x| x.or(Some(*fill_val))).collect();
                     Ok(Series::I32(name, filled_data))
                 } else {
-                    Err(format!(
+                    Err(VeloxxError::DataTypeMismatch(format!(
                         "Type mismatch: Cannot fill I32 series with {value:?}"
-                    ))
+                    )))
                 }
             }
             Series::F64(_, data) => {
@@ -161,9 +162,9 @@ impl Series {
                         data.iter().map(|&x| x.or(Some(*fill_val))).collect();
                     Ok(Series::F64(name, filled_data))
                 } else {
-                    Err(format!(
+                    Err(VeloxxError::DataTypeMismatch(format!(
                         "Type mismatch: Cannot fill F64 series with {value:?}"
-                    ))
+                    )))
                 }
             }
             Series::Bool(_, data) => {
@@ -172,9 +173,9 @@ impl Series {
                         data.iter().map(|&x| x.or(Some(*fill_val))).collect();
                     Ok(Series::Bool(name, filled_data))
                 } else {
-                    Err(format!(
+                    Err(VeloxxError::DataTypeMismatch(format!(
                         "Type mismatch: Cannot fill Bool series with {value:?}"
-                    ))
+                    )))
                 }
             }
             Series::String(_, data) => {
@@ -185,9 +186,9 @@ impl Series {
                         .collect();
                     Ok(Series::String(name, filled_data))
                 } else {
-                    Err(format!(
+                    Err(VeloxxError::DataTypeMismatch(format!(
                         "Type mismatch: Cannot fill String series with {value:?}"
-                    ))
+                    )))
                 }
             }
             Series::DateTime(_, data) => {
@@ -196,9 +197,9 @@ impl Series {
                         data.iter().map(|&x| x.or(Some(*fill_val))).collect();
                     Ok(Series::DateTime(name, filled_data))
                 } else {
-                    Err(format!(
+                    Err(VeloxxError::DataTypeMismatch(format!(
                         "Type mismatch: Cannot fill DateTime series with {value:?}"
-                    ))
+                    )))
                 }
             }
         }
@@ -207,7 +208,7 @@ impl Series {
     /// Casts the series to a new data type.
     ///
     /// Returns an error if the cast is not supported.
-    pub fn cast(&self, to_type: DataType) -> Result<Self, String> {
+    pub fn cast(&self, to_type: DataType) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match (self, to_type) {
             (Series::I32(_, data), DataType::F64) => Ok(Series::F64(
@@ -251,24 +252,24 @@ impl Series {
                 data.iter().map(|&x| x.map(|val| val.to_string())).collect(),
             )),
             (s, t) if s.data_type() == t => Ok(s.clone()),
-            (_, to_type) => Err(format!(
+            (_, to_type) => Err(VeloxxError::Unsupported(format!(
                 "Unsupported cast from {:?} to {:?}",
                 self.data_type(),
                 to_type
-            )),
+            ))),
         }
     }
 
     /// Appends another series to the end of this series.
     ///
     /// Returns an error if the series have different data types.
-    pub fn append(&self, other: &Series) -> Result<Self, String> {
+    pub fn append(&self, other: &Series) -> Result<Self, VeloxxError> {
         if self.data_type() != other.data_type() {
-            return Err(format!(
+            return Err(VeloxxError::DataTypeMismatch(format!(
                 "Cannot append Series of different types: {:?} and {:?}",
                 self.data_type(),
                 other.data_type()
-            ));
+            )));
         }
         let new_name = self.name().to_string();
         match (self, other) {
@@ -297,17 +298,17 @@ impl Series {
                 new_data.extend(data2.iter().cloned());
                 Ok(Series::DateTime(new_name, new_data))
             }
-            _ => Err(
+            _ => Err(VeloxxError::InvalidOperation(
                 "Mismatched series types during append (should be caught by data_type check)."
                     .to_string(),
-            ),
+            )),
         }
     }
 
     /// Calculates the sum of all non-null values in the series.
     ///
     /// Returns an error if the operation is not supported for the series' data type.
-    pub fn sum(&self) -> Result<Option<Value>, String> {
+    pub fn sum(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
                 let sum_val = data.iter().fold(None, |acc, &x| match (acc, x) {
@@ -333,10 +334,10 @@ impl Series {
                 });
                 Ok(sum_val.map(Value::DateTime))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Sum operation not supported for {:?} series.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
@@ -354,7 +355,7 @@ impl Series {
     /// Finds the minimum non-null value in the series.
     ///
     /// Returns an error if the operation is not supported for the series' data type.
-    pub fn min(&self) -> Result<Option<Value>, String> {
+    pub fn min(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
                 let min_val = data.iter().filter_map(|&x| x).min();
@@ -375,17 +376,17 @@ impl Series {
                 let min_val = data.iter().filter_map(|x| x.as_ref()).min_by(|a, b| a.cmp(b));
                 Ok(min_val.map(|s| Value::String(s.clone())))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Min operation not supported for {:?} series.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Finds the maximum non-null value in the series.
     ///
     /// Returns an error if the operation is not supported for the series' data type.
-    pub fn max(&self) -> Result<Option<Value>, String> {
+    pub fn max(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
                 let max_val = data.iter().filter_map(|&x| x).max();
@@ -406,17 +407,17 @@ impl Series {
                 let max_val = data.iter().filter_map(|x| x.as_ref()).max_by(|a, b| a.cmp(b));
                 Ok(max_val.map(|s| Value::String(s.clone())))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Max operation not supported for {:?} series.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Calculates the mean of all non-null values in the series.
     ///
     /// Returns an error if the operation is not supported for the series' data type.
-    pub fn mean(&self) -> Result<Option<Value>, String> {
+    pub fn mean(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
                 let sum_val: i64 = data.iter().filter_map(|&x| x.map(|v| v as i64)).sum();
@@ -445,17 +446,17 @@ impl Series {
                     Ok(Some(Value::F64(sum_val as f64 / count_val as f64)))
                 }
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Mean operation not supported for {:?} series.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Calculates the median of all non-null values in the series.
     ///
     /// Returns an error if the operation is not supported for the series' data type.
-    pub fn median(&self) -> Result<Option<Value>, String> {
+    pub fn median(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
                 let mut non_null_data: Vec<i32> = data.iter().filter_map(|&x| x).collect();
@@ -505,17 +506,17 @@ impl Series {
                     Ok(Some(Value::F64(non_null_data[mid] as f64)))
                 }
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Median operation not supported for {:?} series.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Calculates the standard deviation of all non-null values in the series.
     ///
     /// Returns an error if the operation is not supported for the series' data type.
-    pub fn std_dev(&self) -> Result<Option<Value>, String> {
+    pub fn std_dev(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
                 let non_null_data: Vec<f64> =
@@ -546,10 +547,10 @@ impl Series {
                     / (n - 1) as f64;
                 Ok(Some(Value::F64(variance.sqrt())))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Standard deviation operation not supported for {:?} series.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
@@ -557,11 +558,11 @@ impl Series {
     ///
     /// Returns an error if the series have different lengths or if the operation is not supported
     /// for the series' data types.
-    pub fn correlation(&self, other: &Series) -> Result<Option<Value>, String> {
+    pub fn correlation(&self, other: &Series) -> Result<Option<Value>, VeloxxError> {
         if self.len() != other.len() {
-            return Err(
+            return Err(VeloxxError::InvalidOperation(
                 "Series must have the same length for correlation calculation.".to_string(),
-            );
+            ));
         }
 
         match (self, other) {
@@ -599,16 +600,16 @@ impl Series {
                     .unzip();
                 Self::calculate_correlation(&x_vals, &y_vals)
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Correlation not supported for series of types {:?} and {:?}",
                 self.data_type(),
                 other.data_type()
-            )),
+            ))),
         }
     }
 
     /// Helper function to calculate Pearson correlation coefficient.
-    fn calculate_correlation(x_vals: &[f64], y_vals: &[f64]) -> Result<Option<Value>, String> {
+    fn calculate_correlation(x_vals: &[f64], y_vals: &[f64]) -> Result<Option<Value>, VeloxxError> {
         let n = x_vals.len();
         if n < 2 {
             return Ok(None);
@@ -641,9 +642,9 @@ impl Series {
     ///
     /// Returns an error if the series have different lengths or if the operation is not supported
     /// for the series' data types.
-    pub fn covariance(&self, other: &Series) -> Result<Option<Value>, String> {
+    pub fn covariance(&self, other: &Series) -> Result<Option<Value>, VeloxxError> {
         if self.len() != other.len() {
-            return Err("Series must have the same length for covariance calculation.".to_string());
+            return Err(VeloxxError::InvalidOperation("Series must have the same length for covariance calculation.".to_string()));
         }
 
         match (self, other) {
@@ -681,16 +682,16 @@ impl Series {
                     .unzip();
                 Self::calculate_covariance(&x_vals, &y_vals)
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Covariance not supported for series of types {:?} and {:?}",
                 self.data_type(),
                 other.data_type()
-            )),
+            ))),
         }
     }
 
     /// Helper function to calculate covariance.
-    fn calculate_covariance(x_vals: &[f64], y_vals: &[f64]) -> Result<Option<Value>, String> {
+    fn calculate_covariance(x_vals: &[f64], y_vals: &[f64]) -> Result<Option<Value>, VeloxxError> {
         let n = x_vals.len();
         if n < 2 {
             return Ok(None);
@@ -711,7 +712,7 @@ impl Series {
     }
 
     /// Returns a new series containing only the unique non-null values from this series.
-    pub fn unique(&self) -> Result<Self, String> {
+    pub fn unique(&self) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
             Series::I32(_, data) => {
@@ -729,9 +730,25 @@ impl Series {
                 Ok(Series::I32(name, unique_data))
             }
             Series::F64(_, data) => {
-                let mut unique_data: Vec<Option<f64>> = data.to_vec();
-                unique_data.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-                unique_data.dedup();
+                let mut unique_bits = HashSet::new();
+                let mut unique_data: Vec<Option<f64>> = Vec::new();
+                let mut has_null = false;
+
+                for &val_opt in data.iter() {
+                    match val_opt {
+                        Some(f_val) => {
+                            if unique_bits.insert(f_val.to_bits()) {
+                                unique_data.push(Some(f_val));
+                            }
+                        }
+                        None => {
+                            if !has_null {
+                                unique_data.push(None);
+                                has_null = true;
+                            }
+                        }
+                    }
+                }
                 Ok(Series::F64(name, unique_data))
             }
             Series::Bool(_, data) => {
@@ -782,17 +799,17 @@ impl Series {
     /// Converts the series data to a `Vec<f64>`, ignoring null values.
     ///
     /// Returns an error if the series' data type cannot be converted to `f64`.
-    pub fn to_vec_f64(&self) -> Result<Vec<f64>, String> {
+    pub fn to_vec_f64(&self) -> Result<Vec<f64>, VeloxxError> {
         match self {
             Series::I32(_, data) => Ok(data.iter().filter_map(|&x| x.map(|v| v as f64)).collect()),
             Series::F64(_, data) => Ok(data.iter().filter_map(|&x| x).collect()),
             Series::DateTime(_, data) => {
                 Ok(data.iter().filter_map(|&x| x.map(|v| v as f64)).collect())
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Cannot convert series of type {:?} to Vec<f64>.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
@@ -801,7 +818,7 @@ impl Series {
     /// This operation is only supported for numeric (I32, F64) series.
     /// Nulls at the beginning or end of the series, or consecutive nulls
     /// where no surrounding non-null values exist, will remain null.
-    pub fn interpolate_nulls(&self) -> Result<Self, String> {
+    pub fn interpolate_nulls(&self) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
             Series::I32(_, data) => {
@@ -901,10 +918,10 @@ impl Series {
                 }
                 Ok(Series::DateTime(name, interpolated_data))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Interpolate nulls operation not supported for {:?} series.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
@@ -912,7 +929,7 @@ impl Series {
     ///
     /// The function `f` takes an `Option<T>` (where `T` is the series' underlying type) and returns an `Option<T>`.
     /// This method is type-specific and avoids the overhead of `Value` enum conversions.
-    pub fn apply_i32<F>(&self, f: F) -> Result<Self, String>
+    pub fn apply_i32<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<i32>) -> Option<i32>,
     {
@@ -922,15 +939,15 @@ impl Series {
                 let new_data = data.iter().map(|&x| f(x)).collect();
                 Ok(Series::I32(name, new_data))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Apply operation not supported for {:?} series with apply_i32.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Applies a function to each element of the series, returning a new series of the same type.
-    pub fn apply_f64<F>(&self, f: F) -> Result<Self, String>
+    pub fn apply_f64<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<f64>) -> Option<f64>,
     {
@@ -940,15 +957,15 @@ impl Series {
                 let new_data = data.iter().map(|&x| f(x)).collect();
                 Ok(Series::F64(name, new_data))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Apply operation not supported for {:?} series with apply_f64.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Applies a function to each element of the series, returning a new series of the same type.
-    pub fn apply_bool<F>(&self, f: F) -> Result<Self, String>
+    pub fn apply_bool<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<bool>) -> Option<bool>,
     {
@@ -958,15 +975,15 @@ impl Series {
                 let new_data = data.iter().map(|&x| f(x)).collect();
                 Ok(Series::Bool(name, new_data))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Apply operation not supported for {:?} series with apply_bool.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Applies a function to each element of the series, returning a new series of the same type.
-    pub fn apply_string<F>(&self, f: F) -> Result<Self, String>
+    pub fn apply_string<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<&String>) -> Option<String>,
     {
@@ -976,15 +993,15 @@ impl Series {
                 let new_data = data.iter().map(|x| f(x.as_ref())).collect();
                 Ok(Series::String(name, new_data))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Apply operation not supported for {:?} series with apply_string.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 
     /// Applies a function to each element of the series, returning a new series of the same type.
-    pub fn apply_datetime<F>(&self, f: F) -> Result<Self, String>
+    pub fn apply_datetime<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<i64>) -> Option<i64>,
     {
@@ -994,10 +1011,10 @@ impl Series {
                 let new_data = data.iter().map(|&x| f(x)).collect();
                 Ok(Series::DateTime(name, new_data))
             }
-            _ => Err(format!(
+            _ => Err(VeloxxError::Unsupported(format!(
                 "Apply operation not supported for {:?} series with apply_datetime.",
                 self.data_type()
-            )),
+            ))),
         }
     }
 }

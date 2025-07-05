@@ -1,4 +1,5 @@
 use crate::types::Value;
+use crate::error::VeloxxError;
 
 /// Represents an expression that can be evaluated against a DataFrame row.
 pub enum Expr {
@@ -42,15 +43,15 @@ impl Expr {
         &self,
         df: &crate::dataframe::DataFrame,
         row_index: usize,
-    ) -> Result<Value, String> {
+    ) -> Result<Value, VeloxxError> {
         match self {
             Expr::Column(col_name) => {
                 let series = df
                     .get_column(col_name)
-                    .ok_or(format!("Column '{col_name}' not found."))?;
-                series.get_value(row_index).ok_or(format!(
+                    .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
+                series.get_value(row_index).ok_or(VeloxxError::InvalidOperation(format!(
                     "Null value at row {row_index} in column {col_name}"
-                ))
+                )))
             }
             Expr::Literal(value) => Ok(value.clone()),
             Expr::Add(left, right) => {
@@ -59,7 +60,7 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => Ok(Value::I32(l + r)),
                     (Value::F64(l), Value::F64(r)) => Ok(Value::F64(l + r)),
-                    _ => Err("Unsupported types for addition".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for addition".to_string())),
                 }
             }
             Expr::Subtract(left, right) => {
@@ -68,7 +69,7 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => Ok(Value::I32(l - r)),
                     (Value::F64(l), Value::F64(r)) => Ok(Value::F64(l - r)),
-                    _ => Err("Unsupported types for subtraction".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for subtraction".to_string())),
                 }
             }
             Expr::Multiply(left, right) => {
@@ -77,7 +78,7 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => Ok(Value::I32(l * r)),
                     (Value::F64(l), Value::F64(r)) => Ok(Value::F64(l * r)),
-                    _ => Err("Unsupported types for multiplication".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for multiplication".to_string())),
                 }
             }
             Expr::Divide(left, right) => {
@@ -86,17 +87,17 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => {
                         if r == 0 {
-                            return Err("Division by zero".to_string());
+                            return Err(VeloxxError::InvalidOperation("Division by zero".to_string()));
                         }
                         Ok(Value::I32(l / r))
                     }
                     (Value::F64(l), Value::F64(r)) => {
                         if r == 0.0 {
-                            return Err("Division by zero".to_string());
+                            return Err(VeloxxError::InvalidOperation("Division by zero".to_string()));
                         }
                         Ok(Value::F64(l / r))
                     }
-                    _ => Err("Unsupported types for division".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for division".to_string())),
                 }
             }
             Expr::Equals(left, right) => {
@@ -115,7 +116,7 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l > r)),
                     (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l > r)),
-                    _ => Err("Unsupported types for comparison".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for comparison".to_string())),
                 }
             }
             Expr::LessThan(left, right) => {
@@ -124,7 +125,7 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l < r)),
                     (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l < r)),
-                    _ => Err("Unsupported types for comparison".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for comparison".to_string())),
                 }
             }
             Expr::GreaterThanOrEqual(left, right) => {
@@ -133,7 +134,7 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l >= r)),
                     (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l >= r)),
-                    _ => Err("Unsupported types for comparison".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for comparison".to_string())),
                 }
             }
             Expr::LessThanOrEqual(left, right) => {
@@ -142,7 +143,7 @@ impl Expr {
                 match (left_val, right_val) {
                     (Value::I32(l), Value::I32(r)) => Ok(Value::Bool(l <= r)),
                     (Value::F64(l), Value::F64(r)) => Ok(Value::Bool(l <= r)),
-                    _ => Err("Unsupported types for comparison".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for comparison".to_string())),
                 }
             }
             Expr::And(left, right) => {
@@ -150,7 +151,7 @@ impl Expr {
                 let right_val = right.evaluate(df, row_index)?;
                 match (left_val, right_val) {
                     (Value::Bool(l), Value::Bool(r)) => Ok(Value::Bool(l && r)),
-                    _ => Err("Unsupported types for logical AND".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for logical AND".to_string())),
                 }
             }
             Expr::Or(left, right) => {
@@ -158,14 +159,14 @@ impl Expr {
                 let right_val = right.evaluate(df, row_index)?;
                 match (left_val, right_val) {
                     (Value::Bool(l), Value::Bool(r)) => Ok(Value::Bool(l || r)),
-                    _ => Err("Unsupported types for logical OR".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported types for logical OR".to_string())),
                 }
             }
             Expr::Not(expr) => {
                 let val = expr.evaluate(df, row_index)?;
                 match val {
                     Value::Bool(b) => Ok(Value::Bool(!b)),
-                    _ => Err("Unsupported type for logical NOT".to_string()),
+                    _ => Err(VeloxxError::InvalidOperation("Unsupported type for logical NOT".to_string())),
                 }
             }
         }
