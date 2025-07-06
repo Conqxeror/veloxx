@@ -4,7 +4,7 @@ Cargo.lock
 /venv
 /pkg/node_modules/
 /pkg/package-lock.json
-/pkg/test_wasm.test.js
+
 /pkg/test-results/
 /pkg/__mocks__/
 /pkg/jest.config.cjs
@@ -12,3 +12,12 @@ Cargo.lock
 /pkg/vitest.config.js
 /pkg/wasmTransformer.cjs
 /pkg/wasmTransformer.js
+target/wheels/
+node_modules/
+__pycache__/
+.pytest_cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

@@ -69,15 +69,19 @@ pytest test_veloxx.py
 
 ### WebAssembly Bindings Tests
 
-WebAssembly bindings are currently tested using `console.assert` statements within `test_wasm.js`. To run these tests:
+To run the WebAssembly binding tests:
 
 1.  Build the WebAssembly module:
     ```bash
     wasm-pack build --target web --out-dir pkg
     ```
-2.  Open `test_wasm.js` in a browser with developer console open, or run it with Node.js:
+2.  Install JavaScript dependencies:
     ```bash
-    node test_wasm.js
+    npm install --prefix pkg
+    ```
+3.  Run the tests:
+    ```bash
+    npm test --prefix pkg
     ```
 
 ## Code Style and Linting

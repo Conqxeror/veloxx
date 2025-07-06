@@ -7,6 +7,7 @@
 - Python bindings for DataFrame and Series operations.
 - WebAssembly bindings for DataFrame and Series operations.
 - `CONTRIBUTING.md` file with development guidelines.
+- New example files demonstrating DataFrame operations, aggregation, and manipulation.
 
 ### Improved
 
@@ -20,7 +21,7 @@
 
 ### Other
 
-- Cleaned up WebAssembly test setup (reverted to `console.assert` due to Jest issues).
+- Integrated Jest for WebAssembly testing.
 
 
 ## 0.2.1 - 2025-07-02
