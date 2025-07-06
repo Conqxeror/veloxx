@@ -16,13 +16,119 @@ pub enum JoinType {
 impl DataFrame {
     /// Performs a join operation with another `DataFrame`.
     ///
+    /// This method combines two DataFrames based on a common column (`on_column`) and a specified
+    /// `JoinType`. It creates a new DataFrame containing columns from both original DataFrames.
+    ///
     /// # Arguments
+    ///
     /// * `other` - The other `DataFrame` to join with.
-    /// * `on_column` - The name of the column to join on. This column must exist in both DataFrames.
+    /// * `on_column` - The name of the column to join on. This column must exist in both DataFrames
+    ///   and have comparable data types.
     /// * `join_type` - The type of join to perform (`Inner`, `Left`, or `Right`).
     ///
     /// # Returns
-    /// A `Result` containing the joined `DataFrame` or a `String` error message.
+    ///
+    /// A `Result` which is `Ok(DataFrame)` containing the joined `DataFrame`,
+    /// or `Err(VeloxxError::ColumnNotFound)` if the `on_column` is not found in either DataFrame,
+    /// or `Err(VeloxxError::InvalidOperation)` if there are issues during the join process (e.g., incompatible types).
+    ///
+    /// # Examples
+    ///
+    /// ## Setup for Examples
+    ///
+    /// ```rust
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    /// use veloxx::types::Value;
+    ///
+    /// // Left DataFrame
+    /// let mut left_cols = BTreeMap::new();
+    /// left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
+    /// left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
+    /// let left_df = DataFrame::new(left_cols).unwrap();
+    ///
+    /// // Right DataFrame
+    /// let mut right_cols = BTreeMap::new();
+    /// right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
+    /// right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
+    /// let right_df = DataFrame::new(right_cols).unwrap();
+    /// ```
+    ///
+    /// ## Inner Join
+    ///
+    /// Combines rows where `id` matches in both DataFrames.
+    ///
+    /// ```rust
+    /// # use veloxx::dataframe::DataFrame;
+    /// # use veloxx::series::Series;
+    /// # use std::collections::BTreeMap;
+    /// # use veloxx::types::Value;
+    /// # use veloxx::dataframe::join::JoinType;
+    /// # let mut left_cols = BTreeMap::new();
+    /// # left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
+    /// # left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
+    /// # let left_df = DataFrame::new(left_cols).unwrap();
+    /// # let mut right_cols = BTreeMap::new();
+    /// # right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
+    /// # right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
+    /// # let right_df = DataFrame::new(right_cols).unwrap();
+    ///
+    /// let inner_joined_df = left_df.join(&right_df, "id", JoinType::Inner).unwrap();
+    /// // Expected rows: (id=2, name=Bob, city=London), (id=3, name=Charlie, city=Paris)
+    /// assert_eq!(inner_joined_df.row_count(), 2);
+    /// assert!(inner_joined_df.get_column("name").unwrap().get_value(0) == Some(Value::String("Bob".to_string())) || inner_joined_df.get_column("name").unwrap().get_value(0) == Some(Value::String("Charlie".to_string())));
+    /// ```
+    ///
+    /// ## Left Join
+    ///
+    /// Returns all rows from `left_df`, and matching rows from `right_df`. Unmatched `right_df` columns will be null.
+    ///
+    /// ```rust
+    /// # use veloxx::dataframe::DataFrame;
+    /// # use veloxx::series::Series;
+    /// # use std::collections::BTreeMap;
+    /// # use veloxx::types::Value;
+    /// # use veloxx::dataframe::join::JoinType;
+    /// # let mut left_cols = BTreeMap::new();
+    /// # left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
+    /// # left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
+    /// # let left_df = DataFrame::new(left_cols).unwrap();
+    /// # let mut right_cols = BTreeMap::new();
+    /// # right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
+    /// # right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
+    /// # let right_df = DataFrame::new(right_cols).unwrap();
+    ///
+    /// let left_joined_df = left_df.join(&right_df, "id", JoinType::Left).unwrap();
+    /// // Expected rows: (id=1, name=Alice, city=null), (id=2, name=Bob, city=London), (id=3, name=Charlie, city=Paris)
+    /// assert_eq!(left_joined_df.row_count(), 3);
+    /// assert_eq!(left_joined_df.get_column("city").unwrap().get_value(0), None);
+    /// ```
+    ///
+    /// ## Right Join
+    ///
+    /// Returns all rows from `right_df`, and matching rows from `left_df`. Unmatched `left_df` columns will be null.
+    ///
+    /// ```rust
+    /// # use veloxx::dataframe::DataFrame;
+    /// # use veloxx::series::Series;
+    /// # use std::collections::BTreeMap;
+    /// # use veloxx::types::Value;
+    /// # use veloxx::dataframe::join::JoinType;
+    /// # let mut left_cols = BTreeMap::new();
+    /// # left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
+    /// # left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
+    /// # let left_df = DataFrame::new(left_cols).unwrap();
+    /// # let mut right_cols = BTreeMap::new();
+    /// # right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
+    /// # right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
+    /// # let right_df = DataFrame::new(right_cols).unwrap();
+    ///
+    /// let right_joined_df = left_df.join(&right_df, "id", JoinType::Right).unwrap();
+    /// // Expected rows: (id=2, name=Bob, city=London), (id=3, name=Charlie, city=Paris), (id=4, name=null, city=Rome)
+    /// assert_eq!(right_joined_df.row_count(), 3);
+    /// assert_eq!(right_joined_df.get_column("name").unwrap().get_value(2), None);
+    /// ```
     pub fn join(
         &self,
         other: &DataFrame,

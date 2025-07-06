@@ -113,6 +113,8 @@ mod python_bindings;
 
 #[cfg(feature = "wasm")]
 pub mod wasm_bindings;
+#[cfg(feature = "wasm")]
+pub use wasm_bindings::*;
 
 #[cfg(test)]
 mod tests {

@@ -3,19 +3,128 @@ use crate::types::Value;
 use crate::error::VeloxxError;
 
 /// Defines conditions that can be used to filter rows in a `DataFrame`.
+///
+/// These conditions allow for flexible and powerful data filtering based on column values.
+/// They can be combined using logical operators (`And`, `Or`, `Not`) to create complex
+/// filtering criteria.
+///
+/// # Examples
+///
+/// ## Equality Condition
+///
+/// Filter rows where the "city" column is equal to "New York":
+///
+/// ```rust
+/// use veloxx::conditions::Condition;
+/// use veloxx::types::Value;
+///
+/// let condition = Condition::Eq("city".to_string(), Value::String("New York".to_string()));
+/// // This condition can then be used with a DataFrame's filter method.
+/// ```
+///
+/// ## Greater Than Condition
+///
+/// Filter rows where the "age" column is greater than 30:
+///
+/// ```rust
+/// use veloxx::conditions::Condition;
+/// use veloxx::types::Value;
+///
+/// let condition = Condition::Gt("age".to_string(), Value::I32(30));
+/// // This condition can then be used with a DataFrame's filter method.
+/// ```
+///
+/// ## Less Than Condition
+///
+/// Filter rows where the "sales" column is less than 100.5:
+///
+/// ```rust
+/// use veloxx::conditions::Condition;
+/// use veloxx::types::Value;
+///
+/// let condition = Condition::Lt("sales".to_string(), Value::F64(100.5));
+/// // This condition can then be used with a DataFrame's filter method.
+/// ```
+///
+/// ## Combined Conditions (AND, OR, NOT)
+///
+/// Filter rows where "age" is greater than 25 AND "city" is "London":
+///
+/// ```rust
+/// use veloxx::conditions::Condition;
+/// use veloxx::types::Value;
+///
+/// let condition = Condition::And(
+///     Box::new(Condition::Gt("age".to_string(), Value::I32(25))),
+///     Box::new(Condition::Eq("city".to_string(), Value::String("London".to_string()))),
+/// );
+/// // This condition can then be used with a DataFrame's filter method.
+/// ```
+///
+/// Filter rows where "status" is "active" OR "last_login" is null:
+///
+/// ```rust
+/// use veloxx::conditions::Condition;
+/// use veloxx::types::Value;
+///
+/// let condition = Condition::Or(
+///     Box::new(Condition::Eq("status".to_string(), Value::String("active".to_string()))),
+///     Box::new(Condition::Eq("last_login".to_string(), Value::Null)), // Assuming Value::Null exists for null checks
+/// );
+/// // This condition can then be used with a DataFrame's filter method.
+/// ```
+///
+/// Filter rows where "is_admin" is NOT true:
+///
+/// ```rust
+/// use veloxx::conditions::Condition;
+/// use veloxx::types::Value;
+///
+/// let condition = Condition::Not(Box::new(Condition::Eq("is_admin".to_string(), Value::Bool(true))));
+/// // This condition can then be used with a DataFrame's filter method.
+/// ```
 #[derive(Debug)]
 pub enum Condition {
     /// Represents an equality comparison (column == value).
+    ///
+    /// # Arguments
+    /// - `String`: The name of the column to compare.
+    /// - `Value`: The value to compare against.
     Eq(String, Value),
     /// Represents a greater than comparison (column > value).
+    ///
+    /// # Arguments
+    /// - `String`: The name of the column to compare.
+    /// - `Value`: The value to compare against.
     Gt(String, Value),
     /// Represents a less than comparison (column < value).
+    ///
+    /// # Arguments
+    /// - `String`: The name of the column to compare.
+    /// - `Value`: The value to compare against.
     Lt(String, Value),
     /// Represents a logical AND operation between two conditions.
+    ///
+    /// Both sub-conditions must evaluate to `true` for the `And` condition to be `true`.
+    ///
+    /// # Arguments
+    /// - `Box<Condition>`: The left-hand side condition.
+    /// - `Box<Condition>`: The right-hand side condition.
     And(Box<Condition>, Box<Condition>),
     /// Represents a logical OR operation between two conditions.
+    ///
+    /// At least one sub-condition must evaluate to `true` for the `Or` condition to be `true`.
+    ///
+    /// # Arguments
+    /// - `Box<Condition>`: The left-hand side condition.
+    /// - `Box<Condition>`: The right-hand side condition.
     Or(Box<Condition>, Box<Condition>),
     /// Represents a logical NOT operation on a condition.
+    ///
+    /// Inverts the boolean result of the wrapped condition.
+    ///
+    /// # Arguments
+    /// - `Box<Condition>`: The condition to negate.
     Not(Box<Condition>),
 }
 

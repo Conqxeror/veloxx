@@ -576,6 +576,28 @@ fn bench_dataframe_to_vec_of_vec(c: &mut Criterion) {
     });
 }
 
+fn bench_dataframe_group_by_agg(c: &mut Criterion) {
+    let mut columns = BTreeMap::new();
+    columns.insert(
+        "group".to_string(),
+        Series::new_string("group", (0..1000).map(|i| Some(format!("group_{}", i % 10))).collect()),
+    );
+    columns.insert(
+        "value".to_string(),
+        Series::new_i32("value", (0..1000).map(Some).collect()),
+    );
+    let df = DataFrame::new(columns).unwrap();
+
+    c.bench_function("dataframe_group_by_agg", |b| {
+        b.iter(|| {
+            df.group_by(vec!["group".to_string()])
+                .unwrap()
+                .agg(vec![("value", "sum")])
+                .unwrap();
+        });
+    });
+}
+
 criterion_group!(
     benches,
     bench_dataframe_creation,
@@ -604,6 +626,7 @@ criterion_group!(
     bench_series_interpolate_nulls,
     bench_dataframe_from_json,
     bench_dataframe_to_csv,
-    bench_dataframe_to_vec_of_vec
+    bench_dataframe_to_vec_of_vec,
+    bench_dataframe_group_by_agg
 );
 criterion_main!(benches);

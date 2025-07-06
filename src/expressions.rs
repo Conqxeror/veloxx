@@ -2,36 +2,176 @@ use crate::types::Value;
 use crate::error::VeloxxError;
 
 /// Represents an expression that can be evaluated against a DataFrame row.
+///
+/// Expressions are used to define computations, transformations, or logical conditions
+/// that can be applied to data within a `DataFrame`. They can refer to columns,
+/// literal values, and combine these using various arithmetic, comparison, and logical operators.
+///
+/// # Examples
+///
+/// ## Column Expression
+///
+/// Refers to the value of the "price" column:
+///
+/// ```rust
+/// use veloxx::expressions::Expr;
+///
+/// let expr = Expr::Column("price".to_string());
+/// ```
+///
+/// ## Literal Expression
+///
+/// Represents a fixed integer value of 100:
+///
+/// ```rust
+/// use veloxx::expressions::Expr;
+/// use veloxx::types::Value;
+///
+/// let expr = Expr::Literal(Value::I32(100));
+/// ```
+///
+/// ## Arithmetic Expressions
+///
+/// Calculate "price" + "tax":
+///
+/// ```rust
+/// use veloxx::expressions::Expr;
+///
+/// let expr = Expr::Add(
+///     Box::new(Expr::Column("price".to_string())),
+///     Box::new(Expr::Column("tax".to_string())),
+/// );
+/// ```
+///
+/// Calculate ("quantity" * 10) - "discount":
+///
+/// ```rust
+/// use veloxx::expressions::Expr;
+/// use veloxx::types::Value;
+///
+/// let expr = Expr::Subtract(
+///     Box::new(Expr::Multiply(
+///         Box::new(Expr::Column("quantity".to_string())),
+///         Box::new(Expr::Literal(Value::I32(10))),
+///     )),
+///     Box::new(Expr::Column("discount".to_string())),
+/// );
+/// ```
+///
+/// ## Comparison Expressions
+///
+/// Check if "age" is greater than or equal to 18:
+///
+/// ```rust
+/// use veloxx::expressions::Expr;
+/// use veloxx::types::Value;
+///
+/// let expr = Expr::GreaterThanOrEqual(
+///     Box::new(Expr::Column("age".to_string())),
+///     Box::new(Expr::Literal(Value::I32(18))),
+/// );
+/// ```
+///
+/// ## Logical Expressions
+///
+/// Check if ("is_active" AND NOT "is_suspended"):
+///
+/// ```rust
+/// use veloxx::expressions::Expr;
+///
+/// let expr = Expr::And(
+///     Box::new(Expr::Column("is_active".to_string())),
+///     Box::new(Expr::Not(Box::new(Expr::Column("is_suspended".to_string())))),
+/// );
+/// ```
+#[derive(Debug)]
 pub enum Expr {
     /// Refers to a column by its name.
+    ///
+    /// # Arguments
+    /// - `String`: The name of the column.
     Column(String),
     /// Represents a literal value.
+    ///
+    /// # Arguments
+    /// - `Value`: The literal value.
     Literal(Value),
     /// Represents an addition operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     Add(Box<Expr>, Box<Expr>),
     /// Represents a subtraction operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     Subtract(Box<Expr>, Box<Expr>),
     /// Represents a multiplication operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     Multiply(Box<Expr>, Box<Expr>),
     /// Represents a division operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     Divide(Box<Expr>, Box<Expr>),
     /// Represents an equality comparison operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     Equals(Box<Expr>, Box<Expr>),
     /// Represents a not-equals comparison operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     NotEquals(Box<Expr>, Box<Expr>),
     /// Represents a greater-than comparison operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     GreaterThan(Box<Expr>, Box<Expr>),
     /// Represents a less-than comparison operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     LessThan(Box<Expr>, Box<Expr>),
     /// Represents a greater-than-or-equal comparison operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     GreaterThanOrEqual(Box<Expr>, Box<Expr>),
     /// Represents a less-than-or-equal comparison operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     LessThanOrEqual(Box<Expr>, Box<Expr>),
     /// Represents a logical AND operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     And(Box<Expr>, Box<Expr>),
     /// Represents a logical OR operation between two expressions.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The left-hand side expression.
+    /// - `Box<Expr>`: The right-hand side expression.
     Or(Box<Expr>, Box<Expr>),
     /// Represents a logical NOT operation on an expression.
+    ///
+    /// # Arguments
+    /// - `Box<Expr>`: The expression to negate.
     Not(Box<Expr>),
 }
 

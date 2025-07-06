@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Run Rust tests",
+			"command": "cargo test",
+			"group": "test"
+		},
+		{
+			"type": "shell",
+			"label": "Run all tests (Rust, JS/WASM, Python with venv)",
+			"command": "cargo test --all && npm test --prefix pkg && .\\venv\\Scripts\\activate && pytest examples",
+			"group": "test"
+		}
+	]
+}

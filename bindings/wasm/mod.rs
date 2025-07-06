@@ -398,14 +398,22 @@ pub struct WasmValue {
 impl WasmValue {
     #[wasm_bindgen(constructor)]
     pub fn new(val: JsValue) -> Result<WasmValue, JsValue> {
-        if val.as_f64().is_some() {
-            Ok(WasmValue { value: Value::F64(val.as_f64().unwrap()) })
-        } else if val.as_string().is_some() {
-            Ok(WasmValue { value: Value::String(val.as_string().unwrap()) })
-        } else if val.as_bool().is_some() {
-            Ok(WasmValue { value: Value::Bool(val.as_bool().unwrap()) })
-        } else if val.is_null() || val.is_undefined() {
+        if val.is_null() || val.is_undefined() {
             Ok(WasmValue { value: Value::Null })
+        } else if let Some(i) = val.as_f64() {
+            // Check if it's an integer that fits in i32
+            if i.fract() == 0.0 && i >= (i32::MIN as f64) && i <= (i32::MAX as f64) {
+                Ok(WasmValue { value: Value::I32(i as i32) })
+            } else if i.fract() == 0.0 && i >= (i64::MIN as f64) && i <= (i64::MAX as f64) {
+                // Check if it's an integer that fits in i64 (for DateTime)
+                Ok(WasmValue { value: Value::DateTime(i as i64) })
+            } else {
+                Ok(WasmValue { value: Value::F64(i) })
+            }
+        } else if let Some(b) = val.as_bool() {
+            Ok(WasmValue { value: Value::Bool(b) })
+        } else if let Some(s) = val.as_string() {
+            Ok(WasmValue { value: Value::String(s) })
         } else {
             Err(JsValue::from_str("Unsupported JsValue type for WasmValue"))
         }

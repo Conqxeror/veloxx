@@ -4,19 +4,60 @@ use std::collections::BTreeMap;
 use crate::error::VeloxxError;
 
 /// A trait for types that can be converted into a `DataFrame`.
+///
+/// This trait provides a standardized way to create a `DataFrame` from various
+/// data sources, promoting reusability and consistency in data ingestion.
 pub trait DataFrameSource {
+    /// Converts the implementor into a `DataFrame`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(DataFrame)` if the conversion is successful,
+    /// or `Err(VeloxxError)` if an error occurs during the conversion process.
     fn to_dataframe(&self) -> Result<DataFrame, VeloxxError>;
 }
 
 impl DataFrameSource for Vec<Vec<String>> {
     /// Converts a `Vec<Vec<String>>` into a `DataFrame`.
     ///
-    /// The first inner `Vec<String>` is assumed to be the header (column names).
-    /// Subsequent inner `Vec<String>`s are treated as rows of data.
-    /// Column types are inferred based on the values in each column.
+    /// This implementation assumes that the first inner `Vec<String>` represents
+    /// the column headers (names), and subsequent inner `Vec<String>`s represent
+    /// the data rows. Column types are inferred based on the values present in each column.
+    /// Empty strings in the input data are treated as null values.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - A `Vec<Vec<String>>` where the first sub-vector is the header
+    ///   and the rest are data rows.
     ///
     /// # Returns
-    /// A `Result` containing the new `DataFrame` or a `String` error message.
+    ///
+    /// A `Result` which is `Ok(DataFrame)` if the DataFrame is successfully created,
+    /// or `Err(VeloxxError::Parsing)` if a column's type cannot be inferred,
+    /// or `Err(VeloxxError::InvalidOperation)` if there are structural issues (e.g., inconsistent row lengths).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::dataframe::sources::DataFrameSource;
+    /// use veloxx::types::Value;
+    ///
+    /// let data = vec![
+    ///     vec!["id".to_string(), "name".to_string(), "age".to_string()],
+    ///     vec!["1".to_string(), "Alice".to_string(), "30".to_string()],
+    ///     vec!["2".to_string(), "Bob".to_string(), "".to_string()], // Empty string for null
+    ///     vec!["3".to_string(), "Charlie".to_string(), "25".to_string()],
+    /// ];
+    ///
+    /// let df = data.to_dataframe().unwrap();
+    ///
+    /// assert_eq!(df.row_count(), 3);
+    /// assert_eq!(df.column_count(), 3);
+    /// assert_eq!(df.get_column("id").unwrap().get_value(0), Some(Value::I32(1)));
+    /// assert_eq!(df.get_column("age").unwrap().get_value(1), None);
+    /// assert_eq!(df.get_column("name").unwrap().get_value(2), Some(Value::String("Charlie".to_string())));
+    /// ```
     fn to_dataframe(&self) -> Result<DataFrame, VeloxxError> {
         if self.is_empty() {
             return DataFrame::new(BTreeMap::new());

@@ -5,8 +5,37 @@ use crate::error::VeloxxError;
 impl DataFrame {
     /// Removes rows from the `DataFrame` that contain any null values.
     ///
+    /// This method iterates through each row of the DataFrame. If any cell in a row
+    /// contains a `None` (null) value, that entire row is excluded from the resulting DataFrame.
+    /// A new DataFrame is returned, leaving the original unchanged.
+    ///
     /// # Returns
-    /// A `Result` containing a new `DataFrame` with null rows dropped, or a `String` error message.
+    ///
+    /// A `Result` which is `Ok(DataFrame)` containing a new `DataFrame` with all rows
+    /// containing nulls removed, or `Err(VeloxxError)` if an error occurs during series filtering.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    /// use veloxx::types::Value;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
+    /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2), Some(3.3)]));
+    /// let df = DataFrame::new(columns).unwrap();
+    ///
+    /// // Row 1 (index 0): [1, 1.1]
+    /// // Row 2 (index 1): [None, 2.2] - will be dropped
+    /// // Row 3 (index 2): [3, 3.3]
+    ///
+    /// let cleaned_df = df.drop_nulls().unwrap();
+    /// assert_eq!(cleaned_df.row_count(), 2);
+    /// assert_eq!(cleaned_df.get_column("A").unwrap().get_value(0), Some(Value::I32(1)));
+    /// assert_eq!(cleaned_df.get_column("A").unwrap().get_value(1), Some(Value::I32(3)));
+    /// ```
     pub fn drop_nulls(&self) -> Result<Self, VeloxxError> {
         let row_indices_to_keep: Vec<usize> = (0..self.row_count)
             .filter(|&i| {
@@ -27,13 +56,43 @@ impl DataFrame {
 
     /// Fills null values in the `DataFrame` with a specified `Value`.
     ///
-    /// Nulls are filled only if the `Value` type matches the column's `DataType`.
+    /// This method creates a new `DataFrame` where `None` (null) values in each column
+    /// are replaced by the provided `value`. The filling only occurs if the `value`'s
+    /// `DataType` matches the `DataType` of the column being processed. Columns with
+    /// incompatible types will remain unchanged.
     ///
     /// # Arguments
-    /// * `value` - The `Value` to use for filling nulls.
+    ///
+    /// * `value` - The `Value` to use for filling nulls. Its type determines which columns are affected.
     ///
     /// # Returns
-    /// A `Result` containing a new `DataFrame` with nulls filled, or a `String` error message.
+    ///
+    /// A `Result` which is `Ok(DataFrame)` containing a new `DataFrame` with nulls filled,
+    /// or `Err(VeloxxError)` if an error occurs during series filling.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    /// use veloxx::types::Value;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
+    /// columns.insert("B".to_string(), Series::new_string("B", vec![Some("x".to_string()), None, Some("z".to_string())]));
+    /// let df = DataFrame::new(columns).unwrap();
+    ///
+    /// // Fill integer nulls with 99
+    /// let filled_df_i32 = df.fill_nulls(Value::I32(99)).unwrap();
+    /// assert_eq!(filled_df_i32.get_column("A").unwrap().get_value(1), Some(Value::I32(99)));
+    /// assert_eq!(filled_df_i32.get_column("B").unwrap().get_value(1), None); // String column unaffected
+    ///
+    /// // Fill string nulls with "missing"
+    /// let filled_df_string = df.fill_nulls(Value::String("missing".to_string())).unwrap();
+    /// assert_eq!(filled_df_string.get_column("A").unwrap().get_value(1), None); // I32 column unaffected
+    /// assert_eq!(filled_df_string.get_column("B").unwrap().get_value(1), Some(Value::String("missing".to_string())));
+    /// ```
     pub fn fill_nulls(&self, value: Value) -> Result<Self, VeloxxError> {
         let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
 

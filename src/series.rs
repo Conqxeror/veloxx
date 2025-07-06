@@ -1,10 +1,60 @@
 use crate::types::{DataType, Value};
-use std::collections::HashSet;
 use crate::error::VeloxxError;
+use std::collections::HashSet;
 
 /// Represents a single-typed, named column of data within a DataFrame.
 ///
-/// Supports various data types including integers, floats, booleans, and strings.
+/// A `Series` is a fundamental data structure in Veloxx, analogous to a column in a spreadsheet
+/// or a database table. It holds a sequence of values of a single data type (e.g., all integers,
+/// all floating-point numbers, all strings, or all booleans), and can contain null values.
+/// Each `Series` has a name, which typically corresponds to the column name in a `DataFrame`.
+///
+/// # Variants
+///
+/// - `I32(String, Vec<Option<i32>>)`: A series of 32-bit signed integers.
+/// - `F64(String, Vec<Option<f64>>)`: A series of 64-bit floating-point numbers.
+/// - `Bool(String, Vec<Option<bool>>)`: A series of boolean values.
+/// - `String(String, Vec<Option<String>>)`: A series of string values.
+/// - `DateTime(String, Vec<Option<i64>>)`: A series of DateTime values, represented as Unix timestamps (i64).
+///
+
+/// # Examples
+///
+/// ```rust
+/// use veloxx::series::Series;
+///
+/// let age_series = Series::new_i32("age", vec![Some(25), Some(30), None, Some(40)]);
+/// let name_series = Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string()), None]);
+/// let is_active_series = Series::new_bool("is_active", vec![Some(true), None, Some(false), Some(true)]);
+/// ```
+///
+/// ## Getting Series Information
+///
+/// ```rust
+/// use veloxx::series::Series;
+/// use veloxx::types::DataType;
+///
+/// let series = Series::new_i32("data", vec![Some(1), Some(2), Some(3)]);
+///
+/// assert_eq!(series.name(), "data");
+/// assert_eq!(series.len(), 3);
+/// assert_eq!(series.data_type(), DataType::I32);
+/// assert!(!series.is_empty());
+/// ```
+///
+/// ## Accessing Values
+///
+/// ```rust
+/// use veloxx::series::Series;
+/// use veloxx::types::Value;
+///
+/// let series = Series::new_f64("values", vec![Some(1.1), None, Some(3.3)]);
+///
+/// assert_eq!(series.get_value(0), Some(Value::F64(1.1)));
+/// assert_eq!(series.get_value(1), None);
+/// assert_eq!(series.get_value(2), Some(Value::F64(3.3)));
+/// assert_eq!(series.get_value(3), None); // Index out of bounds
+/// ```
 #[derive(Debug, PartialEq, Clone)]
 pub enum Series {
     /// A series containing 32-bit signed integers.
@@ -21,31 +71,132 @@ pub enum Series {
 
 impl Series {
     /// Creates a new `Series` of 32-bit signed integers.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the series.
+    /// * `data` - A `Vec` of `Option<i32>` containing the integer values. `None` represents a null value.
+    ///
+    /// # Returns
+    ///
+    /// A new `Series::I32` instance.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_i32("age", vec![Some(25), Some(30), None]);
+    /// ```
     pub fn new_i32(name: &str, data: Vec<Option<i32>>) -> Self {
         Series::I32(name.to_string(), data)
     }
 
     /// Creates a new `Series` of 64-bit floating-point numbers.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the series.
+    /// * `data` - A `Vec` of `Option<f64>` containing the float values. `None` represents a null value.
+    ///
+    /// # Returns
+    ///
+    /// A new `Series::F64` instance.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_f64("price", vec![Some(9.99), Some(19.99), None]);
+    /// ```
     pub fn new_f64(name: &str, data: Vec<Option<f64>>) -> Self {
         Series::F64(name.to_string(), data)
     }
 
     /// Creates a new `Series` of boolean values.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the series.
+    /// * `data` - A `Vec` of `Option<bool>` containing the boolean values. `None` represents a null value.
+    ///
+    /// # Returns
+    ///
+    /// A new `Series::Bool` instance.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_bool("is_active", vec![Some(true), None, Some(false)]);
+    /// ```
     pub fn new_bool(name: &str, data: Vec<Option<bool>>) -> Self {
         Series::Bool(name.to_string(), data)
     }
 
     /// Creates a new `Series` of string values.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the series.
+    /// * `data` - A `Vec` of `Option<String>` containing the string values. `None` represents a null value.
+    ///
+    /// # Returns
+    ///
+    /// A new `Series::String` instance.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_string("city", vec![Some("New York".to_string()), None, Some("London".to_string())]);
+    /// ```
     pub fn new_string(name: &str, data: Vec<Option<String>>) -> Self {
         Series::String(name.to_string(), data)
     }
 
     /// Creates a new `Series` of DateTime values.
+    ///
+    /// DateTime values are represented as Unix timestamps (i64).
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the series.
+    /// * `data` - A `Vec` of `Option<i64>` containing the DateTime values. `None` represents a null value.
+    ///
+    /// # Returns
+    ///
+    /// A new `Series::DateTime` instance.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// // Example: Unix timestamps for Jan 1, 2023 and Jan 2, 2023
+    /// let series = Series::new_datetime("timestamp", vec![Some(1672531200), Some(1672617600), None]);
+    /// ```
     pub fn new_datetime(name: &str, data: Vec<Option<i64>>) -> Self {
         Series::DateTime(name.to_string(), data)
     }
 
     /// Returns the name of the series.
+    ///
+    /// # Returns
+    ///
+    /// A string slice (`&str`) representing the name of the series.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_i32("my_column", vec![Some(1), Some(2)]);
+    /// assert_eq!(series.name(), "my_column");
+    /// ```
     pub fn name(&self) -> &str {
         match self {
             Series::I32(name, _) => name,
@@ -57,6 +208,21 @@ impl Series {
     }
 
     /// Returns the number of elements in the series.
+    ///
+    /// This count includes both non-null and null values.
+    ///
+    /// # Returns
+    ///
+    /// A `usize` representing the total number of elements.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_i32("data", vec![Some(1), None, Some(3)]);
+    /// assert_eq!(series.len(), 3);
+    /// ```
     pub fn len(&self) -> usize {
         match self {
             Series::I32(_, v) => v.len(),
@@ -68,11 +234,41 @@ impl Series {
     }
 
     /// Returns `true` if the series contains no elements.
+    ///
+    /// # Returns
+    ///
+    /// A `bool` indicating whether the series is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let empty_series = Series::new_i32("empty", vec![]);
+    /// assert!(empty_series.is_empty());
+    ///
+    /// let non_empty_series = Series::new_i32("non_empty", vec![Some(1)]);
+    /// assert!(!non_empty_series.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// Returns the `DataType` of the series.
+    ///
+    /// # Returns
+    ///
+    /// A `DataType` enum variant representing the underlying type of the series.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::DataType;
+    ///
+    /// let series = Series::new_f64("values", vec![Some(1.0)]);
+    /// assert_eq!(series.data_type(), DataType::F64);
+    /// ```
     pub fn data_type(&self) -> DataType {
         match self {
             Series::I32(_, _) => DataType::I32,
@@ -84,6 +280,20 @@ impl Series {
     }
 
     /// Sets the name of the series.
+    ///
+    /// # Arguments
+    ///
+    /// * `new_name` - The new name for the series as a string slice.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let mut series = Series::new_i32("old_name", vec![Some(1)]);
+    /// series.set_name("new_name");
+    /// assert_eq!(series.name(), "new_name");
+    /// ```
     pub fn set_name(&mut self, new_name: &str) {
         match self {
             Series::I32(name, _) => *name = new_name.to_string(),
@@ -95,6 +305,32 @@ impl Series {
     }
 
     /// Returns the `Value` at the given index, if it exists.
+    ///
+    /// This method provides a generic way to access values, converting the underlying
+    /// type into the `Value` enum.
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - The zero-based index of the element to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// An `Option<Value>`: `Some(Value)` if the index is valid and the value is not null,
+    /// `None` if the index is out of bounds or the value at the index is null.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(10), None, Some(30)]);
+    ///
+    /// assert_eq!(series.get_value(0), Some(Value::I32(10)));
+    /// assert_eq!(series.get_value(1), None);
+    /// assert_eq!(series.get_value(2), Some(Value::I32(30)));
+    /// assert_eq!(series.get_value(3), None); // Index out of bounds
+    /// ```
     pub fn get_value(&self, index: usize) -> Option<Value> {
         match self {
             Series::I32(_, v) => v.get(index).and_then(|&val| val.map(Value::I32)),
@@ -108,6 +344,34 @@ impl Series {
     }
 
     /// Filters the series based on the provided row indices.
+    ///
+    /// This method creates a new `Series` containing only the elements at the specified indices.
+    /// The order of elements in the new series will match the order of `row_indices`.
+    ///
+    /// # Arguments
+    ///
+    /// * `row_indices` - A slice of `usize` representing the indices of the rows to keep.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new filtered series, or `Err(VeloxxError)`
+    /// if an invalid operation occurs (e.g., an index is out of bounds).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("data", vec![Some(10), Some(20), Some(30), Some(40)]);
+    /// let indices = vec![0, 2, 3];
+    /// let filtered_series = series.filter(&indices).unwrap();
+    ///
+    /// assert_eq!(filtered_series.len(), 3);
+    /// assert_eq!(filtered_series.get_value(0), Some(Value::I32(10)));
+    /// assert_eq!(filtered_series.get_value(1), Some(Value::I32(30)));
+    /// assert_eq!(filtered_series.get_value(2), Some(Value::I32(40)));
+    /// ```
     pub fn filter(&self, row_indices: &[usize]) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
@@ -141,7 +405,37 @@ impl Series {
 
     /// Fills null values in the series with a specified value.
     ///
-    /// Returns an error if the fill value's type does not match the series' data type.
+    /// This method creates a new `Series` where all `None` (null) values are replaced
+    /// by the provided `value`. The type of the `value` must match the `Series`'s
+    /// underlying data type.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - A reference to a `Value` enum representing the fill value.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new series with nulls filled,
+    /// or `Err(VeloxxError::DataTypeMismatch)` if the fill value's type does not match
+    /// the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("data", vec![Some(1), None, Some(3)]);
+    /// let filled_series = series.fill_nulls(&Value::I32(99)).unwrap();
+    ///
+    /// assert_eq!(filled_series.get_value(0), Some(Value::I32(1)));
+    /// assert_eq!(filled_series.get_value(1), Some(Value::I32(99)));
+    /// assert_eq!(filled_series.get_value(2), Some(Value::I32(3)));
+    ///
+    /// let string_series = Series::new_string("names", vec![Some("Alice".to_string()), None]);
+    /// let filled_string_series = string_series.fill_nulls(&Value::String("Unknown".to_string())).unwrap();
+    /// assert_eq!(filled_string_series.get_value(1), Some(Value::String("Unknown".to_string())));
+    /// ```
     pub fn fill_nulls(&self, value: &Value) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
@@ -207,7 +501,37 @@ impl Series {
 
     /// Casts the series to a new data type.
     ///
-    /// Returns an error if the cast is not supported.
+    /// This method attempts to convert the elements of the current series to the specified
+    /// `to_type`. Supported conversions include numeric to numeric (e.g., I32 to F64),
+    /// string to numeric/boolean/datetime, and datetime to string. Null values are preserved.
+    ///
+    /// # Arguments
+    ///
+    /// * `to_type` - The `DataType` to which the series should be cast.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new series with the casted data,
+    /// or `Err(VeloxxError::Unsupported)` if the cast is not supported between the
+    /// current and target data types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::{DataType, Value};
+    ///
+    /// let int_series = Series::new_i32("numbers", vec![Some(1), Some(2), None]);
+    /// let float_series = int_series.cast(DataType::F64).unwrap();
+    /// assert_eq!(float_series.get_value(0), Some(Value::F64(1.0)));
+    /// assert_eq!(float_series.data_type(), DataType::F64);
+    ///
+    /// let string_series = Series::new_string("text_numbers", vec![Some("10".to_string()), Some("20.5".to_string()), None, Some("invalid".to_string())]);
+    /// let casted_int_series = string_series.cast(DataType::I32).unwrap();
+    /// assert_eq!(casted_int_series.get_value(0), Some(Value::I32(10)));
+    /// assert_eq!(casted_int_series.get_value(1), None); // "20.5" cannot be parsed as i32
+    /// assert_eq!(casted_int_series.get_value(3), None); // "invalid" cannot be parsed as i32
+    /// ```
     pub fn cast(&self, to_type: DataType) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match (self, to_type) {
@@ -262,7 +586,32 @@ impl Series {
 
     /// Appends another series to the end of this series.
     ///
-    /// Returns an error if the series have different data types.
+    /// This method concatenates the data from `other` series to the end of the current series.
+    /// Both series must have the same `DataType`.
+    ///
+    /// # Arguments
+    ///
+    /// * `other` - A reference to the `Series` to append.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new combined series,
+    /// or `Err(VeloxxError::DataTypeMismatch)` if the series have different data types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series1 = Series::new_i32("numbers", vec![Some(1), Some(2)]);
+    /// let series2 = Series::new_i32("numbers", vec![Some(3), None]);
+    ///
+    /// let combined_series = series1.append(&series2).unwrap();
+    /// assert_eq!(combined_series.len(), 4);
+    /// assert_eq!(combined_series.get_value(2), Some(Value::I32(3)));
+    /// assert_eq!(combined_series.get_value(3), None);
+    /// ```
     pub fn append(&self, other: &Series) -> Result<Self, VeloxxError> {
         if self.data_type() != other.data_type() {
             return Err(VeloxxError::DataTypeMismatch(format!(
@@ -307,7 +656,30 @@ impl Series {
 
     /// Calculates the sum of all non-null values in the series.
     ///
-    /// Returns an error if the operation is not supported for the series' data type.
+    /// This operation is supported for `I32`, `F64`, and `DateTime` series.
+    /// Null values are ignored in the sum calculation.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value))` containing the sum, `Ok(None)` if the series
+    /// contains no non-null values, or `Err(VeloxxError::Unsupported)` if the operation
+    /// is not supported for the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(1), None, Some(3), Some(5)]);
+    /// assert_eq!(series.sum().unwrap(), Some(Value::I32(9)));
+    ///
+    /// let float_series = Series::new_f64("prices", vec![Some(10.5), Some(20.0), None]);
+    /// assert_eq!(float_series.sum().unwrap(), Some(Value::F64(30.5)));
+    ///
+    /// let empty_series = Series::new_i32("empty", vec![]);
+    /// assert_eq!(empty_series.sum().unwrap(), None);
+    /// ```
     pub fn sum(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
@@ -342,6 +714,22 @@ impl Series {
     }
 
     /// Counts the number of non-null values in the series.
+    ///
+    /// # Returns
+    ///
+    /// A `usize` representing the count of non-null elements.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_i32("data", vec![Some(1), None, Some(3), None, Some(5)]);
+    /// assert_eq!(series.count(), 3);
+    ///
+    /// let empty_series = Series::new_string("empty", vec![]);
+    /// assert_eq!(empty_series.count(), 0);
+    /// ```
     pub fn count(&self) -> usize {
         match self {
             Series::I32(_, data) => data.iter().filter(|x| x.is_some()).count(),
@@ -354,7 +742,27 @@ impl Series {
 
     /// Finds the minimum non-null value in the series.
     ///
-    /// Returns an error if the operation is not supported for the series' data type.
+    /// This operation is supported for `I32`, `F64`, `DateTime`, and `String` series.
+    /// Null values are ignored. For `F64`, `partial_cmp` is used for comparison.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value))` containing the minimum value, `Ok(None)` if the series
+    /// contains no non-null values, or `Err(VeloxxError::Unsupported)` if the operation
+    /// is not supported for the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(5), Some(1), None, Some(3)]);
+    /// assert_eq!(series.min().unwrap(), Some(Value::I32(1)));
+    ///
+    /// let string_series = Series::new_string("words", vec![Some("banana".to_string()), Some("apple".to_string())]);
+    /// assert_eq!(string_series.min().unwrap(), Some(Value::String("apple".to_string())));
+    /// ```
     pub fn min(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
@@ -385,7 +793,27 @@ impl Series {
 
     /// Finds the maximum non-null value in the series.
     ///
-    /// Returns an error if the operation is not supported for the series' data type.
+    /// This operation is supported for `I32`, `F64`, `DateTime`, and `String` series.
+    /// Null values are ignored. For `F64`, `partial_cmp` is used for comparison.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value))` containing the maximum value, `Ok(None)` if the series
+    /// contains no non-null values, or `Err(VeloxxError::Unsupported)` if the operation
+    /// is not supported for the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(5), Some(1), None, Some(3)]);
+    /// assert_eq!(series.max().unwrap(), Some(Value::I32(5)));
+    ///
+    /// let string_series = Series::new_string("words", vec![Some("banana".to_string()), Some("apple".to_string())]);
+    /// assert_eq!(string_series.max().unwrap(), Some(Value::String("banana".to_string())));
+    /// ```
     pub fn max(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
@@ -414,9 +842,32 @@ impl Series {
         }
     }
 
-    /// Calculates the mean of all non-null values in the series.
+    /// Calculates the mean (average) of all non-null values in the series.
     ///
-    /// Returns an error if the operation is not supported for the series' data type.
+    /// This operation is supported for `I32`, `F64`, and `DateTime` series.
+    /// Null values are ignored. The result is always an `F64` `Value`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value::F64))` containing the mean, `Ok(None)` if the series
+    /// contains no non-null values, or `Err(VeloxxError::Unsupported)` if the operation
+    /// is not supported for the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(1), Some(2), Some(3)]);
+    /// assert_eq!(series.mean().unwrap(), Some(Value::F64(2.0)));
+    ///
+    /// let float_series = Series::new_f64("prices", vec![Some(10.0), Some(20.0), Some(30.0)]);
+    /// assert_eq!(float_series.mean().unwrap(), Some(Value::F64(20.0)));
+    ///
+    /// let empty_series = Series::new_i32("empty", vec![]);
+    /// assert_eq!(empty_series.mean().unwrap(), None);
+    /// ```
     pub fn mean(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
@@ -455,7 +906,28 @@ impl Series {
 
     /// Calculates the median of all non-null values in the series.
     ///
-    /// Returns an error if the operation is not supported for the series' data type.
+    /// This operation is supported for `I32`, `F64`, and `DateTime` series.
+    /// Null values are ignored. The data is sorted internally to find the median.
+    /// For even-sized datasets, the median is the average of the two middle values.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value))` containing the median, `Ok(None)` if the series
+    /// contains no non-null values, or `Err(VeloxxError::Unsupported)` if the operation
+    /// is not supported for the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series_odd = Series::new_i32("numbers", vec![Some(1), Some(5), Some(2), Some(4), Some(3)]);
+    /// assert_eq!(series_odd.median().unwrap(), Some(Value::I32(3)));
+    ///
+    /// let series_even = Series::new_f64("prices", vec![Some(10.0), Some(40.0), Some(20.0), Some(30.0)]);
+    /// assert_eq!(series_even.median().unwrap(), Some(Value::F64(25.0)));
+    /// ```
     pub fn median(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
@@ -515,7 +987,30 @@ impl Series {
 
     /// Calculates the standard deviation of all non-null values in the series.
     ///
-    /// Returns an error if the operation is not supported for the series' data type.
+    /// This operation is supported for `I32` and `F64` series. Null values are ignored.
+    /// The standard deviation is calculated using the sample standard deviation formula (N-1 denominator).
+    /// Requires at least two non-null values to compute.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value::F64))` containing the standard deviation, `Ok(None)` if the series
+    /// has fewer than two non-null values, or `Err(VeloxxError::Unsupported)` if the operation
+    /// is not supported for the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
+    /// // Expected standard deviation for [1, 2, 3, 4, 5] is approx 1.5811
+    /// let std_dev = series.std_dev().unwrap().unwrap().as_f64().unwrap();
+    /// assert!((std_dev - 1.5811).abs() < 0.0001);
+    ///
+    /// let single_value_series = Series::new_f64("single", vec![Some(10.0)]);
+    /// assert_eq!(single_value_series.std_dev().unwrap(), None);
+    /// ```
     pub fn std_dev(&self) -> Result<Option<Value>, VeloxxError> {
         match self {
             Series::I32(_, data) => {
@@ -556,8 +1051,39 @@ impl Series {
 
     /// Calculates the Pearson correlation coefficient between this series and another series.
     ///
-    /// Returns an error if the series have different lengths or if the operation is not supported
-    /// for the series' data types.
+    /// This operation is supported for numeric (`I32`, `F64`) series. Both series must have
+    /// the same length. Null values are handled by pairwise deletion (rows with nulls in
+    /// either series are excluded from the calculation).
+    ///
+    /// # Arguments
+    ///
+    /// * `other` - A reference to the `Series` to correlate with.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value::F64))` containing the correlation coefficient,
+    /// `Ok(None)` if there are fewer than two valid data points after handling nulls,
+    /// `Err(VeloxxError::InvalidOperation)` if series lengths differ, or
+    /// `Err(VeloxxError::Unsupported)` if the operation is not supported for the series' data types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let x = Series::new_i32("x", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
+    /// let y = Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)]);
+    ///
+    /// let correlation = x.correlation(&y).unwrap().unwrap().as_f64().unwrap();
+    /// // Expected correlation for these values is approx 0.7746
+    /// assert!((correlation - 0.7746).abs() < 0.0001);
+    ///
+    /// let x_with_null = Series::new_i32("x_null", vec![Some(1), None, Some(3)]);
+    /// let y_with_null = Series::new_i32("y_null", vec![Some(10), Some(20), None]);
+    /// // Only (1, 10) is a valid pair, so correlation cannot be computed (needs at least 2 pairs)
+    /// assert!(x_with_null.correlation(&y_with_null).unwrap().is_none());
+    /// ```
     pub fn correlation(&self, other: &Series) -> Result<Option<Value>, VeloxxError> {
         if self.len() != other.len() {
             return Err(VeloxxError::InvalidOperation(
@@ -609,6 +1135,19 @@ impl Series {
     }
 
     /// Helper function to calculate Pearson correlation coefficient.
+    ///
+    /// This private function performs the core calculation given two slices of `f64` values.
+    /// It returns `None` if there are fewer than two data points.
+    ///
+    /// # Arguments
+    ///
+    /// * `x_vals` - A slice of `f64` values for the first variable.
+    /// * `y_vals` - A slice of `f64` values for the second variable.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value::F64))` containing the correlation coefficient,
+    /// or `Ok(None)` if `n < 2`.
     fn calculate_correlation(x_vals: &[f64], y_vals: &[f64]) -> Result<Option<Value>, VeloxxError> {
         let n = x_vals.len();
         if n < 2 {
@@ -640,8 +1179,33 @@ impl Series {
 
     /// Calculates the covariance between this series and another series.
     ///
-    /// Returns an error if the series have different lengths or if the operation is not supported
-    /// for the series' data types.
+    /// This operation is supported for numeric (`I32`, `F64`) series. Both series must have
+    /// the same length. Null values are handled by pairwise deletion.
+    ///
+    /// # Arguments
+    ///
+    /// * `other` - A reference to the `Series` to calculate covariance with.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value::F64))` containing the covariance,
+    /// `Ok(None)` if there are fewer than two valid data points after handling nulls,
+    /// `Err(VeloxxError::InvalidOperation)` if series lengths differ, or
+    /// `Err(VeloxxError::Unsupported)` if the operation is not supported for the series' data types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let x = Series::new_i32("x", vec![Some(1), Some(2), Some(3)]);
+    /// let y = Series::new_f64("y", vec![Some(2.0), Some(3.0), Some(4.0)]);
+    ///
+    /// // Expected covariance for these values is 1.0
+    /// let covariance = x.covariance(&y).unwrap().unwrap().as_f64().unwrap();
+    /// assert!((covariance - 1.0).abs() < 0.0001);
+    /// ```
     pub fn covariance(&self, other: &Series) -> Result<Option<Value>, VeloxxError> {
         if self.len() != other.len() {
             return Err(VeloxxError::InvalidOperation("Series must have the same length for covariance calculation.".to_string()));
@@ -691,6 +1255,19 @@ impl Series {
     }
 
     /// Helper function to calculate covariance.
+    ///
+    /// This private function performs the core calculation given two slices of `f64` values.
+    /// It returns `None` if there are fewer than two data points.
+    ///
+    /// # Arguments
+    ///
+    /// * `x_vals` - A slice of `f64` values for the first variable.
+    /// * `y_vals` - A slice of `f64` values for the second variable.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Some(Value::F64))` containing the covariance,
+    /// or `Ok(None)` if `n < 2`.
     fn calculate_covariance(x_vals: &[f64], y_vals: &[f64]) -> Result<Option<Value>, VeloxxError> {
         let n = x_vals.len();
         if n < 2 {
@@ -712,6 +1289,31 @@ impl Series {
     }
 
     /// Returns a new series containing only the unique non-null values from this series.
+    ///
+    /// The order of unique values is not guaranteed. Null values are treated as a single unique value.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new series with unique values,
+    /// or `Err(VeloxxError)` if an unexpected error occurs.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("data", vec![Some(1), Some(2), Some(1), None, Some(3), None]);
+    /// let unique_series = series.unique().unwrap();
+    ///
+    /// // The order of elements in unique_series is not guaranteed, but it should contain:
+    /// // Some(1), Some(2), Some(3), None
+    /// assert_eq!(unique_series.len(), 4);
+    ///
+    /// let string_series = Series::new_string("fruits", vec![Some("apple".to_string()), Some("banana".to_string()), Some("apple".to_string())]);
+    /// let unique_string_series = string_series.unique().unwrap();
+    /// assert_eq!(unique_string_series.len(), 2);
+    /// ```
     pub fn unique(&self) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
@@ -798,13 +1400,55 @@ impl Series {
 
     /// Converts the series data to a `Vec<f64>`, ignoring null values.
     ///
-    /// Returns an error if the series' data type cannot be converted to `f64`.
+    /// This method is useful for operations that require a flat `Vec<f64>` representation
+    /// of the series' numeric data. Only `I32`, `F64`, and `DateTime` series can be converted.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Vec<f64>)` containing the non-null values as `f64`,
+    /// or `Err(VeloxxError::Unsupported)` if the series' data type cannot be converted.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(1), None, Some(2), Some(3)]);
+    /// let vec_f64 = series.to_vec_f64().unwrap();
+    /// assert_eq!(vec_f64, vec![1.0, 2.0, 3.0]);
+    ///
+    /// let float_series = Series::new_f64("prices", vec![Some(10.5), None, Some(20.0)]);
+    /// let vec_f64_float = float_series.to_vec_f64().unwrap();
+    /// assert_eq!(vec_f64_float, vec![10.5, 20.0]);
+    /// ```
     pub fn to_vec_f64(&self) -> Result<Vec<f64>, VeloxxError> {
         match self {
-            Series::I32(_, data) => Ok(data.iter().filter_map(|&x| x.map(|v| v as f64)).collect()),
-            Series::F64(_, data) => Ok(data.iter().filter_map(|&x| x).collect()),
+            Series::I32(_, data) => {
+                let mut vec_f64 = Vec::with_capacity(data.len());
+                for &val_opt in data {
+                    if let Some(val) = val_opt {
+                        vec_f64.push(val as f64);
+                    }
+                }
+                Ok(vec_f64)
+            }
+            Series::F64(_, data) => {
+                let mut vec_f64 = Vec::with_capacity(data.len());
+                for &val_opt in data {
+                    if let Some(val) = val_opt {
+                        vec_f64.push(val);
+                    }
+                }
+                Ok(vec_f64)
+            }
             Series::DateTime(_, data) => {
-                Ok(data.iter().filter_map(|&x| x.map(|v| v as f64)).collect())
+                let mut vec_f64 = Vec::with_capacity(data.len());
+                for &val_opt in data {
+                    if let Some(val) = val_opt {
+                        vec_f64.push(val as f64);
+                    }
+                }
+                Ok(vec_f64)
             }
             _ => Err(VeloxxError::Unsupported(format!(
                 "Cannot convert series of type {:?} to Vec<f64>.",
@@ -815,9 +1459,40 @@ impl Series {
 
     /// Interpolates null values in the series using linear interpolation.
     ///
-    /// This operation is only supported for numeric (I32, F64) series.
+    /// This operation is only supported for numeric (`I32`, `F64`) and `DateTime` series.
     /// Nulls at the beginning or end of the series, or consecutive nulls
     /// where no surrounding non-null values exist, will remain null.
+    ///
+    /// For `I32` and `DateTime` series, the interpolated values are cast back to their
+    /// original integer types, which may involve truncation.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new series with interpolated values,
+    /// or `Err(VeloxxError::Unsupported)` if the operation is not supported for the series' data type.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("data", vec![Some(10), None, None, Some(40), None, Some(60)]);
+    /// let interpolated_series = series.interpolate_nulls().unwrap();
+    ///
+    /// assert_eq!(interpolated_series.get_value(0), Some(Value::I32(10)));
+    /// assert_eq!(interpolated_series.get_value(1), Some(Value::I32(20)));
+    /// assert_eq!(interpolated_series.get_value(2), Some(Value::I32(30)));
+    /// assert_eq!(interpolated_series.get_value(3), Some(Value::I32(40)));
+    /// assert_eq!(interpolated_series.get_value(4), Some(Value::I32(50)));
+    /// assert_eq!(interpolated_series.get_value(5), Some(Value::I32(60)));
+    ///
+    /// let series_leading_nulls = Series::new_f64("data", vec![None, None, Some(3.0), Some(4.0)]);
+    /// let interpolated_leading_nulls = series_leading_nulls.interpolate_nulls().unwrap();
+    /// assert_eq!(interpolated_leading_nulls.get_value(0), None);
+    /// assert_eq!(interpolated_leading_nulls.get_value(1), None);
+    /// assert_eq!(interpolated_leading_nulls.get_value(2), Some(Value::F64(3.0)));
+    /// ```
     pub fn interpolate_nulls(&self) -> Result<Self, VeloxxError> {
         let name = self.name().to_string();
         match self {
@@ -925,10 +1600,35 @@ impl Series {
         }
     }
 
-    /// Applies a function to each element of the series, returning a new series of the same type.
+    /// Applies a function to each element of an `I32` series, returning a new `I32` series.
     ///
-    /// The function `f` takes an `Option<T>` (where `T` is the series' underlying type) and returns an `Option<T>`.
-    /// This method is type-specific and avoids the overhead of `Value` enum conversions.
+    /// This method provides a type-specific way to transform each element of an `I32` series.
+    /// The provided closure `f` takes an `Option<i32>` and returns an `Option<i32>`,
+    /// allowing for handling of null values and producing new nulls.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - A closure that takes an `Option<i32>` and returns an `Option<i32>`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new transformed series,
+    /// or `Err(VeloxxError::Unsupported)` if the series is not of type `I32`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_i32("numbers", vec![Some(1), Some(2), None, Some(4)]);
+    /// let doubled_series = series.apply_i32(|x| x.map(|val| val * 2)).unwrap();
+    ///
+    /// assert_eq!(doubled_series.get_value(0), Some(Value::I32(2)));
+    /// assert_eq!(doubled_series.get_value(1), Some(Value::I32(4)));
+    /// assert_eq!(doubled_series.get_value(2), None);
+    /// assert_eq!(doubled_series.get_value(3), Some(Value::I32(8)));
+    /// ```
     pub fn apply_i32<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<i32>) -> Option<i32>,
@@ -946,7 +1646,34 @@ impl Series {
         }
     }
 
-    /// Applies a function to each element of the series, returning a new series of the same type.
+    /// Applies a function to each element of an `F64` series, returning a new `F64` series.
+    ///
+    /// This method provides a type-specific way to transform each element of an `F64` series.
+    /// The provided closure `f` takes an `Option<f64>` and returns an `Option<f64>`,
+    /// allowing for handling of null values and producing new nulls.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - A closure that takes an `Option<f64>` and returns an `Option<f64>`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new transformed series,
+    /// or `Err(VeloxxError::Unsupported)` if the series is not of type `F64`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_f64("prices", vec![Some(10.0), Some(20.5), None, Some(30.0)]);
+    /// let half_prices_series = series.apply_f64(|x| x.map(|val| val / 2.0)).unwrap();
+    ///
+    /// assert_eq!(half_prices_series.get_value(0), Some(Value::F64(5.0)));
+    /// assert_eq!(half_prices_series.get_value(1), Some(Value::F64(10.25)));
+    /// assert_eq!(half_prices_series.get_value(2), None);
+    /// ```
     pub fn apply_f64<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<f64>) -> Option<f64>,
@@ -964,7 +1691,34 @@ impl Series {
         }
     }
 
-    /// Applies a function to each element of the series, returning a new series of the same type.
+    /// Applies a function to each element of a `Bool` series, returning a new `Bool` series.
+    ///
+    /// This method provides a type-specific way to transform each element of a `Bool` series.
+    /// The provided closure `f` takes an `Option<bool>` and returns an `Option<bool>`,
+    /// allowing for handling of null values and producing new nulls.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - A closure that takes an `Option<bool>` and returns an `Option<bool>`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new transformed series,
+    /// or `Err(VeloxxError::Unsupported)` if the series is not of type `Bool`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_bool("flags", vec![Some(true), Some(false), None]);
+    /// let inverted_series = series.apply_bool(|x| x.map(|val| !val)).unwrap();
+    ///
+    /// assert_eq!(inverted_series.get_value(0), Some(Value::Bool(false)));
+    /// assert_eq!(inverted_series.get_value(1), Some(Value::Bool(true)));
+    /// assert_eq!(inverted_series.get_value(2), None);
+    /// ```
     pub fn apply_bool<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<bool>) -> Option<bool>,
@@ -982,7 +1736,34 @@ impl Series {
         }
     }
 
-    /// Applies a function to each element of the series, returning a new series of the same type.
+    /// Applies a function to each element of a `String` series, returning a new `String` series.
+    ///
+    /// This method provides a type-specific way to transform each element of a `String` series.
+    /// The provided closure `f` takes an `Option<&String>` and returns an `Option<String>`,
+    /// allowing for handling of null values and producing new nulls.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - A closure that takes an `Option<&String>` and returns an `Option<String>`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new transformed series,
+    /// or `Err(VeloxxError::Unsupported)` if the series is not of type `String`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// let series = Series::new_string("names", vec![Some("Alice".to_string()), Some("Bob".to_string()), None]);
+    /// let upper_case_series = series.apply_string(|x| x.map(|s| s.to_uppercase())).unwrap();
+    ///
+    /// assert_eq!(upper_case_series.get_value(0), Some(Value::String("ALICE".to_string())));
+    /// assert_eq!(upper_case_series.get_value(1), Some(Value::String("BOB".to_string())));
+    /// assert_eq!(upper_case_series.get_value(2), None);
+    /// ```
     pub fn apply_string<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<&String>) -> Option<String>,
@@ -1000,7 +1781,34 @@ impl Series {
         }
     }
 
-    /// Applies a function to each element of the series, returning a new series of the same type.
+    /// Applies a function to each element of a `DateTime` series, returning a new `DateTime` series.
+    ///
+    /// This method provides a type-specific way to transform each element of a `DateTime` series.
+    /// The provided closure `f` takes an `Option<i64>` (Unix timestamp) and returns an `Option<i64>`,
+    /// allowing for handling of null values and producing new nulls.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - A closure that takes an `Option<i64>` and returns an `Option<i64>`.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(Self)` containing the new transformed series,
+    /// or `Err(VeloxxError::Unsupported)` if the series is not of type `DateTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::series::Series;
+    /// use veloxx::types::Value;
+    ///
+    /// // Example: Add one day (86400 seconds) to each timestamp
+    /// let series = Series::new_datetime("timestamps", vec![Some(1672531200), None, Some(1672617600)]);
+    /// let next_day_series = series.apply_datetime(|x| x.map(|ts| ts + 86400)).unwrap();
+    ///
+    /// assert_eq!(next_day_series.get_value(0), Some(Value::DateTime(1672531200 + 86400)));
+    /// assert_eq!(next_day_series.get_value(1), None);
+    /// ```
     pub fn apply_datetime<F>(&self, f: F) -> Result<Self, VeloxxError>
     where
         F: Fn(Option<i64>) -> Option<i64>,

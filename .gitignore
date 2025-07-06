@@ -2,3 +2,13 @@
 Cargo.lock
 /ignore
 /venv
+/pkg/node_modules/
+/pkg/package-lock.json
+/pkg/test_wasm.test.js
+/pkg/test-results/
+/pkg/__mocks__/
+/pkg/jest.config.cjs
+/pkg/jest.config.mjs
+/pkg/vitest.config.js
+/pkg/wasmTransformer.cjs
+/pkg/wasmTransformer.js
