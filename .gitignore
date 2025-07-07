@@ -17,11 +17,6 @@ __pycache__/
 /pkg/package-lock.json
 /pkg/test-results/
 /pkg/__mocks__/
-/pkg/jest.config.cjs
-/pkg/jest.config.mjs
-/pkg/vitest.config.js
-/pkg/wasmTransformer.cjs
-/pkg/wasmTransformer.js
 /pkg/veloxx_bg.js # WASM generated JS glue code
 /pkg/veloxx_bg.wasm # WASM binary
 /pkg/veloxx.d.ts # WASM generated TypeScript definitions
