@@ -388,6 +388,28 @@ export class WasmSeries {
         return ret >>> 0;
     }
     /**
+     * @returns {boolean}
+     */
+    get isEmpty() {
+        const ret = wasm.wasmseries_isEmpty(this.__wbg_ptr);
+        return ret !== 0;
+    }
+    /**
+     * @returns {WasmDataType}
+     */
+    get dataType() {
+        const ret = wasm.wasmseries_dataType(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {string} new_name
+     */
+    setName(new_name) {
+        const ptr0 = passStringToWasm0(new_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.wasmseries_setName(this.__wbg_ptr, ptr0, len0);
+    }
+    /**
      * @param {number} index
      * @returns {any}
      */
@@ -396,12 +418,48 @@ export class WasmSeries {
         return ret;
     }
     /**
+     * @param {Uint32Array} row_indices
+     * @returns {WasmSeries}
+     */
+    filter(row_indices) {
+        const ptr0 = passArray32ToWasm0(row_indices, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasmseries_filter(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return WasmSeries.__wrap(ret[0]);
+    }
+    /**
      * @param {WasmValue} value
      * @returns {WasmSeries}
      */
     fillNulls(value) {
         _assertClass(value, WasmValue);
         const ret = wasm.wasmseries_fillNulls(this.__wbg_ptr, value.__wbg_ptr);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return WasmSeries.__wrap(ret[0]);
+    }
+    /**
+     * @param {WasmDataType} to_type
+     * @returns {WasmSeries}
+     */
+    cast(to_type) {
+        const ret = wasm.wasmseries_cast(this.__wbg_ptr, to_type);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return WasmSeries.__wrap(ret[0]);
+    }
+    /**
+     * @param {WasmSeries} other
+     * @returns {WasmSeries}
+     */
+    append(other) {
+        _assertClass(other, WasmSeries);
+        const ret = wasm.wasmseries_append(this.__wbg_ptr, other.__wbg_ptr);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
@@ -418,6 +476,33 @@ export class WasmSeries {
         return takeFromExternrefTable0(ret[0]);
     }
     /**
+     * @returns {number}
+     */
+    count() {
+        const ret = wasm.wasmseries_count(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+     * @returns {any}
+     */
+    min() {
+        const ret = wasm.wasmseries_min(this.__wbg_ptr);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return takeFromExternrefTable0(ret[0]);
+    }
+    /**
+     * @returns {any}
+     */
+    max() {
+        const ret = wasm.wasmseries_max(this.__wbg_ptr);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return takeFromExternrefTable0(ret[0]);
+    }
+    /**
      * @returns {any}
      */
     mean() {
@@ -428,15 +513,48 @@ export class WasmSeries {
         return takeFromExternrefTable0(ret[0]);
     }
     /**
-     * @param {WasmDataType} to_type
-     * @returns {WasmSeries}
+     * @returns {any}
      */
-    cast(to_type) {
-        const ret = wasm.wasmseries_cast(this.__wbg_ptr, to_type);
+    median() {
+        const ret = wasm.wasmseries_median(this.__wbg_ptr);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
-        return WasmSeries.__wrap(ret[0]);
+        return takeFromExternrefTable0(ret[0]);
+    }
+    /**
+     * @returns {any}
+     */
+    stdDev() {
+        const ret = wasm.wasmseries_stdDev(this.__wbg_ptr);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return takeFromExternrefTable0(ret[0]);
+    }
+    /**
+     * @param {WasmSeries} other
+     * @returns {any}
+     */
+    correlation(other) {
+        _assertClass(other, WasmSeries);
+        const ret = wasm.wasmseries_correlation(this.__wbg_ptr, other.__wbg_ptr);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return takeFromExternrefTable0(ret[0]);
+    }
+    /**
+     * @param {WasmSeries} other
+     * @returns {any}
+     */
+    covariance(other) {
+        _assertClass(other, WasmSeries);
+        const ret = wasm.wasmseries_covariance(this.__wbg_ptr, other.__wbg_ptr);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return takeFromExternrefTable0(ret[0]);
     }
     /**
      * @returns {WasmSeries}

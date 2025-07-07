@@ -1,4 +1,3 @@
-
 let imports = {};
 imports['__wbindgen_placeholder__'] = module.exports;
 let wasm;
@@ -23,4 +22,3 @@ wasm = wasmInstance.exports;
 module.exports.__wasm = wasm;
 
 wasm.__wbindgen_start();
-
