@@ -4,7 +4,7 @@ This document provides installation and usage instructions for the Python bindin
 
 ## Installation
 
-You You can install the Python bindings using `pip` after building them with `maturin`:
+You can install the Python bindings using `pip` after building them with `maturin`:
 
 ```bash
 # First, build the Python wheel (from the project root)
