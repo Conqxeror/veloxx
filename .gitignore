@@ -1,10 +1,20 @@
-/target
-Cargo.lock
-/ignore
-/venv
+# Rust
+/target/
+Cargo.lock # Usually committed for applications, but often ignored for libraries.
+
+# Python
+/venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyd
+*.so # For compiled Python extensions
+/dist/
+/build/
+
+# Node.js / WebAssembly (pkg directory outputs)
 /pkg/node_modules/
 /pkg/package-lock.json
-
 /pkg/test-results/
 /pkg/__mocks__/
 /pkg/jest.config.cjs
@@ -12,12 +22,23 @@ Cargo.lock
 /pkg/vitest.config.js
 /pkg/wasmTransformer.cjs
 /pkg/wasmTransformer.js
-target/wheels/
-node_modules/
-__pycache__/
-.pytest_cache/
+/pkg/veloxx_bg.js # WASM generated JS glue code
+/pkg/veloxx_bg.wasm # WASM binary
+/pkg/veloxx.d.ts # WASM generated TypeScript definitions
+/pkg/veloxx.js # WASM generated JS wrapper
+
+# IDEs and OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Logs and temporary files
 *.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Custom ignores (as per existing .gitignore)
+/ignore/
