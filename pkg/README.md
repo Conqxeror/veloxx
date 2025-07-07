@@ -9,7 +9,7 @@ Veloxx WebAssembly bindings are available on [npm](https://www.npmjs.com/package
 To install the latest stable version:
 
 ```bash
-npm install veloxx
+npm install veloxx@0.2.3
 ```
 
 Alternatively, if you are developing Veloxx or need to build from source, you can build the WebAssembly package with `wasm-pack`:

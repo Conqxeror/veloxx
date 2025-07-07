@@ -663,7 +663,7 @@ checksum = "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae"
 
 [[package]]
 name = "veloxx"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "bincode",
  "criterion",

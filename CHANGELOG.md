@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.3 - 2025-07-07
+
+### Changed
+
+- Consolidated all language-specific usage examples into the root `README.md`.
+- Created dedicated `README_PYTHON.md` for Python-specific documentation (for PyPI).
+- Created dedicated `README_WASM.md` for WebAssembly/JavaScript-specific documentation (for npmjs.com).
+- Ensured `pkg/README.md` is consistent with `README_WASM.md`.
+- Updated version to `0.2.3` across `Cargo.toml`, `package.json`, and all relevant documentation.
+
+
+
 ## 0.2.2 - 2025-07-04
 
 ### Added

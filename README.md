@@ -73,7 +73,7 @@ Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-veloxx = "0.2.2" # Or the latest version
+veloxx = "0.2.3" # Or the latest version
 ```
 
 To build your Rust project with Veloxx, run:

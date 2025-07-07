@@ -9,7 +9,7 @@ Veloxx Python bindings are available on [PyPI](https://pypi.org/project/veloxx/)
 To install the latest stable version:
 
 ```bash
-pip install veloxx
+pip install veloxx==0.2.3
 ```
 
 Alternatively, if you are developing Veloxx or need to install from source, you can build the Python wheel with `maturin`:
