@@ -65,71 +65,55 @@ Veloxx is a new Rust library designed for highly performant and **extremely ligh
 
 ## Installation
 
-Add the following to your `Cargo.toml` file:
+You can install the WebAssembly package using `npm` after building it with `wasm-pack`:
 
-```toml
-[dependencies]
-veloxx = "0.2.1" # Or the latest version
+```bash
+# First, build the WebAssembly package (from the project root)
+wasm-pack build --target web --out-dir pkg
+
+# Then install the package
+npm install ./pkg
 ```
 
 ## Usage Example
 
 Here's a quick example demonstrating how to create a DataFrame, filter it, and perform a group-by aggregation:
 
-```rust
-use veloxx::dataframe::DataFrame;
-use veloxx::series::Series;
-use veloxx::types::{Value, DataType};
-use veloxx::conditions::Condition;
-use veloxx::expressions::Expr;
-use std::collections::BTreeMap;
+```javascript
+const veloxx = require('veloxx');
 
-fn main() -> Result<(), String> {
+async function runWasmExample() {
     // 1. Create a DataFrame
-    let mut columns = BTreeMap::new();
-    columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string()), Some("David".to_string())]));
-    columns.insert("age".to_string(), Series::new_i32("age", vec![Some(25), Some(30), Some(22), Some(35)]));
-    columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string()), Some("Paris".to_string())]));
-    columns.insert("last_login".to_string(), Series::new_datetime("last_login", vec![Some(1678886400), Some(1678972800), Some(1679059200), Some(1679145600)]));
+    const df = new veloxx.WasmDataFrame({
+        name: ['Alice', 'Bob', 'Charlie', 'David'],
+        age: [25, 30, 22, 35],
+        city: ['New York', 'London', 'New York', 'Paris'],
+    });
+    console.log("Original DataFrame:");
+    console.log(df);
 
-    let df = DataFrame::new(columns)?;
-    println!("Original DataFrame:
-{}", df);
+    // 2. Filter data: age > 25
+    const ageSeries = df.getColumn("age");
+    const filteredIndices = [];
+    for (let i = 0; i < ageSeries.len; i++) {
+        if (ageSeries.getValue(i) > 25) {
+            filteredIndices.push(i);
+        }
+    }
+    const filteredDf = df.filter(new Uint32Array(filteredIndices));
+    console.log("
+Filtered DataFrame (age > 25):");
+    console.log(filteredDf);
 
-    // 2. Filter data: age > 25 AND city == "New York"
-    let condition = Condition::And(
-        Box::new(Condition::Gt("age".to_string(), Value::I32(25))),
-        Box::new(Condition::Eq("city".to_string(), Value::String("New York".to_string()))),
-    );
-    let filtered_df = df.filter(&condition)?;
-    println!("
-Filtered DataFrame (age > 25 AND city == \"New York\"):
-{}", filtered_df);
-
-    // 3. Add a new column: age_in_10_years = age + 10
-    let expr_add_10 = Expr::Add(Box::new(Expr::Column("age".to_string())), Box::new(Expr::Literal(Value::I32(10))));
-    let df_with_new_col = df.with_column("age_in_10_years", &expr_add_10)?;
-    println!("
-DataFrame with new column (age_in_10_years):
-{}", df_with_new_col);
-
-    // 4. Group by city and calculate average age and count of users
-    let grouped_df = df.group_by(vec!["city".to_string()])?;
-    let aggregated_df = grouped_df.agg(vec![("age", "mean"), ("name", "count")])?;
-    println!("
-Aggregated DataFrame (average age and user count by city):
-{}", aggregated_df);
-
-    // 5. Demonstrate DateTime filtering (users logged in after a specific date)
-    let specific_date_timestamp = 1679000000; // Example timestamp
-    let condition_dt = Condition::Gt("last_login".to_string(), Value::DateTime(specific_date_timestamp));
-    let filtered_df_dt = df.filter(&condition_dt)?;
-    println!("
-Filtered DataFrame (users logged in after {}):
-{}", specific_date_timestamp, filtered_df_dt);
-
-    Ok(())
+    // 3. Series operations
+    console.log(`
+Age Series Sum: ${ageSeries.sum()}`);
+    console.log(`Age Series Mean: ${ageSeries.mean()}`);
+    console.log(`Age Series Unique: ${ageSeries.unique().toVecF64()}`);
 }
+
+runWasmExample();
+
 ```
 
 ## Non-Functional Requirements
