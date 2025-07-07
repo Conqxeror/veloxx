@@ -1,5 +1,6 @@
 {
   "name": "veloxx",
+  "type": "module",
   "collaborators": [
     "Wali Mohammad Kadri"
   ],
@@ -18,20 +19,14 @@
   "main": "veloxx.js",
   "homepage": "https://github.com/Conqxeror/veloxx",
   "types": "veloxx.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ],
   "keywords": [
     "dataframe",
     "data-processing",
     "analytics",
     "high-performance",
     "lightweight"
-  ],
-  "scripts": {
-    "test": "jest --config jest.config.cjs"
-  },
-  "devDependencies": {
-    "jest": "^29.0.0"
-  },
-  "dependencies": {
-    "@babel/plugin-transform-modules-commonjs": "^7.27.1"
-  }
+  ]
 }

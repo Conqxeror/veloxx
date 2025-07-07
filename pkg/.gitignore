@@ -1,10 +1,1 @@
-node_modules/
-package-lock.json
-test_wasm.test.js
-test-results/
-__mocks__/
-jest.config.cjs
-jest.config.mjs
-vitest.config.js
-wasmTransformer.cjs
-wasmTransformer.js
+*
