@@ -4,7 +4,15 @@ This document provides installation and usage instructions for the Python bindin
 
 ## Installation
 
-You can install the Python bindings using `pip` after building them with `maturin`:
+Veloxx Python bindings are available on [PyPI](https://pypi.org/project/veloxx/).
+
+To install the latest stable version:
+
+```bash
+pip install veloxx
+```
+
+Alternatively, if you are developing Veloxx or need to install from source, you can build the Python wheel with `maturin`:
 
 ```bash
 # First, build the Python wheel (from the project root)

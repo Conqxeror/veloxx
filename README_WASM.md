@@ -4,7 +4,15 @@ This document provides installation and usage instructions for the WebAssembly b
 
 ## Installation
 
-You can install the WebAssembly package using `npm` after building it with `wasm-pack`:
+Veloxx WebAssembly bindings are available on [npm](https://www.npmjs.com/package/veloxx).
+
+To install the latest stable version:
+
+```bash
+npm install veloxx
+```
+
+Alternatively, if you are developing Veloxx or need to build from source, you can build the WebAssembly package with `wasm-pack`:
 
 ```bash
 # First, build the WebAssembly package (from the project root)

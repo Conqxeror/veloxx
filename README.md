@@ -67,11 +67,25 @@ Veloxx is a new Rust library designed for highly performant and **extremely ligh
 
 ### Rust
 
+Veloxx is available on [crates.io](https://crates.io/crates/veloxx).
+
 Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
 veloxx = "0.2.2" # Or the latest version
+```
+
+To build your Rust project with Veloxx, run:
+
+```bash
+cargo build
+```
+
+To run tests:
+
+```bash
+cargo test
 ```
 
 ## Usage Examples
@@ -136,4 +150,77 @@ Filtered DataFrame (users logged in after {}):
 }
 ```
 
-## Non-Functional Requirements
+### Python Usage
+
+```python
+import veloxx
+
+# 1. Create a DataFrame
+df = veloxx.PyDataFrame({
+    "name": veloxx.PySeries("name", ["Alice", "Bob", "Charlie", "David"]),
+    "age": veloxx.PySeries("age", [25, 30, 22, 35]),
+    "city": veloxx.PySeries("city", ["New York", "London", "New York", "Paris"]),
+})
+print("Original DataFrame:")
+print(df)
+
+# 2. Filter data: age > 25
+filtered_df = df.filter([i for i, age in enumerate(df.get_column("age").to_vec_f64()) if age > 25])
+print("\nFiltered DataFrame (age > 25):")
+print(filtered_df)
+
+# 3. Select columns
+selected_df = df.select_columns(["name", "city"])
+print("\nSelected Columns (name, city):")
+print(selected_df)
+
+# 4. Rename a column
+renamed_df = df.rename_column("age", "years")
+print("\nRenamed Column (age to years):")
+print(renamed_df)
+
+# 5. Series operations
+age_series = df.get_column("age")
+print(f"\nAge Series Sum: {age_series.sum()}")
+print(f"Age Series Mean: {age_series.mean()}")
+print(f"Age Series Max: {age_series.max()}")
+print(f"Age Series Unique: {age_series.unique().to_vec_f64()}")
+```
+
+### WebAssembly Usage (Node.js)
+
+```javascript
+const veloxx = require('veloxx');
+
+async function runWasmExample() {
+    // 1. Create a DataFrame
+    const df = new veloxx.WasmDataFrame({
+        name: ["Alice", "Bob", "Charlie", "David"],
+        age: [25, 30, 22, 35],
+        city: ["New York", "London", "New York", "Paris"],
+    });
+    console.log("Original DataFrame:");
+    console.log(df);
+
+    // 2. Filter data: age > 25
+    const ageSeries = df.getColumn("age");
+    const filteredIndices = [];
+    for (let i = 0; i < ageSeries.len; i++) {
+        if (ageSeries.getValue(i) > 25) {
+            filteredIndices.push(i);
+        }
+    }
+    const filteredDf = df.filter(new Uint32Array(filteredIndices));
+    console.log("\nFiltered DataFrame (age > 25):");
+    console.log(filteredDf);
+
+    // 3. Series operations
+    console.log(`\nAge Series Sum: ${ageSeries.sum()}`);
+    console.log(`Age Series Mean: ${ageSeries.mean()}`);
+    console.log(`Age Series Unique: ${ageSeries.unique().toVecF64()}`);
+}
+
+runWasmExample();
+```
+
+
