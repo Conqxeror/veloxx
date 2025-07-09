@@ -1,9 +1,9 @@
+use crate::error::VeloxxError;
 use crate::{dataframe::DataFrame, series::Series};
-use microjson::JSONValue;
 use csv_core::{ReadFieldResult, Reader};
+use microjson::JSONValue;
 use std::collections::BTreeMap;
 use std::io::Read;
-use crate::error::VeloxxError;
 
 impl DataFrame {
     /// Creates a new `DataFrame` from a CSV file.
@@ -58,8 +58,7 @@ impl DataFrame {
     /// std::fs::remove_file("data.csv").unwrap();
     /// ```
     pub fn from_csv(path: &str) -> Result<Self, VeloxxError> {
-        let mut file =
-            std::fs::File::open(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
+        let mut file = std::fs::File::open(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)
             .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
@@ -95,7 +94,9 @@ impl DataFrame {
                     break;
                 }
                 ReadFieldResult::OutputFull => {
-                    return Err(VeloxxError::Parsing("CSV field too large for buffer.".to_string()));
+                    return Err(VeloxxError::Parsing(
+                        "CSV field too large for buffer.".to_string(),
+                    ));
                 }
                 ReadFieldResult::Field { record_end } => {
                     if record_end {
@@ -122,7 +123,9 @@ impl DataFrame {
         }
 
         if column_names.is_empty() {
-            return Err(VeloxxError::Parsing("CSV file is empty or contains no header.".to_string()));
+            return Err(VeloxxError::Parsing(
+                "CSV file is empty or contains no header.".to_string(),
+            ));
         }
 
         let header = column_names;
@@ -239,19 +242,34 @@ impl DataFrame {
 
             match inferred_type {
                 crate::types::DataType::I32 => {
-                    columns.insert(col_name.to_string(), Series::new_i32(col_name, col_data_i32));
+                    columns.insert(
+                        col_name.to_string(),
+                        Series::new_i32(col_name, col_data_i32),
+                    );
                 }
                 crate::types::DataType::F64 => {
-                    columns.insert(col_name.to_string(), Series::new_f64(col_name, col_data_f64));
+                    columns.insert(
+                        col_name.to_string(),
+                        Series::new_f64(col_name, col_data_f64),
+                    );
                 }
                 crate::types::DataType::Bool => {
-                    columns.insert(col_name.to_string(), Series::new_bool(col_name, col_data_bool));
+                    columns.insert(
+                        col_name.to_string(),
+                        Series::new_bool(col_name, col_data_bool),
+                    );
                 }
                 crate::types::DataType::DateTime => {
-                    columns.insert(col_name.to_string(), Series::new_datetime(col_name, col_data_datetime));
+                    columns.insert(
+                        col_name.to_string(),
+                        Series::new_datetime(col_name, col_data_datetime),
+                    );
                 }
                 crate::types::DataType::String => {
-                    columns.insert(col_name.to_string(), Series::new_string(col_name, col_data_string));
+                    columns.insert(
+                        col_name.to_string(),
+                        Series::new_string(col_name, col_data_string),
+                    );
                 }
             }
         }
@@ -308,9 +326,9 @@ impl DataFrame {
         }
 
         if data[0].len() != column_names.len() {
-            return Err(
-                VeloxxError::InvalidOperation("Number of columns in data does not match number of column names.".to_string()),
-            );
+            return Err(VeloxxError::InvalidOperation(
+                "Number of columns in data does not match number of column names.".to_string(),
+            ));
         }
 
         let num_rows = data.len();
@@ -398,7 +416,10 @@ impl DataFrame {
                         }
                     })
                     .collect();
-                columns.insert(col_name.to_string(), Series::new_datetime(col_name, col_data));
+                columns.insert(
+                    col_name.to_string(),
+                    Series::new_datetime(col_name, col_data),
+                );
             } else if is_string {
                 let col_data: Vec<Option<String>> = data
                     .iter()
@@ -414,7 +435,9 @@ impl DataFrame {
                     .collect();
                 columns.insert(col_name.to_string(), Series::new_string(col_name, col_data));
             } else {
-                return Err(VeloxxError::Parsing(format!("Could not infer type for column '{col_name}'.")));
+                return Err(VeloxxError::Parsing(format!(
+                    "Could not infer type for column '{col_name}'."
+                )));
             }
         }
 
@@ -547,19 +570,31 @@ impl DataFrame {
         let json = JSONValue::load(&contents);
         let arr_iter = match json.iter_array() {
             Ok(arr) => arr,
-            Err(_) => return Err(VeloxxError::Parsing("JSON root must be an array".to_string())),
+            Err(_) => {
+                return Err(VeloxxError::Parsing(
+                    "JSON root must be an array".to_string(),
+                ))
+            }
         };
         let mut rows = Vec::new();
         for row_val in arr_iter {
             let obj_iter = match row_val.iter_object() {
                 Ok(obj) => obj,
-                Err(_) => return Err(VeloxxError::Parsing("Each row must be a JSON object".to_string())),
+                Err(_) => {
+                    return Err(VeloxxError::Parsing(
+                        "Each row must be a JSON object".to_string(),
+                    ))
+                }
             };
             let mut row = std::collections::BTreeMap::new();
             for entry in obj_iter {
                 let (k, v) = match entry {
                     Ok((k, v)) => (k, v),
-                    Err(_) => return Err(VeloxxError::Parsing("Error reading key-value pair".to_string())),
+                    Err(_) => {
+                        return Err(VeloxxError::Parsing(
+                            "Error reading key-value pair".to_string(),
+                        ))
+                    }
                 };
                 let value = if let Ok(f) = v.read_float() {
                     Some(crate::types::Value::F64(f as f64))

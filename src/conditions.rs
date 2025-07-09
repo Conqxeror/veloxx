@@ -1,6 +1,6 @@
 use crate::dataframe::DataFrame;
-use crate::types::Value;
 use crate::error::VeloxxError;
+use crate::types::Value;
 
 /// Defines conditions that can be used to filter rows in a `DataFrame`.
 ///
@@ -150,7 +150,9 @@ impl Condition {
                 match (cell_value.clone(), value) {
                     (Some(Value::I32(a)), Value::I32(b)) => Ok(a > *b),
                     (Some(Value::F64(a)), Value::F64(b)) => Ok(a > *b),
-                    _ => Err(VeloxxError::InvalidOperation(format!("Cannot compare {cell_value:?} and {value:?}"))),
+                    _ => Err(VeloxxError::InvalidOperation(format!(
+                        "Cannot compare {cell_value:?} and {value:?}"
+                    ))),
                 }
             }
             Condition::Lt(col_name, value) => {
@@ -161,7 +163,9 @@ impl Condition {
                 match (cell_value.clone(), value) {
                     (Some(Value::I32(a)), Value::I32(b)) => Ok(a < *b),
                     (Some(Value::F64(a)), Value::F64(b)) => Ok(a < *b),
-                    _ => Err(VeloxxError::InvalidOperation(format!("Cannot compare {cell_value:?} and {value:?}"))),
+                    _ => Err(VeloxxError::InvalidOperation(format!(
+                        "Cannot compare {cell_value:?} and {value:?}"
+                    ))),
                 }
             }
             Condition::And(left, right) => {

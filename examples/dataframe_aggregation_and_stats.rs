@@ -1,51 +1,65 @@
+use std::collections::BTreeMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
-use std::collections::BTreeMap;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a DataFrame for grouping and aggregation examples
     let mut columns = BTreeMap::new();
-    columns.insert("city".to_string(), Series::new_string("city", vec![
-        Some("New York".to_string()),
-        Some("London".to_string()),
-        Some("New York".to_string()),
-        Some("Paris".to_string()),
-        Some("London".to_string()),
-        Some("New York".to_string()),
-    ]));
-    columns.insert("category".to_string(), Series::new_string("category", vec![
-        Some("A".to_string()),
-        Some("B".to_string()),
-        Some("A".to_string()),
-        Some("C".to_string()),
-        Some("B".to_string()),
-        Some("C".to_string()),
-    ]));
-    columns.insert("sales".to_string(), Series::new_f64("sales", vec![
-        Some(100.0),
-        Some(150.0),
-        Some(200.0),
-        Some(50.0),
-        Some(120.0),
-        Some(300.0),
-    ]));
-    columns.insert("quantity".to_string(), Series::new_i32("quantity", vec![
-        Some(10),
-        Some(15),
-        Some(20),
-        Some(5),
-        Some(12),
-        Some(30),
-    ]));
+    columns.insert(
+        "city".to_string(),
+        Series::new_string(
+            "city",
+            vec![
+                Some("New York".to_string()),
+                Some("London".to_string()),
+                Some("New York".to_string()),
+                Some("Paris".to_string()),
+                Some("London".to_string()),
+                Some("New York".to_string()),
+            ],
+        ),
+    );
+    columns.insert(
+        "category".to_string(),
+        Series::new_string(
+            "category",
+            vec![
+                Some("A".to_string()),
+                Some("B".to_string()),
+                Some("A".to_string()),
+                Some("C".to_string()),
+                Some("B".to_string()),
+                Some("C".to_string()),
+            ],
+        ),
+    );
+    columns.insert(
+        "sales".to_string(),
+        Series::new_f64(
+            "sales",
+            vec![
+                Some(100.0),
+                Some(150.0),
+                Some(200.0),
+                Some(50.0),
+                Some(120.0),
+                Some(300.0),
+            ],
+        ),
+    );
+    columns.insert(
+        "quantity".to_string(),
+        Series::new_i32(
+            "quantity",
+            vec![Some(10), Some(15), Some(20), Some(5), Some(12), Some(30)],
+        ),
+    );
     let df = DataFrame::new(columns)?;
     println!("Original DataFrame:\n{}", df);
     // Group by 'city' and calculate sum of sales and mean of quantity
     println!("\n--- Group by 'city' (sum of sales, mean of quantity) ---");
     let grouped_by_city = df.group_by(vec!["city".to_string()])?;
-    let aggregated_by_city = grouped_by_city.agg(vec![
-        ("sales", "sum"),
-        ("quantity", "mean"),
-    ])?;
+    let aggregated_by_city = grouped_by_city.agg(vec![("sales", "sum"), ("quantity", "mean")])?;
     println!("{}", aggregated_by_city);
     // Group by 'city' and 'category' and calculate count of sales and min/max of quantity
     println!("\n--- Group by 'city' and 'category' (count of sales, min/max of quantity) ---");

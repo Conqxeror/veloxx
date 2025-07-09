@@ -96,6 +96,8 @@ pub mod conditions;
 /// Core DataFrame and its associated operations, including data ingestion, manipulation,
 /// cleaning, joining, grouping, and display.
 pub mod dataframe;
+/// Defines the custom error type `VeloxxError` for unified error handling.
+pub mod error;
 /// Defines expressions that can be used to create new columns or perform calculations
 /// based on existing data within a DataFrame.
 pub mod expressions;
@@ -105,8 +107,6 @@ pub mod series;
 /// Defines the fundamental data types (`DataType`) and value (`Value`) enums
 /// used to represent data within Series and DataFrames.
 pub mod types;
-/// Defines the custom error type `VeloxxError` for unified error handling.
-pub mod error;
 
 #[cfg(feature = "python")]
 #[path = "../bindings/python/mod.rs"]
@@ -121,11 +121,11 @@ pub use wasm_bindings::*;
 mod tests {
     use crate::conditions::Condition;
     use crate::dataframe::DataFrame;
+    use crate::error::VeloxxError;
     use crate::expressions::Expr;
     use crate::series::Series;
     use crate::types::Value;
     use std::collections::BTreeMap;
-    use crate::error::VeloxxError;
 
     #[test]
     fn test_dataframe_new() {
@@ -166,7 +166,12 @@ mod tests {
         );
 
         let err = DataFrame::new(columns).unwrap_err();
-        assert_eq!(err, VeloxxError::InvalidOperation("All series in a DataFrame must have the same length.".to_string()));
+        assert_eq!(
+            err,
+            VeloxxError::InvalidOperation(
+                "All series in a DataFrame must have the same length.".to_string()
+            )
+        );
     }
 
     #[test]
@@ -298,7 +303,9 @@ mod tests {
         let err = DataFrame::from_vec_of_vec(mismatched_data, mismatched_column_names).unwrap_err();
         assert_eq!(
             err,
-            VeloxxError::InvalidOperation("Number of columns in data does not match number of column names.".to_string())
+            VeloxxError::InvalidOperation(
+                "Number of columns in data does not match number of column names.".to_string()
+            )
         );
     }
 
@@ -414,7 +421,12 @@ mod tests {
 
         // Try to rename to an existing column name
         let err = df.rename_column("col1", "col2").unwrap_err();
-        assert_eq!(err, VeloxxError::InvalidOperation("Column with new name 'col2' already exists.".to_string()));
+        assert_eq!(
+            err,
+            VeloxxError::InvalidOperation(
+                "Column with new name 'col2' already exists.".to_string()
+            )
+        );
     }
 
     #[test]
@@ -716,7 +728,9 @@ mod tests {
         let err = series_i32_unsupported
             .cast(crate::types::DataType::String)
             .unwrap_err();
-        assert!(err.to_string().contains("Unsupported cast from I32 to String"));
+        assert!(err
+            .to_string()
+            .contains("Unsupported cast from I32 to String"));
 
         // Test casting to same type
         let series_i32_same_type = Series::new_i32("int_col", vec![Some(1), Some(2)]);
@@ -802,7 +816,10 @@ mod tests {
 
         // Test with non-existent column
         let err = df.sort(vec!["non_existent".to_string()], true).unwrap_err();
-        assert_eq!(err, VeloxxError::ColumnNotFound("Column 'non_existent' not found for sorting.".to_string()));
+        assert_eq!(
+            err,
+            VeloxxError::ColumnNotFound("Column 'non_existent' not found for sorting.".to_string())
+        );
 
         // Test with empty DataFrame
         let empty_df = DataFrame::new(BTreeMap::new()).unwrap();

@@ -1,8 +1,12 @@
+use crate::error::VeloxxError;
 use crate::{
-    conditions::Condition, dataframe::DataFrame, expressions::Expr, series::Series, types::{DataType, Value},
+    conditions::Condition,
+    dataframe::DataFrame,
+    expressions::Expr,
+    series::Series,
+    types::{DataType, Value},
 };
 use std::collections::BTreeMap;
-use crate::error::VeloxxError;
 
 impl DataFrame {
     /// Selects a subset of columns from the `DataFrame`.
@@ -126,7 +130,9 @@ impl DataFrame {
         let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
         if let Some(mut series) = new_columns.remove(old_name) {
             if new_columns.contains_key(new_name) {
-                return Err(VeloxxError::InvalidOperation(format!("Column with new name '{new_name}' already exists.")));
+                return Err(VeloxxError::InvalidOperation(format!(
+                    "Column with new name '{new_name}' already exists."
+                )));
             }
             series.set_name(new_name);
             new_columns.insert(new_name.to_string(), series);
@@ -197,7 +203,9 @@ impl DataFrame {
                 self.column_names()
                     .iter()
                     .position(|&name| name == col_name)
-                    .ok_or(VeloxxError::ColumnNotFound(format!("Column '{col_name}' not found for sorting.")))
+                    .ok_or(VeloxxError::ColumnNotFound(format!(
+                        "Column '{col_name}' not found for sorting."
+                    )))
             })
             .collect();
 
@@ -381,7 +389,9 @@ impl DataFrame {
     pub fn with_column(&self, new_col_name: &str, expr: &Expr) -> Result<Self, VeloxxError> {
         let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
         if new_columns.contains_key(new_col_name) {
-            return Err(VeloxxError::InvalidOperation(format!("Column '{new_col_name}' already exists.")));
+            return Err(VeloxxError::InvalidOperation(format!(
+                "Column '{new_col_name}' already exists."
+            )));
         }
 
         let mut evaluated_values: Vec<Value> = Vec::with_capacity(self.row_count);
@@ -414,21 +424,39 @@ impl DataFrame {
                 new_col_name,
                 evaluated_values
                     .into_iter()
-                    .map(|v| if let Value::Bool(x) = v { Some(x) } else { None })
+                    .map(|v| {
+                        if let Value::Bool(x) = v {
+                            Some(x)
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
             ),
             Some(DataType::String) => Series::new_string(
                 new_col_name,
                 evaluated_values
                     .into_iter()
-                    .map(|v| if let Value::String(x) = v { Some(x) } else { None })
+                    .map(|v| {
+                        if let Value::String(x) = v {
+                            Some(x)
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
             ),
             Some(DataType::DateTime) => Series::new_datetime(
                 new_col_name,
                 evaluated_values
                     .into_iter()
-                    .map(|v| if let Value::DateTime(x) = v { Some(x) } else { None })
+                    .map(|v| {
+                        if let Value::DateTime(x) = v {
+                            Some(x)
+                        } else {
+                            None
+                        }
+                    })
                     .collect(),
             ),
             None => Series::new_string(new_col_name, vec![None; self.row_count]), // All nulls, default to String
@@ -541,7 +569,7 @@ impl DataFrame {
     /// - The same number of columns.
     /// - Identical column names (case-sensitive).
     /// - Matching data types for each corresponding column.
-    /// The order of columns in both DataFrames is also important.
+    ///   The order of columns in both DataFrames is also important.
     ///
     /// # Arguments
     ///
@@ -578,7 +606,9 @@ impl DataFrame {
     /// ```
     pub fn append(&self, other: &DataFrame) -> Result<Self, VeloxxError> {
         if self.column_count() != other.column_count() {
-            return Err(VeloxxError::InvalidOperation("Cannot append DataFrames with different number of columns.".to_string()));
+            return Err(VeloxxError::InvalidOperation(
+                "Cannot append DataFrames with different number of columns.".to_string(),
+            ));
         }
 
         let self_column_names: Vec<&String> = self.column_names();
@@ -587,9 +617,9 @@ impl DataFrame {
         // Check if column names and order are identical
         for i in 0..self_column_names.len() {
             if self_column_names[i] != other_column_names[i] {
-                return Err(
-                    VeloxxError::InvalidOperation("Cannot append DataFrames with different column names or order.".to_string()),
-                );
+                return Err(VeloxxError::InvalidOperation(
+                    "Cannot append DataFrames with different column names or order.".to_string(),
+                ));
             }
             if self.get_column(self_column_names[i]).unwrap().data_type()
                 != other.get_column(other_column_names[i]).unwrap().data_type()
@@ -645,7 +675,7 @@ impl DataFrame {
     pub fn group_by(
         &self,
         group_columns: Vec<String>,
-    ) -> Result<crate::dataframe::group_by::GroupedDataFrame, VeloxxError> {
+    ) -> Result<crate::dataframe::group_by::GroupedDataFrame<'_>, VeloxxError> {
         crate::dataframe::group_by::GroupedDataFrame::new(self, group_columns)
     }
 
@@ -678,8 +708,8 @@ impl DataFrame {
     /// println!("Descriptive Statistics:\n{}", description_df);
     /// // Expected output (column order might vary):
     /// // column         count          mean           std            min            max            median         
-    /// // --------------- --------------- --------------- --------------- --------------- --------------- --------------- 
-    /// // age            4              27.50          6.45           Value::I32(20) Value::I32(35) Value::F64(27.50) 
+    /// // --------------- --------------- --------------- --------------- --------------- --------------- ---------------
+    /// // age            4              27.50          6.45           Value::I32(20) Value::I32(35) Value::F64(27.50)
     /// // city           4              null           null           null           null           null           
     /// ```
     pub fn describe(&self) -> Result<DataFrame, VeloxxError> {
@@ -823,14 +853,16 @@ impl DataFrame {
         let data2: Vec<f64> = series2.to_vec_f64()?;
 
         if data1.len() != data2.len() {
-            return Err(
-                VeloxxError::InvalidOperation("Columns must have the same number of non-null values for correlation.".to_string()),
-            );
+            return Err(VeloxxError::InvalidOperation(
+                "Columns must have the same number of non-null values for correlation.".to_string(),
+            ));
         }
 
         let n = data1.len();
         if n == 0 {
-            return Err(VeloxxError::InvalidOperation("Cannot compute correlation for empty columns.".to_string()));
+            return Err(VeloxxError::InvalidOperation(
+                "Cannot compute correlation for empty columns.".to_string(),
+            ));
         }
 
         let mean1 = data1.iter().sum::<f64>() / n as f64;
@@ -848,7 +880,7 @@ impl DataFrame {
             sum_sq_diff2 += diff2.powi(2);
         }
 
-        let denominator = (sum_sq_diff1 * sum_sq_diff2).sqrt() as f64;
+        let denominator = (sum_sq_diff1 * sum_sq_diff2).sqrt();
 
         if denominator == 0.0 {
             Ok(0.0) // Handle cases where one or both series have zero variance
@@ -902,17 +934,17 @@ impl DataFrame {
         let data2: Vec<f64> = series2.to_vec_f64()?;
 
         if data1.len() != data2.len() {
-            return Err(
-                VeloxxError::InvalidOperation("Columns must have the same number of non-null values for covariance.".to_string()),
-            );
+            return Err(VeloxxError::InvalidOperation(
+                "Columns must have the same number of non-null values for covariance.".to_string(),
+            ));
         }
 
         let n = data1.len();
         if n < 2 {
-            return Err(
-                VeloxxError::InvalidOperation("Cannot compute covariance for columns with less than 2 non-null values."
-                    .to_string()),
-            );
+            return Err(VeloxxError::InvalidOperation(
+                "Cannot compute covariance for columns with less than 2 non-null values."
+                    .to_string(),
+            ));
         }
 
         let mean1 = data1.iter().sum::<f64>() / n as f64;

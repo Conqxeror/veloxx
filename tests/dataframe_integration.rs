@@ -1,21 +1,30 @@
 mod tests {
-    use veloxx::error::VeloxxError;
+    use std::collections::BTreeMap;
+    use veloxx::dataframe::join::JoinType;
     use veloxx::dataframe::DataFrame;
+    use veloxx::error::VeloxxError;
+    use veloxx::expressions::Expr;
     use veloxx::series::Series;
     use veloxx::types::Value;
-    use veloxx::expressions::Expr;
-    use veloxx::dataframe::join::JoinType;
-    use std::collections::BTreeMap;
 
     #[test]
     fn test_dataframe_with_column() {
         let mut columns = BTreeMap::new();
-        columns.insert("a".to_string(), Series::new_i32("a", vec![Some(1), Some(2), Some(3)]));
-        columns.insert("b".to_string(), Series::new_i32("b", vec![Some(4), Some(5), Some(6)]));
+        columns.insert(
+            "a".to_string(),
+            Series::new_i32("a", vec![Some(1), Some(2), Some(3)]),
+        );
+        columns.insert(
+            "b".to_string(),
+            Series::new_i32("b", vec![Some(4), Some(5), Some(6)]),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         // Create a new column "c" as a + b
-        let expr = Expr::Add(Box::new(Expr::Column("a".to_string())), Box::new(Expr::Column("b".to_string())));
+        let expr = Expr::Add(
+            Box::new(Expr::Column("a".to_string())),
+            Box::new(Expr::Column("b".to_string())),
+        );
         let new_df = df.with_column("c", &expr).unwrap();
 
         assert_eq!(new_df.column_count(), 3);
@@ -42,105 +51,247 @@ mod tests {
 
         // Test error when column already exists
         let err = df.with_column("a", &expr).unwrap_err();
-        assert_eq!(err, VeloxxError::InvalidOperation("Column 'a' already exists.".to_string()));
+        assert_eq!(
+            err,
+            VeloxxError::InvalidOperation("Column 'a' already exists.".to_string())
+        );
     }
 
     #[test]
     fn test_dataframe_join() {
         // Create left DataFrame
         let mut left_cols = BTreeMap::new();
-        left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
-        left_cols.insert("left_val".to_string(), Series::new_string("left_val", vec![Some("a".to_string()), Some("b".to_string()), Some("c".to_string())]));
+        left_cols.insert(
+            "id".to_string(),
+            Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
+        );
+        left_cols.insert(
+            "left_val".to_string(),
+            Series::new_string(
+                "left_val",
+                vec![
+                    Some("a".to_string()),
+                    Some("b".to_string()),
+                    Some("c".to_string()),
+                ],
+            ),
+        );
         let left_df = DataFrame::new(left_cols).unwrap();
 
         // Create right DataFrame
         let mut right_cols = BTreeMap::new();
-        right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
-        right_cols.insert("right_val".to_string(), Series::new_string("right_val", vec![Some("x".to_string()), Some("y".to_string()), Some("z".to_string())]));
+        right_cols.insert(
+            "id".to_string(),
+            Series::new_i32("id", vec![Some(2), Some(3), Some(4)]),
+        );
+        right_cols.insert(
+            "right_val".to_string(),
+            Series::new_string(
+                "right_val",
+                vec![
+                    Some("x".to_string()),
+                    Some("y".to_string()),
+                    Some("z".to_string()),
+                ],
+            ),
+        );
         let right_df = DataFrame::new(right_cols).unwrap();
 
         // Test Inner Join
         let inner_join_df = left_df.join(&right_df, "id", JoinType::Inner).unwrap();
         assert_eq!(inner_join_df.row_count(), 2);
         assert_eq!(inner_join_df.column_count(), 3);
-        assert_eq!(inner_join_df.get_column("id").unwrap().get_value(0), Some(Value::I32(2)));
-        assert_eq!(inner_join_df.get_column("left_val").unwrap().get_value(0), Some(Value::String("b".to_string())));
-        assert_eq!(inner_join_df.get_column("right_val").unwrap().get_value(0), Some(Value::String("x".to_string())));
-        assert_eq!(inner_join_df.get_column("id").unwrap().get_value(1), Some(Value::I32(3)));
-        assert_eq!(inner_join_df.get_column("left_val").unwrap().get_value(1), Some(Value::String("c".to_string())));
-        assert_eq!(inner_join_df.get_column("right_val").unwrap().get_value(1), Some(Value::String("y".to_string())));
+        assert_eq!(
+            inner_join_df.get_column("id").unwrap().get_value(0),
+            Some(Value::I32(2))
+        );
+        assert_eq!(
+            inner_join_df.get_column("left_val").unwrap().get_value(0),
+            Some(Value::String("b".to_string()))
+        );
+        assert_eq!(
+            inner_join_df.get_column("right_val").unwrap().get_value(0),
+            Some(Value::String("x".to_string()))
+        );
+        assert_eq!(
+            inner_join_df.get_column("id").unwrap().get_value(1),
+            Some(Value::I32(3))
+        );
+        assert_eq!(
+            inner_join_df.get_column("left_val").unwrap().get_value(1),
+            Some(Value::String("c".to_string()))
+        );
+        assert_eq!(
+            inner_join_df.get_column("right_val").unwrap().get_value(1),
+            Some(Value::String("y".to_string()))
+        );
 
         // Test Left Join
         let left_join_df = left_df.join(&right_df, "id", JoinType::Left).unwrap();
         assert_eq!(left_join_df.row_count(), 3);
         assert_eq!(left_join_df.column_count(), 3);
-        assert_eq!(left_join_df.get_column("id").unwrap().get_value(0), Some(Value::I32(1)));
-        assert_eq!(left_join_df.get_column("left_val").unwrap().get_value(0), Some(Value::String("a".to_string())));
-        assert_eq!(left_join_df.get_column("right_val").unwrap().get_value(0), None);
-        assert_eq!(left_join_df.get_column("id").unwrap().get_value(1), Some(Value::I32(2)));
-        assert_eq!(left_join_df.get_column("right_val").unwrap().get_value(1), Some(Value::String("x".to_string())));
-        assert_eq!(left_join_df.get_column("id").unwrap().get_value(2), Some(Value::I32(3)));
-        assert_eq!(left_join_df.get_column("right_val").unwrap().get_value(2), Some(Value::String("y".to_string())));
+        assert_eq!(
+            left_join_df.get_column("id").unwrap().get_value(0),
+            Some(Value::I32(1))
+        );
+        assert_eq!(
+            left_join_df.get_column("left_val").unwrap().get_value(0),
+            Some(Value::String("a".to_string()))
+        );
+        assert_eq!(
+            left_join_df.get_column("right_val").unwrap().get_value(0),
+            None
+        );
+        assert_eq!(
+            left_join_df.get_column("id").unwrap().get_value(1),
+            Some(Value::I32(2))
+        );
+        assert_eq!(
+            left_join_df.get_column("right_val").unwrap().get_value(1),
+            Some(Value::String("x".to_string()))
+        );
+        assert_eq!(
+            left_join_df.get_column("id").unwrap().get_value(2),
+            Some(Value::I32(3))
+        );
+        assert_eq!(
+            left_join_df.get_column("right_val").unwrap().get_value(2),
+            Some(Value::String("y".to_string()))
+        );
 
         // Test Right Join
         let right_join_df = left_df.join(&right_df, "id", JoinType::Right).unwrap();
         assert_eq!(right_join_df.row_count(), 3);
         assert_eq!(right_join_df.column_count(), 3);
-        assert_eq!(right_join_df.get_column("id").unwrap().get_value(0), Some(Value::I32(2)));
-        assert_eq!(right_join_df.get_column("left_val").unwrap().get_value(0), Some(Value::String("b".to_string())));
-        assert_eq!(right_join_df.get_column("id").unwrap().get_value(1), Some(Value::I32(3)));
-        assert_eq!(right_join_df.get_column("left_val").unwrap().get_value(1), Some(Value::String("c".to_string())));
-        assert_eq!(right_join_df.get_column("id").unwrap().get_value(2), Some(Value::I32(4)));
-        assert_eq!(right_join_df.get_column("left_val").unwrap().get_value(2), None);
-        assert_eq!(right_join_df.get_column("right_val").unwrap().get_value(2), Some(Value::String("z".to_string())));
+        assert_eq!(
+            right_join_df.get_column("id").unwrap().get_value(0),
+            Some(Value::I32(2))
+        );
+        assert_eq!(
+            right_join_df.get_column("left_val").unwrap().get_value(0),
+            Some(Value::String("b".to_string()))
+        );
+        assert_eq!(
+            right_join_df.get_column("id").unwrap().get_value(1),
+            Some(Value::I32(3))
+        );
+        assert_eq!(
+            right_join_df.get_column("left_val").unwrap().get_value(1),
+            Some(Value::String("c".to_string()))
+        );
+        assert_eq!(
+            right_join_df.get_column("id").unwrap().get_value(2),
+            Some(Value::I32(4))
+        );
+        assert_eq!(
+            right_join_df.get_column("left_val").unwrap().get_value(2),
+            None
+        );
+        assert_eq!(
+            right_join_df.get_column("right_val").unwrap().get_value(2),
+            Some(Value::String("z".to_string()))
+        );
 
         // Test join on non-existent column
-        let err = left_df.join(&right_df, "non_existent", JoinType::Inner).unwrap_err();
-        assert_eq!(err, VeloxxError::ColumnNotFound("Join column 'non_existent' not found in left DataFrame.".to_string()));
+        let err = left_df
+            .join(&right_df, "non_existent", JoinType::Inner)
+            .unwrap_err();
+        assert_eq!(
+            err,
+            VeloxxError::ColumnNotFound(
+                "Join column 'non_existent' not found in left DataFrame.".to_string()
+            )
+        );
     }
 
     #[test]
     fn test_dataframe_append() {
         let mut df1_cols = BTreeMap::new();
-        df1_cols.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1), Some(2)]));
-        df1_cols.insert("col2".to_string(), Series::new_string("col2", vec![Some("a".to_string()), Some("b".to_string())]));
+        df1_cols.insert(
+            "col1".to_string(),
+            Series::new_i32("col1", vec![Some(1), Some(2)]),
+        );
+        df1_cols.insert(
+            "col2".to_string(),
+            Series::new_string("col2", vec![Some("a".to_string()), Some("b".to_string())]),
+        );
         let df1 = DataFrame::new(df1_cols).unwrap();
 
         let mut df2_cols = BTreeMap::new();
-        df2_cols.insert("col1".to_string(), Series::new_i32("col1", vec![Some(3), Some(4)]));
-        df2_cols.insert("col2".to_string(), Series::new_string("col2", vec![Some("c".to_string()), Some("d".to_string())]));
+        df2_cols.insert(
+            "col1".to_string(),
+            Series::new_i32("col1", vec![Some(3), Some(4)]),
+        );
+        df2_cols.insert(
+            "col2".to_string(),
+            Series::new_string("col2", vec![Some("c".to_string()), Some("d".to_string())]),
+        );
         let df2 = DataFrame::new(df2_cols).unwrap();
 
         // Test successful append
         let appended_df = df1.append(&df2).unwrap();
         assert_eq!(appended_df.row_count(), 4);
-        assert_eq!(appended_df.get_column("col1").unwrap().get_value(0), Some(Value::I32(1)));
-        assert_eq!(appended_df.get_column("col1").unwrap().get_value(3), Some(Value::I32(4)));
-        assert_eq!(appended_df.get_column("col2").unwrap().get_value(0), Some(Value::String("a".to_string())));
-        assert_eq!(appended_df.get_column("col2").unwrap().get_value(3), Some(Value::String("d".to_string())));
+        assert_eq!(
+            appended_df.get_column("col1").unwrap().get_value(0),
+            Some(Value::I32(1))
+        );
+        assert_eq!(
+            appended_df.get_column("col1").unwrap().get_value(3),
+            Some(Value::I32(4))
+        );
+        assert_eq!(
+            appended_df.get_column("col2").unwrap().get_value(0),
+            Some(Value::String("a".to_string()))
+        );
+        assert_eq!(
+            appended_df.get_column("col2").unwrap().get_value(3),
+            Some(Value::String("d".to_string()))
+        );
 
         // Test append with different number of columns
         let mut df3_cols = BTreeMap::new();
         df3_cols.insert("col1".to_string(), Series::new_i32("col1", vec![Some(5)]));
         let df3 = DataFrame::new(df3_cols).unwrap();
         let err = df1.append(&df3).unwrap_err();
-        assert_eq!(err, VeloxxError::InvalidOperation("Cannot append DataFrames with different number of columns.".to_string()));
+        assert_eq!(
+            err,
+            VeloxxError::InvalidOperation(
+                "Cannot append DataFrames with different number of columns.".to_string()
+            )
+        );
 
         // Test append with different column names
         let mut df4_cols = BTreeMap::new();
         df4_cols.insert("col1".to_string(), Series::new_i32("col1", vec![Some(5)]));
-        df4_cols.insert("col3".to_string(), Series::new_string("col3", vec![Some("e".to_string())]));
+        df4_cols.insert(
+            "col3".to_string(),
+            Series::new_string("col3", vec![Some("e".to_string())]),
+        );
         let df4 = DataFrame::new(df4_cols).unwrap();
         let err = df1.append(&df4).unwrap_err();
-        assert_eq!(err, VeloxxError::InvalidOperation("Cannot append DataFrames with different column names or order.".to_string()));
+        assert_eq!(
+            err,
+            VeloxxError::InvalidOperation(
+                "Cannot append DataFrames with different column names or order.".to_string()
+            )
+        );
 
         // Test append with mismatched data types
         let mut df5_cols = BTreeMap::new();
         df5_cols.insert("col1".to_string(), Series::new_f64("col1", vec![Some(5.0)]));
-        df5_cols.insert("col2".to_string(), Series::new_string("col2", vec![Some("e".to_string())]));
+        df5_cols.insert(
+            "col2".to_string(),
+            Series::new_string("col2", vec![Some("e".to_string())]),
+        );
         let df5 = DataFrame::new(df5_cols).unwrap();
         let err = df1.append(&df5).unwrap_err();
-        assert_eq!(err, VeloxxError::DataTypeMismatch("Cannot append DataFrames with mismatched data types for column 'col1'.".to_string()));
+        assert_eq!(
+            err,
+            VeloxxError::DataTypeMismatch(
+                "Cannot append DataFrames with mismatched data types for column 'col1'."
+                    .to_string()
+            )
+        );
     }
     #[test]
     fn test_series_sum() {
@@ -151,7 +302,10 @@ mod tests {
         assert_eq!(series_f64.sum().unwrap(), Some(Value::F64(7.0)));
 
         let series_bool = Series::new_bool("col3", vec![Some(true), Some(false), None]);
-        assert!(matches!(series_bool.sum().unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_bool.sum().unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
@@ -165,7 +319,10 @@ mod tests {
         let series_bool = Series::new_bool("col3", vec![Some(true), Some(false), None]);
         assert_eq!(series_bool.count(), 2);
 
-        let series_string = Series::new_string("col4", vec![Some("a".to_string()), None, Some("b".to_string())]);
+        let series_string = Series::new_string(
+            "col4",
+            vec![Some("a".to_string()), None, Some("b".to_string())],
+        );
         assert_eq!(series_string.count(), 2);
     }
 
@@ -181,7 +338,10 @@ mod tests {
         assert_eq!(series_empty_i32.min().unwrap(), None);
 
         let series_bool = Series::new_bool("col3", vec![Some(true), Some(false), None]);
-        assert!(matches!(series_bool.min().unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_bool.min().unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
@@ -196,7 +356,10 @@ mod tests {
         assert_eq!(series_empty_i32.max().unwrap(), None);
 
         let series_bool = Series::new_bool("col3", vec![Some(true), Some(false), None]);
-        assert!(matches!(series_bool.max().unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_bool.max().unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
@@ -211,7 +374,10 @@ mod tests {
         assert_eq!(series_empty_i32.mean().unwrap(), None);
 
         let series_bool = Series::new_bool("col3", vec![Some(true), Some(false), None]);
-        assert!(matches!(series_bool.mean().unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_bool.mean().unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
@@ -222,26 +388,42 @@ mod tests {
         let series_i32_even = Series::new_i32("col1", vec![Some(1), Some(4), Some(2), Some(3)]);
         assert_eq!(series_i32_even.median().unwrap(), Some(Value::F64(2.5)));
 
-        let series_f64 = Series::new_f64("col2", vec![Some(1.0), Some(5.0), Some(2.0), Some(4.0), Some(3.0)]);
+        let series_f64 = Series::new_f64(
+            "col2",
+            vec![Some(1.0), Some(5.0), Some(2.0), Some(4.0), Some(3.0)],
+        );
         assert_eq!(series_f64.median().unwrap(), Some(Value::F64(3.0)));
 
-        let series_f64_even = Series::new_f64("col2", vec![Some(1.0), Some(4.0), Some(2.0), Some(3.0)]);
+        let series_f64_even =
+            Series::new_f64("col2", vec![Some(1.0), Some(4.0), Some(2.0), Some(3.0)]);
         assert_eq!(series_f64_even.median().unwrap(), Some(Value::F64(2.5)));
 
         let series_empty_i32 = Series::new_i32("col1", vec![]);
         assert_eq!(series_empty_i32.median().unwrap(), None);
 
         let series_bool = Series::new_bool("col3", vec![Some(true), Some(false), None]);
-        assert!(matches!(series_bool.median().unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_bool.median().unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
     fn test_series_std_dev() {
         let series_i32 = Series::new_i32("col1", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
-        assert_eq!(series_i32.std_dev().unwrap(), Some(Value::F64(1.5811388300841898)));
+        assert_eq!(
+            series_i32.std_dev().unwrap(),
+            Some(Value::F64(1.5811388300841898))
+        );
 
-        let series_f64 = Series::new_f64("col2", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)]);
-        assert_eq!(series_f64.std_dev().unwrap(), Some(Value::F64(1.5811388300841898)));
+        let series_f64 = Series::new_f64(
+            "col2",
+            vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)],
+        );
+        assert_eq!(
+            series_f64.std_dev().unwrap(),
+            Some(Value::F64(1.5811388300841898))
+        );
 
         let series_empty_i32 = Series::new_i32("col1", vec![]);
         assert_eq!(series_empty_i32.std_dev().unwrap(), None);
@@ -250,7 +432,10 @@ mod tests {
         assert_eq!(series_single_i32.std_dev().unwrap(), None);
 
         let series_bool = Series::new_bool("col3", vec![Some(true), Some(false), None]);
-        assert!(matches!(series_bool.std_dev().unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_bool.std_dev().unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     // #[test]
@@ -290,12 +475,35 @@ mod tests {
 
     #[test]
     fn test_series_unique_simple_f64() {
-        let series_f64 = Series::new_f64("col1", vec![Some(1.0), Some(2.5), Some(1.0), None, Some(3.5), None, Some(f64::NAN), Some(-0.0), Some(0.0)]);
+        let series_f64 = Series::new_f64(
+            "col1",
+            vec![
+                Some(1.0),
+                Some(2.5),
+                Some(1.0),
+                None,
+                Some(3.5),
+                None,
+                Some(f64::NAN),
+                Some(-0.0),
+                Some(0.0),
+            ],
+        );
         let unique_f64 = series_f64.unique().unwrap();
-        let mut actual_f64_values: Vec<Option<Value>> = (0..unique_f64.len()).map(|i| unique_f64.get_value(i)).collect();
+        let mut actual_f64_values: Vec<Option<Value>> = (0..unique_f64.len())
+            .map(|i| unique_f64.get_value(i))
+            .collect();
         actual_f64_values.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
-        let mut expected_f64_values = vec![None, Some(Value::F64(1.0)), Some(Value::F64(2.5)), Some(Value::F64(3.5)), Some(Value::F64(f64::NAN)), Some(Value::F64(-0.0)), Some(Value::F64(0.0))];
+        let mut expected_f64_values = vec![
+            None,
+            Some(Value::F64(1.0)),
+            Some(Value::F64(2.5)),
+            Some(Value::F64(3.5)),
+            Some(Value::F64(f64::NAN)),
+            Some(Value::F64(-0.0)),
+            Some(Value::F64(0.0)),
+        ];
         expected_f64_values.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
         assert_eq!(actual_f64_values.len(), expected_f64_values.len());
@@ -313,8 +521,17 @@ mod tests {
     #[test]
     fn test_dataframe_group_by_and_agg() {
         let mut columns = BTreeMap::new();
-        columns.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string())]));
-        columns.insert("age".to_string(), Series::new_i32("age", vec![Some(10), Some(20)]));
+        columns.insert(
+            "city".to_string(),
+            Series::new_string(
+                "city",
+                vec![Some("London".to_string()), Some("Paris".to_string())],
+            ),
+        );
+        columns.insert(
+            "age".to_string(),
+            Series::new_i32("age", vec![Some(10), Some(20)]),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         let grouped_df = df.group_by(vec!["city".to_string()]).unwrap();
@@ -371,9 +588,18 @@ mod tests {
     #[test]
     fn test_dataframe_describe() {
         let mut columns = BTreeMap::new();
-        columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1), Some(2), Some(3), None]));
-        columns.insert("col2".to_string(), Series::new_f64("col2", vec![Some(1.0), Some(2.5), None, Some(3.5)]));
-        columns.insert("col3".to_string(), Series::new_bool("col3", vec![Some(true), Some(false), None, Some(true)]));
+        columns.insert(
+            "col1".to_string(),
+            Series::new_i32("col1", vec![Some(1), Some(2), Some(3), None]),
+        );
+        columns.insert(
+            "col2".to_string(),
+            Series::new_f64("col2", vec![Some(1.0), Some(2.5), None, Some(3.5)]),
+        );
+        columns.insert(
+            "col3".to_string(),
+            Series::new_bool("col3", vec![Some(true), Some(false), None, Some(true)]),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         let described_df = df.describe().unwrap();
@@ -381,42 +607,118 @@ mod tests {
         assert_eq!(described_df.row_count(), 3);
         assert_eq!(described_df.column_count(), 7);
 
-        assert_eq!(described_df.get_column("column").unwrap().get_value(0), Some(Value::String("col1".to_string())));
-        assert_eq!(described_df.get_column("count").unwrap().get_value(0), Some(Value::I32(3)));
-        assert_eq!(described_df.get_column("mean").unwrap().get_value(0), Some(Value::F64(2.0)));
-        assert!((match described_df.get_column("std").unwrap().get_value(0).unwrap() {
-            Value::F64(val) => val,
-            _ => panic!("Expected F64 value"),
-        } - 1.0).abs() < 1e-9);
-        assert_eq!(described_df.get_column("min").unwrap().get_value(0), Some(Value::String("I32(1)".to_string())));
-        assert_eq!(described_df.get_column("max").unwrap().get_value(0), Some(Value::String("I32(3)".to_string())));
-        assert_eq!(described_df.get_column("median").unwrap().get_value(0), Some(Value::String("I32(2)".to_string())));
+        assert_eq!(
+            described_df.get_column("column").unwrap().get_value(0),
+            Some(Value::String("col1".to_string()))
+        );
+        assert_eq!(
+            described_df.get_column("count").unwrap().get_value(0),
+            Some(Value::I32(3))
+        );
+        assert_eq!(
+            described_df.get_column("mean").unwrap().get_value(0),
+            Some(Value::F64(2.0))
+        );
+        assert!(
+            (match described_df
+                .get_column("std")
+                .unwrap()
+                .get_value(0)
+                .unwrap()
+            {
+                Value::F64(val) => val,
+                _ => panic!("Expected F64 value"),
+            } - 1.0)
+                .abs()
+                < 1e-9
+        );
+        assert_eq!(
+            described_df.get_column("min").unwrap().get_value(0),
+            Some(Value::String("I32(1)".to_string()))
+        );
+        assert_eq!(
+            described_df.get_column("max").unwrap().get_value(0),
+            Some(Value::String("I32(3)".to_string()))
+        );
+        assert_eq!(
+            described_df.get_column("median").unwrap().get_value(0),
+            Some(Value::String("I32(2)".to_string()))
+        );
 
-        assert_eq!(described_df.get_column("column").unwrap().get_value(1), Some(Value::String("col2".to_string())));
-        assert_eq!(described_df.get_column("count").unwrap().get_value(1), Some(Value::I32(3)));
-        assert_eq!(described_df.get_column("mean").unwrap().get_value(1), Some(Value::F64(2.3333333333333335)));
-        assert!((match described_df.get_column("std").unwrap().get_value(1).unwrap() {
-            Value::F64(val) => val,
-            _ => panic!("Expected F64 value"),
-        } - 1.258305739211791).abs() < 1e-9);
-        assert_eq!(described_df.get_column("min").unwrap().get_value(1), Some(Value::String("F64(1.0)".to_string())));
-        assert_eq!(described_df.get_column("max").unwrap().get_value(1), Some(Value::String("F64(3.5)".to_string())));
-        assert_eq!(described_df.get_column("median").unwrap().get_value(1), Some(Value::String("F64(2.5)".to_string())));
+        assert_eq!(
+            described_df.get_column("column").unwrap().get_value(1),
+            Some(Value::String("col2".to_string()))
+        );
+        assert_eq!(
+            described_df.get_column("count").unwrap().get_value(1),
+            Some(Value::I32(3))
+        );
+        assert_eq!(
+            described_df.get_column("mean").unwrap().get_value(1),
+            Some(Value::F64(2.3333333333333335))
+        );
+        assert!(
+            (match described_df
+                .get_column("std")
+                .unwrap()
+                .get_value(1)
+                .unwrap()
+            {
+                Value::F64(val) => val,
+                _ => panic!("Expected F64 value"),
+            } - 1.258305739211791)
+                .abs()
+                < 1e-9
+        );
+        assert_eq!(
+            described_df.get_column("min").unwrap().get_value(1),
+            Some(Value::String("F64(1.0)".to_string()))
+        );
+        assert_eq!(
+            described_df.get_column("max").unwrap().get_value(1),
+            Some(Value::String("F64(3.5)".to_string()))
+        );
+        assert_eq!(
+            described_df.get_column("median").unwrap().get_value(1),
+            Some(Value::String("F64(2.5)".to_string()))
+        );
 
-        assert_eq!(described_df.get_column("column").unwrap().get_value(2), Some(Value::String("col3".to_string())));
-        assert_eq!(described_df.get_column("count").unwrap().get_value(2), Some(Value::I32(3)));
+        assert_eq!(
+            described_df.get_column("column").unwrap().get_value(2),
+            Some(Value::String("col3".to_string()))
+        );
+        assert_eq!(
+            described_df.get_column("count").unwrap().get_value(2),
+            Some(Value::I32(3))
+        );
         assert_eq!(described_df.get_column("mean").unwrap().get_value(2), None);
         assert_eq!(described_df.get_column("std").unwrap().get_value(2), None);
         assert_eq!(described_df.get_column("min").unwrap().get_value(2), None);
         assert_eq!(described_df.get_column("max").unwrap().get_value(2), None);
-        assert_eq!(described_df.get_column("median").unwrap().get_value(2), None);
+        assert_eq!(
+            described_df.get_column("median").unwrap().get_value(2),
+            None
+        );
     }
 
     #[test]
     fn test_dataframe_to_vec_of_vec() {
         let mut columns = BTreeMap::new();
-        columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1), Some(2), None]));
-        columns.insert("col2".to_string(), Series::new_string("col2", vec![Some("a".to_string()), Some("b".to_string()), Some("c".to_string())]));
+        columns.insert(
+            "col1".to_string(),
+            Series::new_i32("col1", vec![Some(1), Some(2), None]),
+        );
+        columns.insert(
+            "col2".to_string(),
+            Series::new_string(
+                "col2",
+                vec![
+                    Some("a".to_string()),
+                    Some("b".to_string()),
+                    Some("c".to_string()),
+                ],
+            ),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         let vec_of_vec = df.to_vec_of_vec();
@@ -434,8 +736,21 @@ mod tests {
     #[test]
     fn test_dataframe_to_csv() {
         let mut columns = BTreeMap::new();
-        columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1), Some(2), None]));
-        columns.insert("col2".to_string(), Series::new_string("col2", vec![Some("a".to_string()), Some("b".to_string()), Some("c".to_string())]));
+        columns.insert(
+            "col1".to_string(),
+            Series::new_i32("col1", vec![Some(1), Some(2), None]),
+        );
+        columns.insert(
+            "col2".to_string(),
+            Series::new_string(
+                "col2",
+                vec![
+                    Some("a".to_string()),
+                    Some("b".to_string()),
+                    Some("c".to_string()),
+                ],
+            ),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         let test_file = "test_output.csv";
@@ -459,32 +774,65 @@ mod tests {
             assert!((val - 0.7745966692414834).abs() < 1e-8);
         }
 
-        let series_x_f64 = Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)]);
-        let series_y_f64 = Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)]);
+        let series_x_f64 = Series::new_f64(
+            "x",
+            vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)],
+        );
+        let series_y_f64 = Series::new_f64(
+            "y",
+            vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)],
+        );
         let corr_f64 = series_x_f64.correlation(&series_y_f64).unwrap().unwrap();
         assert!(matches!(corr_f64, Value::F64(_)));
         if let Value::F64(val) = corr_f64 {
             assert!((val - 0.7745966692414834).abs() < 1e-8);
         }
 
-        let series_x_mixed = Series::new_i32("x", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
-        let series_y_mixed = Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)]);
-        let corr_mixed = series_x_mixed.correlation(&series_y_mixed).unwrap().unwrap();
+        let series_x_mixed =
+            Series::new_i32("x", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
+        let series_y_mixed = Series::new_f64(
+            "y",
+            vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)],
+        );
+        let corr_mixed = series_x_mixed
+            .correlation(&series_y_mixed)
+            .unwrap()
+            .unwrap();
         assert!(matches!(corr_mixed, Value::F64(_)));
         if let Value::F64(val) = corr_mixed {
             assert!((val - 0.7745966692414834).abs() < 1e-8);
         }
 
         let series_empty = Series::new_i32("empty", vec![]);
-        assert_eq!(series_x_i32.correlation(&series_empty).unwrap_err(), VeloxxError::InvalidOperation("Series must have the same length for correlation calculation.".to_string()));
-        assert_eq!(series_empty.correlation(&series_x_i32).unwrap_err(), VeloxxError::InvalidOperation("Series must have the same length for correlation calculation.".to_string()));
+        assert_eq!(
+            series_x_i32.correlation(&series_empty).unwrap_err(),
+            VeloxxError::InvalidOperation(
+                "Series must have the same length for correlation calculation.".to_string()
+            )
+        );
+        assert_eq!(
+            series_empty.correlation(&series_x_i32).unwrap_err(),
+            VeloxxError::InvalidOperation(
+                "Series must have the same length for correlation calculation.".to_string()
+            )
+        );
 
         let series_single = Series::new_i32("single", vec![Some(1)]);
-        assert_eq!(series_x_i32.correlation(&series_single).unwrap_err(), VeloxxError::InvalidOperation("Series must have the same length for correlation calculation.".to_string()));
+        assert_eq!(
+            series_x_i32.correlation(&series_single).unwrap_err(),
+            VeloxxError::InvalidOperation(
+                "Series must have the same length for correlation calculation.".to_string()
+            )
+        );
 
         let series_non_numeric_x = Series::new_bool("x", vec![Some(true), Some(false), Some(true)]);
         let series_non_numeric_y = Series::new_i32("y", vec![Some(1), Some(2), Some(3)]);
-        assert!(matches!(series_non_numeric_x.correlation(&series_non_numeric_y).unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_non_numeric_x
+                .correlation(&series_non_numeric_y)
+                .unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
@@ -497,16 +845,26 @@ mod tests {
             assert!((val - 1.5).abs() < 1e-9);
         }
 
-        let series_x_f64 = Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)]);
-        let series_y_f64 = Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)]);
+        let series_x_f64 = Series::new_f64(
+            "x",
+            vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)],
+        );
+        let series_y_f64 = Series::new_f64(
+            "y",
+            vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)],
+        );
         let cov_f64 = series_x_f64.covariance(&series_y_f64).unwrap().unwrap();
         assert!(matches!(cov_f64, Value::F64(_)));
         if let Value::F64(val) = cov_f64 {
             assert!((val - 1.5).abs() < 1e-9);
         }
 
-        let series_x_mixed = Series::new_i32("x", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
-        let series_y_mixed = Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)]);
+        let series_x_mixed =
+            Series::new_i32("x", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
+        let series_y_mixed = Series::new_f64(
+            "y",
+            vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)],
+        );
         let cov_mixed = series_x_mixed.covariance(&series_y_mixed).unwrap().unwrap();
         assert!(matches!(cov_mixed, Value::F64(_)));
         if let Value::F64(val) = cov_mixed {
@@ -514,15 +872,30 @@ mod tests {
         }
 
         let series_empty = Series::new_i32("empty", vec![]);
-        assert_eq!(series_x_i32.covariance(&series_empty).unwrap_err(), VeloxxError::InvalidOperation("Series must have the same length for covariance calculation.".to_string()));
-        assert_eq!(series_empty.covariance(&series_x_i32).unwrap_err(), VeloxxError::InvalidOperation("Series must have the same length for covariance calculation.".to_string()));
+        assert_eq!(
+            series_x_i32.covariance(&series_empty).unwrap_err(),
+            VeloxxError::InvalidOperation(
+                "Series must have the same length for covariance calculation.".to_string()
+            )
+        );
+        assert_eq!(
+            series_empty.covariance(&series_x_i32).unwrap_err(),
+            VeloxxError::InvalidOperation(
+                "Series must have the same length for covariance calculation.".to_string()
+            )
+        );
 
         let series_single = Series::new_i32("single", vec![Some(1)]);
         assert_eq!(series_single.covariance(&series_single).unwrap(), None);
 
         let series_non_numeric_x = Series::new_bool("x", vec![Some(true), Some(false), Some(true)]);
         let series_non_numeric_y = Series::new_i32("y", vec![Some(1), Some(2), Some(3)]);
-        assert!(matches!(series_non_numeric_x.covariance(&series_non_numeric_y).unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_non_numeric_x
+                .covariance(&series_non_numeric_y)
+                .unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
@@ -538,9 +911,18 @@ mod tests {
         assert_eq!(df.row_count(), 3);
         assert_eq!(df.column_count(), 3);
 
-        assert_eq!(df.get_column("col1").unwrap().get_value(0), Some(Value::I32(1)));
-        assert_eq!(df.get_column("col2").unwrap().get_value(1), Some(Value::String("b".to_string())));
-        assert_eq!(df.get_column("col3").unwrap().get_value(2), Some(Value::Bool(true)));
+        assert_eq!(
+            df.get_column("col1").unwrap().get_value(0),
+            Some(Value::I32(1))
+        );
+        assert_eq!(
+            df.get_column("col2").unwrap().get_value(1),
+            Some(Value::String("b".to_string()))
+        );
+        assert_eq!(
+            df.get_column("col3").unwrap().get_value(2),
+            Some(Value::Bool(true))
+        );
 
         std::fs::remove_file(test_file).unwrap();
     }
@@ -555,7 +937,10 @@ mod tests {
         assert_eq!(interpolated_i32.get_value(3), Some(Value::I32(4)));
         assert_eq!(interpolated_i32.get_value(4), Some(Value::I32(5)));
 
-        let series_f64 = Series::new_f64("col2", vec![Some(1.0), None, None, Some(4.0), None, Some(6.0)]);
+        let series_f64 = Series::new_f64(
+            "col2",
+            vec![Some(1.0), None, None, Some(4.0), None, Some(6.0)],
+        );
         let interpolated_f64 = series_f64.interpolate_nulls().unwrap();
         assert_eq!(interpolated_f64.get_value(0), Some(Value::F64(1.0)));
         assert_eq!(interpolated_f64.get_value(1), Some(Value::F64(2.0)));
@@ -589,7 +974,10 @@ mod tests {
         assert_eq!(interpolated_end_null.get_value(2), None);
 
         let series_bool = Series::new_bool("col7", vec![Some(true), None, Some(false)]);
-        assert!(matches!(series_bool.interpolate_nulls().unwrap_err(), VeloxxError::Unsupported(_)));
+        assert!(matches!(
+            series_bool.interpolate_nulls().unwrap_err(),
+            VeloxxError::Unsupported(_)
+        ));
     }
 
     #[test]
@@ -607,9 +995,18 @@ mod tests {
         assert_eq!(df.row_count(), 3);
         assert_eq!(df.column_count(), 3);
 
-        assert_eq!(df.get_column("col1").unwrap().get_value(0), Some(Value::I32(1)));
-        assert_eq!(df.get_column("col2").unwrap().get_value(1), Some(Value::String("b".to_string())));
-        assert_eq!(df.get_column("col3").unwrap().get_value(2), Some(Value::Bool(true)));
+        assert_eq!(
+            df.get_column("col1").unwrap().get_value(0),
+            Some(Value::I32(1))
+        );
+        assert_eq!(
+            df.get_column("col2").unwrap().get_value(1),
+            Some(Value::String("b".to_string()))
+        );
+        assert_eq!(
+            df.get_column("col3").unwrap().get_value(2),
+            Some(Value::Bool(true))
+        );
     }
 
     #[test]
@@ -617,8 +1014,14 @@ mod tests {
         let df = DataFrame::from_json("examples/test.json").unwrap();
         assert_eq!(df.row_count(), 3);
         assert_eq!(df.column_count(), 3);
-        assert_eq!(df.get_column("col1").unwrap().get_value(0), Some(Value::F64(1.0)));
-        assert_eq!(df.get_column("col2").unwrap().get_value(1), Some(Value::String("b".to_string())));
+        assert_eq!(
+            df.get_column("col1").unwrap().get_value(0),
+            Some(Value::F64(1.0))
+        );
+        assert_eq!(
+            df.get_column("col2").unwrap().get_value(1),
+            Some(Value::String("b".to_string()))
+        );
         assert_eq!(df.get_column("col3").unwrap().get_value(2), None);
     }
 }

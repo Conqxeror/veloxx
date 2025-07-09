@@ -1,6 +1,6 @@
+use crate::error::VeloxxError;
 use crate::series::Series;
 use std::collections::BTreeMap;
-use crate::error::VeloxxError;
 
 pub mod cleaning;
 pub mod display;
@@ -79,17 +79,17 @@ impl DataFrame {
     /// # Examples
     ///
     /// ```rust
-/// use veloxx::dataframe::DataFrame;
-/// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
-///
-/// let mut columns = BTreeMap::new();
-/// columns.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2)]));
-/// columns.insert("value".to_string(), Series::new_f64("value", vec![Some(10.0), Some(20.0)]));
-///
-/// let df = DataFrame::new(columns).unwrap();
-/// assert_eq!(df.row_count(), 2);
-/// ```
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2)]));
+    /// columns.insert("value".to_string(), Series::new_f64("value", vec![Some(10.0), Some(20.0)]));
+    ///
+    /// let df = DataFrame::new(columns).unwrap();
+    /// assert_eq!(df.row_count(), 2);
+    /// ```
     pub fn new(columns: BTreeMap<String, Series>) -> Result<Self, VeloxxError> {
         if columns.is_empty() {
             return Ok(DataFrame {
@@ -110,7 +110,9 @@ impl DataFrame {
             if i == 0 {
                 row_count = series.len();
             } else if series.len() != row_count {
-                return Err(VeloxxError::InvalidOperation("All series in a DataFrame must have the same length.".to_string()));
+                return Err(VeloxxError::InvalidOperation(
+                    "All series in a DataFrame must have the same length.".to_string(),
+                ));
             }
         }
 
@@ -126,15 +128,15 @@ impl DataFrame {
     /// # Examples
     ///
     /// ```rust
-/// use veloxx::dataframe::DataFrame;
-/// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
-///
-/// let mut columns = BTreeMap::new();
-/// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(1), Some(2), Some(3)]));
-/// let df = DataFrame::new(columns).unwrap();
-/// assert_eq!(df.row_count(), 3);
-/// ```
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(1), Some(2), Some(3)]));
+    /// let df = DataFrame::new(columns).unwrap();
+    /// assert_eq!(df.row_count(), 3);
+    /// ```
     pub fn row_count(&self) -> usize {
         self.row_count
     }
@@ -148,16 +150,16 @@ impl DataFrame {
     /// # Examples
     ///
     /// ```rust
-/// use veloxx::dataframe::DataFrame;
-/// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
-///
-/// let mut columns = BTreeMap::new();
-/// columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1)]));
-/// columns.insert("col2".to_string(), Series::new_f64("col2", vec![Some(1.0)]));
-/// let df = DataFrame::new(columns).unwrap();
-/// assert_eq!(df.column_count(), 2);
-/// ```
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1)]));
+    /// columns.insert("col2".to_string(), Series::new_f64("col2", vec![Some(1.0)]));
+    /// let df = DataFrame::new(columns).unwrap();
+    /// assert_eq!(df.column_count(), 2);
+    /// ```
     pub fn column_count(&self) -> usize {
         self.columns.len()
     }
@@ -173,18 +175,18 @@ impl DataFrame {
     /// # Examples
     ///
     /// ```rust
-/// use veloxx::dataframe::DataFrame;
-/// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
-///
-/// let mut columns = BTreeMap::new();
-/// columns.insert("B".to_string(), Series::new_i32("B", vec![Some(1)]));
-/// columns.insert("A".to_string(), Series::new_f64("A", vec![Some(1.0)]));
-/// let df = DataFrame::new(columns).unwrap();
-/// let mut column_names = df.column_names();
-/// column_names.sort(); // Sort for consistent testing
-/// assert_eq!(column_names, vec![&"A".to_string(), &"B".to_string()]);
-/// ```
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("B".to_string(), Series::new_i32("B", vec![Some(1)]));
+    /// columns.insert("A".to_string(), Series::new_f64("A", vec![Some(1.0)]));
+    /// let df = DataFrame::new(columns).unwrap();
+    /// let mut column_names = df.column_names();
+    /// column_names.sort(); // Sort for consistent testing
+    /// assert_eq!(column_names, vec![&"A".to_string(), &"B".to_string()]);
+    /// ```
     pub fn column_names(&self) -> Vec<&String> {
         self.columns.keys().collect()
     }
@@ -203,19 +205,19 @@ impl DataFrame {
     /// # Examples
     ///
     /// ```rust
-/// use veloxx::dataframe::DataFrame;
-/// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
-///
-/// let mut columns = BTreeMap::new();
-/// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(1), Some(2)]));
-/// let df = DataFrame::new(columns).unwrap();
-///
-/// let series_ref = df.get_column("data").unwrap();
-/// assert_eq!(series_ref.len(), 2);
-///
-/// assert!(df.get_column("non_existent").is_none());
-/// ```
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(1), Some(2)]));
+    /// let df = DataFrame::new(columns).unwrap();
+    ///
+    /// let series_ref = df.get_column("data").unwrap();
+    /// assert_eq!(series_ref.len(), 2);
+    ///
+    /// assert!(df.get_column("non_existent").is_none());
+    /// ```
     pub fn get_column(&self, name: &str) -> Option<&Series> {
         self.columns.get(name)
     }

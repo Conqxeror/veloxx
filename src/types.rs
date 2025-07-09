@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
-use serde::{Serialize, Deserialize};
 
 /// Defines the possible data types for a `Series` or `Value`.
 ///
@@ -17,7 +17,18 @@ use serde::{Serialize, Deserialize};
 ///
 /// assert_eq!(int_type, DataType::I32);
 /// ```
-#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash, Serialize, Deserialize, bincode::Encode, bincode::Decode)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    PartialOrd,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    bincode::Encode,
+    bincode::Decode,
+)]
 pub enum DataType {
     /// 32-bit signed integer type.
     I32,
@@ -296,17 +307,7 @@ impl PartialOrd for Value {
     /// assert_eq!(Value::I32(1).partial_cmp(&Value::String("a".to_string())), None);
     /// ```
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match (self, other) {
-            (Value::Null, Value::Null) => Some(std::cmp::Ordering::Equal),
-            (Value::Null, _) => Some(std::cmp::Ordering::Less),
-            (_, Value::Null) => Some(std::cmp::Ordering::Greater),
-            (Value::I32(l), Value::I32(r)) => l.partial_cmp(r),
-            (Value::F64(l), Value::F64(r)) => l.partial_cmp(r),
-            (Value::Bool(l), Value::Bool(r)) => l.partial_cmp(r),
-            (Value::String(l), Value::String(r)) => l.partial_cmp(r),
-            (Value::DateTime(l), Value::DateTime(r)) => l.partial_cmp(r),
-            _ => None,
-        }
+        Some(self.cmp(other))
     }
 }
 
@@ -340,7 +341,9 @@ impl Ord for Value {
 ///
 /// This enum stores `F64` values as their bit representation (`u64`) and `String` values
 /// as byte vectors (`Vec<u8>`) to facilitate direct binary encoding/decoding.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, bincode::Encode, bincode::Decode)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, bincode::Encode, bincode::Decode,
+)]
 pub enum FlatValue {
     /// Represents a null or missing value.
     Null,

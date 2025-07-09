@@ -1,8 +1,8 @@
-use criterion::{Criterion, criterion_group, criterion_main};
+use criterion::{criterion_group, criterion_main, Criterion};
 use std::collections::BTreeMap;
 use veloxx::conditions::Condition;
-use veloxx::dataframe::DataFrame;
 use veloxx::dataframe::join::JoinType;
+use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 use veloxx::types::{DataType, Value};
 
@@ -229,30 +229,20 @@ fn bench_series_apply(c: &mut Criterion) {
 
     c.bench_function("series_apply_i32", |b| {
         b.iter(|| {
-            series_i32
-                .apply_i32(|v| {
-                    v.map(|x| x * 2)
-                })
-                .unwrap();
+            series_i32.apply_i32(|v| v.map(|x| x * 2)).unwrap();
         });
     });
 
     c.bench_function("series_apply_f64", |b| {
         b.iter(|| {
-            series_f64
-                .apply_f64(|v| {
-                    v.map(|x| x * 2.0)
-                })
-                .unwrap();
+            series_f64.apply_f64(|v| v.map(|x| x * 2.0)).unwrap();
         });
     });
 
     c.bench_function("series_apply_string", |b| {
         b.iter(|| {
             series_string
-                .apply_string(|v| {
-                    v.map(|s| format!("{}-suffix", s))
-                })
+                .apply_string(|v| v.map(|s| format!("{}-suffix", s)))
                 .unwrap();
         });
     });
@@ -283,14 +273,18 @@ fn bench_dataframe_drop_nulls(c: &mut Criterion) {
         "col1".to_string(),
         Series::new_i32(
             "col1",
-            (0..1000).map(|i| if i % 10 == 0 { None } else { Some(i) }).collect(),
+            (0..1000)
+                .map(|i| if i % 10 == 0 { None } else { Some(i) })
+                .collect(),
         ),
     );
     columns.insert(
         "col2".to_string(),
         Series::new_f64(
             "col2",
-            (0..1000).map(|i| if i % 10 == 0 { None } else { Some(i as f64) }).collect(),
+            (0..1000)
+                .map(|i| if i % 10 == 0 { None } else { Some(i as f64) })
+                .collect(),
         ),
     );
     let df = DataFrame::new(columns).unwrap();
@@ -344,8 +338,10 @@ fn bench_series_cast(c: &mut Criterion) {
     let series_f64 = Series::new_f64("data", (0..1000).map(|i| Some(i as f64)).collect());
     let series_string_i32 =
         Series::new_string("data", (0..1000).map(|i| Some(i.to_string())).collect());
-    let series_string_f64 =
-        Series::new_string("data", (0..1000).map(|i| Some(format!("{}.0", i))).collect());
+    let series_string_f64 = Series::new_string(
+        "data",
+        (0..1000).map(|i| Some(format!("{}.0", i))).collect(),
+    );
 
     c.bench_function("series_cast_i32_to_f64", |b| {
         b.iter(|| {
@@ -361,17 +357,13 @@ fn bench_series_cast(c: &mut Criterion) {
 
     c.bench_function("series_cast_string_to_i32", |b| {
         b.iter(|| {
-            series_string_i32
-                .cast(DataType::I32)
-                .unwrap();
+            series_string_i32.cast(DataType::I32).unwrap();
         });
     });
 
     c.bench_function("series_cast_string_to_f64", |b| {
         b.iter(|| {
-            series_string_f64
-                .cast(DataType::F64)
-                .unwrap();
+            series_string_f64.cast(DataType::F64).unwrap();
         });
     });
 }
@@ -513,13 +505,7 @@ fn bench_series_interpolate_nulls(c: &mut Criterion) {
     let series_f64 = Series::new_f64(
         "data",
         (0..1000)
-            .map(|i| {
-                if i % 5 == 0 {
-                    None
-                } else {
-                    Some(i as f64)
-                }
-            })
+            .map(|i| if i % 5 == 0 { None } else { Some(i as f64) })
             .collect(),
     );
 
@@ -580,7 +566,12 @@ fn bench_dataframe_group_by_agg(c: &mut Criterion) {
     let mut columns = BTreeMap::new();
     columns.insert(
         "group".to_string(),
-        Series::new_string("group", (0..1000).map(|i| Some(format!("group_{}", i % 10))).collect()),
+        Series::new_string(
+            "group",
+            (0..1000)
+                .map(|i| Some(format!("group_{}", i % 10)))
+                .collect(),
+        ),
     );
     columns.insert(
         "value".to_string(),

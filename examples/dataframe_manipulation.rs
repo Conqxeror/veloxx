@@ -1,19 +1,64 @@
-use veloxx::dataframe::DataFrame;
-use veloxx::series::Series;
-use veloxx::conditions::Condition;
-use veloxx::expressions::Expr;
-use veloxx::types::Value;
 use std::collections::BTreeMap;
+use veloxx::conditions::Condition;
+use veloxx::dataframe::DataFrame;
+use veloxx::expressions::Expr;
+use veloxx::series::Series;
+use veloxx::types::Value;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Initial DataFrame
     println!("--- 1. Initial DataFrame ---");
     let mut columns = BTreeMap::new();
-    columns.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]));
-    columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string()), Some("David".to_string()), Some("Eve".to_string())]));
-    columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), Some(24), Some(35), Some(29), Some(42)]));
-    columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string()), Some("Paris".to_string()), Some("London".to_string())]));
-    columns.insert("salary".to_string(), Series::new_f64("salary", vec![Some(50000.0), Some(60000.0), Some(75000.0), Some(55000.0), Some(80000.0)]));
+    columns.insert(
+        "id".to_string(),
+        Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]),
+    );
+    columns.insert(
+        "name".to_string(),
+        Series::new_string(
+            "name",
+            vec![
+                Some("Alice".to_string()),
+                Some("Bob".to_string()),
+                Some("Charlie".to_string()),
+                Some("David".to_string()),
+                Some("Eve".to_string()),
+            ],
+        ),
+    );
+    columns.insert(
+        "age".to_string(),
+        Series::new_i32(
+            "age",
+            vec![Some(30), Some(24), Some(35), Some(29), Some(42)],
+        ),
+    );
+    columns.insert(
+        "city".to_string(),
+        Series::new_string(
+            "city",
+            vec![
+                Some("New York".to_string()),
+                Some("London".to_string()),
+                Some("New York".to_string()),
+                Some("Paris".to_string()),
+                Some("London".to_string()),
+            ],
+        ),
+    );
+    columns.insert(
+        "salary".to_string(),
+        Series::new_f64(
+            "salary",
+            vec![
+                Some(50000.0),
+                Some(60000.0),
+                Some(75000.0),
+                Some(55000.0),
+                Some(80000.0),
+            ],
+        ),
+    );
     let df = DataFrame::new(columns)?;
     println!("{}", df);
     // 2. Select Columns
@@ -44,18 +89,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n--- 7. Filter DataFrame (age > 30 and city == \"New York\") ---");
     let condition = Condition::And(
         Box::new(Condition::Gt("age".to_string(), Value::I32(30))),
-        Box::new(Condition::Eq("city".to_string(), Value::String("New York".to_string()))),
+        Box::new(Condition::Eq(
+            "city".to_string(),
+            Value::String("New York".to_string()),
+        )),
     );
     let filtered_df = df.filter(&condition)?;
     println!("{}", filtered_df);
     // 8. Append DataFrames
     println!("\n--- 8. Append DataFrames ---");
     let mut new_columns = BTreeMap::new();
-    new_columns.insert("id".to_string(), Series::new_i32("id", vec![Some(6), Some(7)]));
-    new_columns.insert("name".to_string(), Series::new_string("name", vec![Some("Frank".to_string()), Some("Grace".to_string())]));
-    new_columns.insert("age".to_string(), Series::new_i32("age", vec![Some(22), Some(38)]));
-    new_columns.insert("city".to_string(), Series::new_string("city", vec![Some("Berlin".to_string()), Some("London".to_string())]));
-    new_columns.insert("salary".to_string(), Series::new_f64("salary", vec![Some(45000.0), Some(70000.0)]));
+    new_columns.insert(
+        "id".to_string(),
+        Series::new_i32("id", vec![Some(6), Some(7)]),
+    );
+    new_columns.insert(
+        "name".to_string(),
+        Series::new_string(
+            "name",
+            vec![Some("Frank".to_string()), Some("Grace".to_string())],
+        ),
+    );
+    new_columns.insert(
+        "age".to_string(),
+        Series::new_i32("age", vec![Some(22), Some(38)]),
+    );
+    new_columns.insert(
+        "city".to_string(),
+        Series::new_string(
+            "city",
+            vec![Some("Berlin".to_string()), Some("London".to_string())],
+        ),
+    );
+    new_columns.insert(
+        "salary".to_string(),
+        Series::new_f64("salary", vec![Some(45000.0), Some(70000.0)]),
+    );
     let df2 = DataFrame::new(new_columns)?;
     println!("DataFrame 2:\n{}", df2);
     let appended_df = df.append(&df2)?;

@@ -1,6 +1,6 @@
+use crate::error::VeloxxError;
 use crate::{dataframe::DataFrame, series::Series, types::Value};
 use std::collections::BTreeMap;
-use crate::error::VeloxxError;
 
 impl DataFrame {
     /// Removes rows from the `DataFrame` that contain any null values.

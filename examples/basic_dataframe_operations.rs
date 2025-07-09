@@ -1,8 +1,8 @@
+use std::collections::BTreeMap;
+use veloxx::conditions::Condition;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
-use veloxx::conditions::Condition;
 use veloxx::types::Value;
-use std::collections::BTreeMap;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. DataFrame Creation
@@ -10,7 +10,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut columns = BTreeMap::new();
     columns.insert(
         "name".to_string(),
-        Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string()), Some("David".to_string())]),
+        Series::new_string(
+            "name",
+            vec![
+                Some("Alice".to_string()),
+                Some("Bob".to_string()),
+                Some("Charlie".to_string()),
+                Some("David".to_string()),
+            ],
+        ),
     );
     columns.insert(
         "age".to_string(),
@@ -18,7 +26,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     columns.insert(
         "city".to_string(),
-        Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string()), Some("London".to_string())]),
+        Series::new_string(
+            "city",
+            vec![
+                Some("New York".to_string()),
+                Some("London".to_string()),
+                Some("New York".to_string()),
+                Some("London".to_string()),
+            ],
+        ),
     );
     let df = DataFrame::new(columns)?;
     println!("Initial DataFrame:\n{}", df);
@@ -38,12 +54,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n--- Aggregating by City (count of people) ---");
     let grouped_df = df.group_by(vec!["city".to_string()])?;
     let aggregated_df = grouped_df.agg(vec![("age", "count")])?;
-    println!("Aggregated DataFrame (Count of Age by City):\n{}", aggregated_df);
+    println!(
+        "Aggregated DataFrame (Count of Age by City):\n{}",
+        aggregated_df
+    );
 
     println!("\n--- Aggregating by City (average age) ---");
     let grouped_df = df.group_by(vec!["city".to_string()])?;
     let aggregated_df = grouped_df.agg(vec![("age", "mean")])?;
-    println!("Aggregated DataFrame (Mean Age by City):\n{}", aggregated_df);
+    println!(
+        "Aggregated DataFrame (Mean Age by City):\n{}",
+        aggregated_df
+    );
 
     // 4. Selecting Columns
     println!("\n--- Selecting Columns (name, age) ---");
@@ -70,7 +92,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut columns_more = BTreeMap::new();
     columns_more.insert(
         "name".to_string(),
-        Series::new_string("name", vec![Some("Eve".to_string()), Some("Frank".to_string())]),
+        Series::new_string(
+            "name",
+            vec![Some("Eve".to_string()), Some("Frank".to_string())],
+        ),
     );
     columns_more.insert(
         "age".to_string(),
@@ -78,7 +103,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     columns_more.insert(
         "city".to_string(),
-        Series::new_string("city", vec![Some("Paris".to_string()), Some("London".to_string())]),
+        Series::new_string(
+            "city",
+            vec![Some("Paris".to_string()), Some("London".to_string())],
+        ),
     );
     let df_more = DataFrame::new(columns_more)?;
     let appended_df = df.append(&df_more)?;

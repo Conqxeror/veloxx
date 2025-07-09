@@ -1,7 +1,11 @@
-use crate::{dataframe::DataFrame, series::Series, types::{Value, FlatValue}};
-use std::collections::HashMap;
 use crate::error::VeloxxError;
-use bincode::{encode_to_vec, decode_from_slice, config};
+use crate::{
+    dataframe::DataFrame,
+    series::Series,
+    types::{FlatValue, Value},
+};
+use bincode::{config, decode_from_slice, encode_to_vec};
+use std::collections::HashMap;
 
 /// Represents a `DataFrame` that has been grouped by one or more columns.
 ///
@@ -65,8 +69,7 @@ impl<'a> GroupedDataFrame<'a> {
     /// // The `grouped_df` now holds the grouped structure.
     /// ```
     pub fn new(dataframe: &'a DataFrame, group_columns: Vec<String>) -> Result<Self, VeloxxError> {
-        let mut groups: HashMap<Vec<u8>, Vec<usize>> =
-            HashMap::new();
+        let mut groups: HashMap<Vec<u8>, Vec<usize>> = HashMap::new();
 
         for i in 0..dataframe.row_count() {
             let mut key_values: Vec<FlatValue> = Vec::with_capacity(group_columns.len());
@@ -76,7 +79,9 @@ impl<'a> GroupedDataFrame<'a> {
                     .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
                 key_values.push(series.get_value(i).unwrap_or(Value::Null).into());
             }
-            let serialized_key = encode_to_vec(key_values, config::standard()).map_err(|e| VeloxxError::InvalidOperation(format!("Failed to serialize group key: {}", e)))?;
+            let serialized_key = encode_to_vec(key_values, config::standard()).map_err(|e| {
+                VeloxxError::InvalidOperation(format!("Failed to serialize group key: {e}"))
+            })?;
             groups.entry(serialized_key).or_default().push(i);
         }
 
@@ -133,19 +138,30 @@ impl<'a> GroupedDataFrame<'a> {
     /// println!("Aggregated DataFrame:\n{}", aggregated_df);
     /// // Expected output (order of rows might vary):
     /// // city           sales_sum      quantity_mean  sales_count    
-    /// // --------------- --------------- --------------- --------------- 
+    /// // --------------- --------------- --------------- ---------------
     /// // London         150.00          15.00          1              
     /// // New York       300.00          15.00          2              
     /// ```
     pub fn agg(&self, aggregations: Vec<(&str, &str)>) -> Result<DataFrame, VeloxxError> {
         let mut new_columns: std::collections::BTreeMap<String, Series> =
             std::collections::BTreeMap::new();
-        let group_keys_serialized: Vec<Vec<u8>> = self.groups.keys().map(|k| k.clone()).collect();
+        let group_keys_serialized: Vec<Vec<u8>> = self.groups.keys().cloned().collect();
 
         // Deserialize keys for sorting and further processing
-        let group_keys: Vec<Vec<Value>> = group_keys_serialized.into_iter().map(|key_bytes| {
-            decode_from_slice(&key_bytes, config::standard()).map(|(val, _): (Vec<FlatValue>, _)| val.into_iter().map(|fv| fv.into()).collect()).map_err(|e| VeloxxError::InvalidOperation(format!("Failed to deserialize group key: {}", e)))
-        }).collect::<Result<Vec<Vec<Value>>, VeloxxError>>()?;
+        let group_keys: Vec<Vec<Value>> = group_keys_serialized
+            .into_iter()
+            .map(|key_bytes| {
+                decode_from_slice(&key_bytes, config::standard())
+                    .map(|(val, _): (Vec<FlatValue>, _)| {
+                        val.into_iter().map(|fv| fv.into()).collect()
+                    })
+                    .map_err(|e| {
+                        VeloxxError::InvalidOperation(format!(
+                            "Failed to deserialize group key: {e}"
+                        ))
+                    })
+            })
+            .collect::<Result<Vec<Vec<Value>>, VeloxxError>>()?;
 
         // group_keys.sort_unstable(); // Ensure consistent order of groups
 
@@ -230,8 +246,7 @@ impl<'a> GroupedDataFrame<'a> {
                             x.and_then(|v| {
                                 if let Value::DateTime(val) = v {
                                     Some(val)
-                                }
-                                else {
+                                } else {
                                     None
                                 }
                             })
@@ -250,7 +265,11 @@ impl<'a> GroupedDataFrame<'a> {
             let mut aggregated_data: Vec<Option<Value>> = Vec::with_capacity(group_keys.len());
 
             for key in group_keys.iter() {
-                let serialized_key = encode_to_vec(key, config::standard()).map_err(|e| VeloxxError::InvalidOperation(format!("Failed to serialize group key for lookup: {}", e)))?;
+                let serialized_key = encode_to_vec(key, config::standard()).map_err(|e| {
+                    VeloxxError::InvalidOperation(format!(
+                        "Failed to serialize group key for lookup: {e}"
+                    ))
+                })?;
                 let row_indices = self.groups.get(&serialized_key).unwrap();
                 let series_for_group = original_series.filter(row_indices)?;
 
@@ -262,12 +281,16 @@ impl<'a> GroupedDataFrame<'a> {
                     "mean" => series_for_group.mean()?,
                     "median" => series_for_group.median()?,
                     "std_dev" => series_for_group.std_dev()?,
-                    _ => return Err(VeloxxError::Unsupported(format!("Unsupported aggregation function: {}", agg_func))),
+                    _ => {
+                        return Err(VeloxxError::Unsupported(format!(
+                            "Unsupported aggregation function: {agg_func}"
+                        )))
+                    }
                 };
                 aggregated_data.push(aggregated_value);
             }
 
-            let new_series_name = format!("{}_{}", col_name, agg_func);
+            let new_series_name = format!("{col_name}_{agg_func}");
             let new_series = match original_series.data_type() {
                 crate::types::DataType::I32 => Series::new_i32(
                     &new_series_name,

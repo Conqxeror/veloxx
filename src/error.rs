@@ -59,4 +59,3 @@ impl From<std::string::FromUtf8Error> for VeloxxError {
         VeloxxError::Parsing(err.to_string())
     }
 }
-

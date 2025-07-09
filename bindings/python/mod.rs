@@ -1,7 +1,7 @@
-use pyo3::prelude::*;
-use pyo3::exceptions::PyValueError;
-use pyo3::types::{PyList, PyDict};
 use pyo3::conversion::{FromPyObject, IntoPy};
+use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
+use pyo3::types::{PyDict, PyList};
 
 use crate::dataframe::DataFrame;
 use crate::series::Series;
@@ -38,47 +38,83 @@ impl PyDataFrame {
     }
 
     fn column_names<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
-        let names: Vec<String> = self.df.column_names().into_iter().map(|s| s.to_string()).collect();
+        let names: Vec<String> = self
+            .df
+            .column_names()
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect();
         Ok(PyList::new_bound(py, names))
     }
 
     fn get_column(&self, name: &str) -> PyResult<Option<PySeries>> {
-        Ok(self.df.get_column(name).map(|s| PySeries { series: s.clone() }))
+        Ok(self
+            .df
+            .get_column(name)
+            .map(|s| PySeries { series: s.clone() }))
     }
 
     fn filter(&self, row_indices: Vec<usize>) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.filter_by_indices(&row_indices).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self
+                .df
+                .filter_by_indices(&row_indices)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn select_columns(&self, names: Vec<String>) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.select_columns(names).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self
+                .df
+                .select_columns(names)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn drop_columns(&self, names: Vec<String>) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.drop_columns(names).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self.df.drop_columns(names).map_err(PyValueError::new_err)?,
+        })
     }
 
     fn rename_column(&self, old_name: &str, new_name: &str) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.rename_column(old_name, new_name).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self
+                .df
+                .rename_column(old_name, new_name)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn drop_nulls(&self) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.drop_nulls().map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self.df.drop_nulls().map_err(PyValueError::new_err)?,
+        })
     }
 
     fn fill_nulls(&self, value: &PyAny) -> PyResult<Self> {
         let rust_value = value.extract::<Value>()?;
-        Ok(PyDataFrame { df: self.df.fill_nulls(rust_value).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self
+                .df
+                .fill_nulls(rust_value)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     #[staticmethod]
     fn from_csv(path: &str) -> PyResult<Self> {
-        Ok(PyDataFrame { df: DataFrame::from_csv(path).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: DataFrame::from_csv(path).map_err(PyValueError::new_err)?,
+        })
     }
 
     #[staticmethod]
     fn from_json(path: &str) -> PyResult<Self> {
-        Ok(PyDataFrame { df: DataFrame::from_json(path).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: DataFrame::from_json(path).map_err(PyValueError::new_err)?,
+        })
     }
 
     fn to_csv(&self, path: &str) -> PyResult<()> {
@@ -86,31 +122,54 @@ impl PyDataFrame {
     }
 
     fn join(&self, other: &PyDataFrame, on_column: &str, join_type: PyJoinType) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.join(&other.df, on_column, join_type.into()).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self
+                .df
+                .join(&other.df, on_column, join_type.into())
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn group_by(&self, by_columns: Vec<String>) -> PyResult<PyGroupedDataFrame> {
-        Ok(PyGroupedDataFrame { grouped_df: self.df.group_by(by_columns).map_err(PyValueError::new_err)? })
+        Ok(PyGroupedDataFrame {
+            grouped_df: self
+                .df
+                .group_by(by_columns)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn with_column(&self, new_col_name: &str, expr: &PyExpr) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.with_column(new_col_name, &expr.expr).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self
+                .df
+                .with_column(new_col_name, &expr.expr)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn describe(&self) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.describe().map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self.df.describe().map_err(PyValueError::new_err)?,
+        })
     }
 
     fn correlation(&self, col1_name: &str, col2_name: &str) -> PyResult<f64> {
-        self.df.correlation(col1_name, col2_name).map_err(PyValueError::new_err)
+        self.df
+            .correlation(col1_name, col2_name)
+            .map_err(PyValueError::new_err)
     }
 
     fn covariance(&self, col1_name: &str, col2_name: &str) -> PyResult<f64> {
-        self.df.covariance(col1_name, col2_name).map_err(PyValueError::new_err)
+        self.df
+            .covariance(col1_name, col2_name)
+            .map_err(PyValueError::new_err)
     }
 
     fn append(&self, other: &PyDataFrame) -> PyResult<Self> {
-        Ok(PyDataFrame { df: self.df.append(&other.df).map_err(PyValueError::new_err)? })
+        Ok(PyDataFrame {
+            df: self.df.append(&other.df).map_err(PyValueError::new_err)?,
+        })
     }
 }
 
@@ -146,78 +205,111 @@ pub struct PyExpr {
 impl PyExpr {
     #[staticmethod]
     pub fn column(name: &str) -> Self {
-        PyExpr { expr: Expr::Column(name.to_string()) }
+        PyExpr {
+            expr: Expr::Column(name.to_string()),
+        }
     }
 
     #[staticmethod]
     pub fn literal(value: &PyAny) -> PyResult<Self> {
         let rust_value = value.extract::<Value>()?;
-        Ok(PyExpr { expr: Expr::Literal(rust_value) })
+        Ok(PyExpr {
+            expr: Expr::Literal(rust_value),
+        })
     }
 
     #[staticmethod]
     pub fn add(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::Add(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::Add(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn subtract(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::Subtract(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::Subtract(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn multiply(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::Multiply(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::Multiply(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn divide(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::Divide(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::Divide(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn equals(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::Equals(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::Equals(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn not_equals(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::NotEquals(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::NotEquals(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn greater_than(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::GreaterThan(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::GreaterThan(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn less_than(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::LessThan(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::LessThan(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn greater_than_or_equal(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::GreaterThanOrEqual(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::GreaterThanOrEqual(
+                Box::new(left.expr.clone()),
+                Box::new(right.expr.clone()),
+            ),
+        }
     }
 
     #[staticmethod]
     pub fn less_than_or_equal(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::LessThanOrEqual(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::LessThanOrEqual(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn and(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::And(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::And(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn or(left: &PyExpr, right: &PyExpr) -> Self {
-        PyExpr { expr: Expr::Or(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+        PyExpr {
+            expr: Expr::Or(Box::new(left.expr.clone()), Box::new(right.expr.clone())),
+        }
     }
 
     #[staticmethod]
     pub fn not(expr: &PyExpr) -> Self {
-        PyExpr { expr: Expr::Not(Box::new(expr.expr.clone())) }
+        PyExpr {
+            expr: Expr::Not(Box::new(expr.expr.clone())),
+        }
     }
 }
 
@@ -233,15 +325,25 @@ impl PySeries {
     #[new]
     fn new(name: &str, data: &Bound<PyAny>) -> PyResult<Self> {
         if let Ok(list) = data.extract::<Vec<Option<i32>>>() {
-            Ok(PySeries { series: Series::new_i32(name, list) })
+            Ok(PySeries {
+                series: Series::new_i32(name, list),
+            })
         } else if let Ok(list) = data.extract::<Vec<Option<f64>>>() {
-            Ok(PySeries { series: Series::new_f64(name, list) })
+            Ok(PySeries {
+                series: Series::new_f64(name, list),
+            })
         } else if let Ok(list) = data.extract::<Vec<Option<bool>>>() {
-            Ok(PySeries { series: Series::new_bool(name, list) })
+            Ok(PySeries {
+                series: Series::new_bool(name, list),
+            })
         } else if let Ok(list) = data.extract::<Vec<Option<String>>>() {
-            Ok(PySeries { series: Series::new_string(name, list) })
+            Ok(PySeries {
+                series: Series::new_string(name, list),
+            })
         } else if let Ok(list) = data.extract::<Vec<Option<i64>>>() {
-            Ok(PySeries { series: Series::new_datetime(name, list) })
+            Ok(PySeries {
+                series: Series::new_datetime(name, list),
+            })
         } else {
             Err(PyValueError::new_err("Unsupported data type for Series"))
         }
@@ -272,24 +374,48 @@ impl PySeries {
     }
 
     fn filter(&self, row_indices: Vec<usize>) -> PyResult<Self> {
-        Ok(PySeries { series: self.series.filter(&row_indices).map_err(PyValueError::new_err)? })
+        Ok(PySeries {
+            series: self
+                .series
+                .filter(&row_indices)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn fill_nulls(&self, value: &PyAny) -> PyResult<Self> {
         let rust_value = value.extract::<Value>()?;
-        Ok(PySeries { series: self.series.fill_nulls(&rust_value).map_err(PyValueError::new_err)? })
+        Ok(PySeries {
+            series: self
+                .series
+                .fill_nulls(&rust_value)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn cast(&self, to_type: PyDataType) -> PyResult<Self> {
-        Ok(PySeries { series: self.series.cast(to_type.into()).map_err(PyValueError::new_err)? })
+        Ok(PySeries {
+            series: self
+                .series
+                .cast(to_type.into())
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn append(&self, other: &PySeries) -> PyResult<Self> {
-        Ok(PySeries { series: self.series.append(&other.series).map_err(PyValueError::new_err)? })
+        Ok(PySeries {
+            series: self
+                .series
+                .append(&other.series)
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn sum<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self.series.sum().map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .sum()
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
 
     fn count(&self) -> usize {
@@ -297,35 +423,65 @@ impl PySeries {
     }
 
     fn min<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self.series.min().map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .min()
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
-    
+
     fn max<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self.series.max().map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .max()
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
 
     fn mean<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self.series.mean().map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .mean()
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
 
     fn median<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self.series.median().map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .median()
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
 
     fn std_dev<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self.series.std_dev().map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .std_dev()
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
 
     fn correlation<'py>(&self, py: Python<'py>, other: &PySeries) -> PyResult<Option<PyObject>> {
-        Ok(self.series.correlation(&other.series).map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .correlation(&other.series)
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
 
     fn covariance<'py>(&self, py: Python<'py>, other: &PySeries) -> PyResult<Option<PyObject>> {
-        Ok(self.series.covariance(&other.series).map_err(PyValueError::new_err)?.map(|v| v.into_py(py)))
+        Ok(self
+            .series
+            .covariance(&other.series)
+            .map_err(PyValueError::new_err)?
+            .map(|v| v.into_py(py)))
     }
 
     fn unique(&self) -> PyResult<Self> {
-        Ok(PySeries { series: self.series.unique().map_err(PyValueError::new_err)? })
+        Ok(PySeries {
+            series: self.series.unique().map_err(PyValueError::new_err)?,
+        })
     }
 
     fn to_vec_f64<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
@@ -334,7 +490,12 @@ impl PySeries {
     }
 
     fn interpolate_nulls(&self) -> PyResult<Self> {
-        Ok(PySeries { series: self.series.interpolate_nulls().map_err(PyValueError::new_err)? })
+        Ok(PySeries {
+            series: self
+                .series
+                .interpolate_nulls()
+                .map_err(PyValueError::new_err)?,
+        })
     }
 
     fn apply_i32(&self, py_callable: &PyAny) -> PyResult<Self> {
@@ -342,13 +503,19 @@ impl PySeries {
         match &self.series {
             Series::I32(_, data) => {
                 for item in data.iter() {
-                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| v.into_py(pyo3::Python::current()));
+                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| {
+                        v.into_py(pyo3::Python::current())
+                    });
                     let result = py_callable.call1((py_arg,))?;
                     new_data.push(result.extract()?);
                 }
-                Ok(PySeries { series: Series::new_i32(self.series.name(), new_data) })
-            },
-            _ => Err(PyValueError::new_err("apply_i32 only supported for I32 series"))
+                Ok(PySeries {
+                    series: Series::new_i32(self.series.name(), new_data),
+                })
+            }
+            _ => Err(PyValueError::new_err(
+                "apply_i32 only supported for I32 series",
+            )),
         }
     }
 
@@ -357,13 +524,19 @@ impl PySeries {
         match &self.series {
             Series::F64(_, data) => {
                 for item in data.iter() {
-                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| v.into_py(pyo3::Python::current()));
+                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| {
+                        v.into_py(pyo3::Python::current())
+                    });
                     let result = py_callable.call1((py_arg,))?;
                     new_data.push(result.extract()?);
                 }
-                Ok(PySeries { series: Series::new_f64(self.series.name(), new_data) })
-            },
-            _ => Err(PyValueError::new_err("apply_f64 only supported for F64 series"))
+                Ok(PySeries {
+                    series: Series::new_f64(self.series.name(), new_data),
+                })
+            }
+            _ => Err(PyValueError::new_err(
+                "apply_f64 only supported for F64 series",
+            )),
         }
     }
 
@@ -372,13 +545,19 @@ impl PySeries {
         match &self.series {
             Series::Bool(_, data) => {
                 for item in data.iter() {
-                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| v.into_py(pyo3::Python::current()));
+                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| {
+                        v.into_py(pyo3::Python::current())
+                    });
                     let result = py_callable.call1((py_arg,))?;
                     new_data.push(result.extract()?);
                 }
-                Ok(PySeries { series: Series::new_bool(self.series.name(), new_data) })
-            },
-            _ => Err(PyValueError::new_err("apply_bool only supported for Bool series"))
+                Ok(PySeries {
+                    series: Series::new_bool(self.series.name(), new_data),
+                })
+            }
+            _ => Err(PyValueError::new_err(
+                "apply_bool only supported for Bool series",
+            )),
         }
     }
 
@@ -387,13 +566,19 @@ impl PySeries {
         match &self.series {
             Series::String(_, data) => {
                 for item in data.iter() {
-                    let py_arg = item.as_ref().map_or(pyo3::Python::current().None(), |v| v.into_py(pyo3::Python::current()));
+                    let py_arg = item.as_ref().map_or(pyo3::Python::current().None(), |v| {
+                        v.into_py(pyo3::Python::current())
+                    });
                     let result = py_callable.call1((py_arg,))?;
                     new_data.push(result.extract()?);
                 }
-                Ok(PySeries { series: Series::new_string(self.series.name(), new_data) })
-            },
-            _ => Err(PyValueError::new_err("apply_string only supported for String series"))
+                Ok(PySeries {
+                    series: Series::new_string(self.series.name(), new_data),
+                })
+            }
+            _ => Err(PyValueError::new_err(
+                "apply_string only supported for String series",
+            )),
         }
     }
 
@@ -402,13 +587,19 @@ impl PySeries {
         match &self.series {
             Series::DateTime(_, data) => {
                 for item in data.iter() {
-                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| v.into_py(pyo3::Python::current()));
+                    let py_arg = item.map_or(pyo3::Python::current().None(), |v| {
+                        v.into_py(pyo3::Python::current())
+                    });
                     let result = py_callable.call1((py_arg,))?;
                     new_data.push(result.extract()?);
                 }
-                Ok(PySeries { series: Series::new_datetime(self.series.name(), new_data) })
-            },
-            _ => Err(PyValueError::new_err("apply_datetime only supported for DateTime series"))
+                Ok(PySeries {
+                    series: Series::new_datetime(self.series.name(), new_data),
+                })
+            }
+            _ => Err(PyValueError::new_err(
+                "apply_datetime only supported for DateTime series",
+            )),
         }
     }
 }
@@ -462,7 +653,7 @@ impl IntoPy<PyObject> for Value {
     }
 }
 
-impl <'py> FromPyObject<'py> for Value {
+impl<'py> FromPyObject<'py> for Value {
     fn extract(ob: &'py PyAny) -> PyResult<Self> {
         if let Ok(v) = ob.extract::<i32>() {
             Ok(Value::I32(v))
@@ -477,7 +668,9 @@ impl <'py> FromPyObject<'py> for Value {
         } else if ob.is_none() {
             Ok(Value::Null)
         } else {
-            Err(PyValueError::new_err("Unsupported Python type for Value conversion"))
+            Err(PyValueError::new_err(
+                "Unsupported Python type for Value conversion",
+            ))
         }
     }
 }

@@ -1,5 +1,5 @@
-use crate::types::{DataType, Value};
 use crate::error::VeloxxError;
+use crate::types::{DataType, Value};
 use std::collections::HashSet;
 
 /// Represents a single-typed, named column of data within a DataFrame.
@@ -16,8 +16,6 @@ use std::collections::HashSet;
 /// - `Bool(String, Vec<Option<bool>>)`: A series of boolean values.
 /// - `String(String, Vec<Option<String>>)`: A series of string values.
 /// - `DateTime(String, Vec<Option<i64>>)`: A series of DateTime values, represented as Unix timestamps (i64).
-///
-
 /// # Examples
 ///
 /// ```rust
@@ -781,7 +779,10 @@ impl Series {
                 Ok(min_val.map(Value::DateTime))
             }
             Series::String(_, data) => {
-                let min_val = data.iter().filter_map(|x| x.as_ref()).min_by(|a, b| a.cmp(b));
+                let min_val = data
+                    .iter()
+                    .filter_map(|x| x.as_ref())
+                    .min_by(|a, b| a.cmp(b));
                 Ok(min_val.map(|s| Value::String(s.clone())))
             }
             _ => Err(VeloxxError::Unsupported(format!(
@@ -832,7 +833,10 @@ impl Series {
                 Ok(max_val.map(Value::DateTime))
             }
             Series::String(_, data) => {
-                let max_val = data.iter().filter_map(|x| x.as_ref()).max_by(|a, b| a.cmp(b));
+                let max_val = data
+                    .iter()
+                    .filter_map(|x| x.as_ref())
+                    .max_by(|a, b| a.cmp(b));
                 Ok(max_val.map(|s| Value::String(s.clone())))
             }
             _ => Err(VeloxxError::Unsupported(format!(
@@ -937,7 +941,7 @@ impl Series {
                 }
                 non_null_data.sort_unstable();
                 let mid = non_null_data.len() / 2;
-                if non_null_data.len() % 2 == 0 {
+                if non_null_data.len().is_multiple_of(2) {
                     // Even number of elements
                     let median_val = (non_null_data[mid - 1] + non_null_data[mid]) as f64 / 2.0;
                     Ok(Some(Value::F64(median_val)))
@@ -953,7 +957,7 @@ impl Series {
                 }
                 non_null_data.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                 let mid = non_null_data.len() / 2;
-                if non_null_data.len() % 2 == 0 {
+                if non_null_data.len().is_multiple_of(2) {
                     // Even number of elements
                     let median_val = (non_null_data[mid - 1] + non_null_data[mid]) / 2.0;
                     Ok(Some(Value::F64(median_val)))
@@ -969,7 +973,7 @@ impl Series {
                 }
                 non_null_data.sort_unstable();
                 let mid = non_null_data.len() / 2;
-                if non_null_data.len() % 2 == 0 {
+                if non_null_data.len().is_multiple_of(2) {
                     // Even number of elements
                     let median_val = (non_null_data[mid - 1] + non_null_data[mid]) as f64 / 2.0;
                     Ok(Some(Value::F64(median_val)))
@@ -1208,7 +1212,9 @@ impl Series {
     /// ```
     pub fn covariance(&self, other: &Series) -> Result<Option<Value>, VeloxxError> {
         if self.len() != other.len() {
-            return Err(VeloxxError::InvalidOperation("Series must have the same length for covariance calculation.".to_string()));
+            return Err(VeloxxError::InvalidOperation(
+                "Series must have the same length for covariance calculation.".to_string(),
+            ));
         }
 
         match (self, other) {
@@ -1321,13 +1327,7 @@ impl Series {
                 let mut unique_set = HashSet::new();
                 let unique_data: Vec<Option<i32>> = data
                     .iter()
-                    .filter_map(|&x| {
-                        if unique_set.insert(x) {
-                            Some(x)
-                        } else {
-                            None
-                        }
-                    })
+                    .filter_map(|&x| if unique_set.insert(x) { Some(x) } else { None })
                     .collect();
                 Ok(Series::I32(name, unique_data))
             }
@@ -1357,13 +1357,7 @@ impl Series {
                 let mut unique_set = HashSet::new();
                 let unique_data: Vec<Option<bool>> = data
                     .iter()
-                    .filter_map(|&x| {
-                        if unique_set.insert(x) {
-                            Some(x)
-                        } else {
-                            None
-                        }
-                    })
+                    .filter_map(|&x| if unique_set.insert(x) { Some(x) } else { None })
                     .collect();
                 Ok(Series::Bool(name, unique_data))
             }
@@ -1385,13 +1379,7 @@ impl Series {
                 let mut unique_set = HashSet::new();
                 let unique_data: Vec<Option<i64>> = data
                     .iter()
-                    .filter_map(|&x| {
-                        if unique_set.insert(x) {
-                            Some(x)
-                        } else {
-                            None
-                        }
-                    })
+                    .filter_map(|&x| if unique_set.insert(x) { Some(x) } else { None })
                     .collect();
                 Ok(Series::DateTime(name, unique_data))
             }
