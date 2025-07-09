@@ -64,7 +64,7 @@ cargo test
 To run the Python binding tests (ensure your virtual environment is activated and `maturin develop` has been run):
 
 ```bash
-pytest test_veloxx.py
+pytest tests/python/test_veloxx.py
 ```
 
 ### WebAssembly Bindings Tests
