@@ -5,7 +5,7 @@
     "Wali Mohammad Kadri"
   ],
   "description": "Veloxx: A high-performance, lightweight Rust library for in-memory data processing and analytics. Featuring DataFrames, Series, CSV/JSON I/O, powerful transformations, aggregations, and statistical functions for efficient data science and engineering.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "MIT",
   "repository": {
     "type": "git",

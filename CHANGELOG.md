@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.2.4 - 2025-07-09
+
+### Added
+
+- Implemented missing functionalities in Python bindings (DataFrame I/O, advanced filtering, joining, grouping, column creation, descriptive statistics, data appending, apply methods).
+- Implemented missing functionalities in JavaScript/Wasm bindings (DataFrame I/O, advanced filtering, joining, grouping, column creation, descriptive statistics, data appending, apply methods).
+- Added comprehensive tests for newly implemented Python and JavaScript/Wasm functionalities.
+
+### Changed
+
+- Updated version to `0.2.4` across `Cargo.toml`, `pkg/package.json`, and all relevant documentation.
+- Organized test files into `tests/python/` and updated `CONTRIBUTING.md`.
+
+### Fixed
+
+- Resolved Wasm test failures by updating import paths and mocking strategy.
+- Addressed all Clippy warnings and formatted Rust code.
+
+### Removed
+
+- Redundant Wasm bindings file (`bindings/wasm/mod.rs`).
+- Temporary Python example scripts (`temp_inspect_veloxx.py`, `temp_inspect_veloxx_lib.py`).
+- `ISSUES.md` (all issues addressed).
+
+
 ## 0.2.3 - 2025-07-07
 
 ### Changed
