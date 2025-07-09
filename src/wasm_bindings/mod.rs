@@ -91,36 +91,24 @@ impl WasmSeries {
         }
     }
 
-    #[wasm_bindgen(js_name = fillNulls)]
-    pub fn fill_nulls(&self, value: &WasmValue) -> Result<WasmSeries, JsValue> {
-        // If the fill value is Null, no type check is needed as it's always compatible.
-        if value.value == Value::Null {
-            return Ok(WasmSeries { series: self.series.fill_nulls(&value.value).map_err(|e| JsValue::from_str(&e.to_string()))? });
-        }
+    #[wasm_bindgen(getter, js_name = isEmpty)]
+    pub fn is_empty(&self) -> bool {
+        self.series.is_empty()
+    }
 
-        // Type check: ensure value type matches series type
-        if self.series.data_type() != value.value.data_type() {
-            return Err(JsValue::from_str("Type mismatch: fillNulls value type does not match series type"));
-        }
-        Ok(WasmSeries { series: self.series.fill_nulls(&value.value).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    #[wasm_bindgen(getter, js_name = dataType)]
+    pub fn data_type(&self) -> WasmDataType {
+        self.series.data_type().into()
+    }
+
+    #[wasm_bindgen(js_name = setName)]
+    pub fn set_name(&mut self, new_name: &str) {
+        self.series.set_name(new_name);
     }
 
     #[wasm_bindgen]
-    pub fn sum(&self) -> Result<JsValue, JsValue> {
-        Ok(self.series.sum().map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
-            Value::I32(val) => JsValue::from_f64(val as f64),
-            Value::F64(val) => JsValue::from_f64(val),
-            Value::DateTime(val) => JsValue::from_f64(val as f64),
-            _ => JsValue::NULL,
-        }))
-    }
-
-    #[wasm_bindgen]
-    pub fn mean(&self) -> Result<JsValue, JsValue> {
-        Ok(self.series.mean().map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
-            Value::F64(val) => JsValue::from_f64(val),
-            _ => JsValue::NULL,
-        }))
+    pub fn filter(&self, row_indices: Box<[usize]>) -> Result<WasmSeries, JsValue> {
+        Ok(WasmSeries { series: self.series.filter(row_indices.as_ref()).map_err(|e| JsValue::from_str(&e.to_string()))? })
     }
 
     #[wasm_bindgen]
@@ -130,19 +118,69 @@ impl WasmSeries {
     }
 
     #[wasm_bindgen]
-    pub fn unique(&self) -> Result<WasmSeries, JsValue> {
-        Ok(WasmSeries { series: self.series.unique().map_err(|e| JsValue::from_str(&e.to_string()))? })
+    pub fn append(&self, other: &WasmSeries) -> Result<WasmSeries, JsValue> {
+        Ok(WasmSeries { series: self.series.append(&other.series).map_err(|e| JsValue::from_str(&e.to_string()))? })
     }
 
-    #[wasm_bindgen(js_name = toVecF64)]
-    pub fn to_vec_f64(&self) -> Result<Box<[JsValue]>, JsValue> {
-        let vec_f64 = self.series.to_vec_f64().map_err(|e| JsValue::from_str(&e.to_string()))?;
-        Ok(vec_f64.into_iter().map(JsValue::from_f64).collect::<Vec<JsValue>>().into_boxed_slice())
+    #[wasm_bindgen]
+    pub fn count(&self) -> usize {
+        self.series.count()
     }
 
-    #[wasm_bindgen(js_name = interpolateNulls)]
-    pub fn interpolate_nulls(&self) -> Result<WasmSeries, JsValue> {
-        Ok(WasmSeries { series: self.series.interpolate_nulls().map_err(|e| JsValue::from_str(&e.to_string()))? })
+    #[wasm_bindgen]
+    pub fn min(&self) -> Result<JsValue, JsValue> {
+        Ok(self.series.min().map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
+            Value::I32(val) => JsValue::from_f64(val as f64),
+            Value::F64(val) => JsValue::from_f64(val),
+            Value::DateTime(val) => JsValue::from_f64(val as f64),
+            Value::String(val) => JsValue::from_str(&val),
+            _ => JsValue::NULL,
+        }))
+    }
+
+    #[wasm_bindgen]
+    pub fn max(&self) -> Result<JsValue, JsValue> {
+        Ok(self.series.max().map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
+            Value::I32(val) => JsValue::from_f64(val as f64),
+            Value::F64(val) => JsValue::from_f64(val),
+            Value::DateTime(val) => JsValue::from_f64(val as f64),
+            Value::String(val) => JsValue::from_str(&val),
+            _ => JsValue::NULL,
+        }))
+    }
+
+    #[wasm_bindgen]
+    pub fn median(&self) -> Result<JsValue, JsValue> {
+        Ok(self.series.median().map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
+            Value::I32(val) => JsValue::from_f64(val as f64),
+            Value::F64(val) => JsValue::from_f64(val),
+            Value::DateTime(val) => JsValue::from_f64(val as f64),
+            _ => JsValue::NULL,
+        }))
+    }
+
+    #[wasm_bindgen(js_name = stdDev)]
+    pub fn std_dev(&self) -> Result<JsValue, JsValue> {
+        Ok(self.series.std_dev().map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
+            Value::F64(val) => JsValue::from_f64(val),
+            _ => JsValue::NULL,
+        }))
+    }
+
+    #[wasm_bindgen]
+    pub fn correlation(&self, other: &WasmSeries) -> Result<JsValue, JsValue> {
+        Ok(self.series.correlation(&other.series).map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
+            Value::F64(val) => JsValue::from_f64(val),
+            _ => JsValue::NULL,
+        }))
+    }
+
+    #[wasm_bindgen]
+    pub fn covariance(&self, other: &WasmSeries) -> Result<JsValue, JsValue> {
+        Ok(self.series.covariance(&other.series).map_err(|e| JsValue::from_str(&e.to_string()))?.map_or(JsValue::NULL, |v| match v {
+            Value::F64(val) => JsValue::from_f64(val),
+            _ => JsValue::NULL,
+        }))
     }
 }
 
@@ -186,7 +224,149 @@ pub struct WasmValue {
 
 #[wasm_bindgen]
 impl WasmValue {
-    // ...existing WasmValue impl...
+    #[wasm_bindgen(constructor)]
+    pub fn new(value: JsValue) -> Result<WasmValue, JsValue> {
+        if value.is_falsy() && !value.is_null() && !value.is_undefined() {
+            // Treat 0, empty string, false as their actual values, not null
+            if let Some(v) = value.as_f64() {
+                Ok(WasmValue { value: Value::F64(v) })
+            } else if let Some(v) = value.as_bool() {
+                Ok(WasmValue { value: Value::Bool(v) })
+            } else if let Some(v) = value.as_string() {
+                Ok(WasmValue { value: Value::String(v) })
+            } else {
+                Err(JsValue::from_str("Unsupported WasmValue type"))
+            }
+        } else if value.is_null() || value.is_undefined() {
+            Ok(WasmValue { value: Value::Null })
+        } else if let Some(v) = value.as_f64() {
+            // Check for integer specifically
+            if v.fract() == 0.0 && v >= (i32::MIN as f64) && v <= (i32::MAX as f64) {
+                Ok(WasmValue { value: Value::I32(v as i32) })
+            } else {
+                Ok(WasmValue { value: Value::F64(v) })
+            }
+        } else if let Some(v) = value.as_bool() {
+            Ok(WasmValue { value: Value::Bool(v) })
+        } else if let Some(v) = value.as_string() {
+            Ok(WasmValue { value: Value::String(v) })
+        } else {
+            Err(JsValue::from_str("Unsupported WasmValue type"))
+        }
+    }
+
+    pub fn to_js_value(&self) -> JsValue {
+        match &self.value {
+            Value::I32(v) => JsValue::from_f64(*v as f64),
+            Value::F64(v) => JsValue::from_f64(*v),
+            Value::Bool(v) => JsValue::from_bool(*v),
+            Value::String(v) => JsValue::from_str(v),
+            Value::DateTime(v) => JsValue::from_f64(*v as f64),
+            Value::Null => JsValue::NULL,
+        }
+    }
+}
+
+#[wasm_bindgen(js_name = WasmGroupedDataFrame)]
+pub struct WasmGroupedDataFrame {
+    grouped_df: GroupedDataFrame<'static>,
+}
+
+#[wasm_bindgen]
+impl WasmGroupedDataFrame {
+    #[wasm_bindgen]
+    pub fn agg(&self, aggregations: Box<[JsValue]>) -> Result<WasmDataFrame, JsValue> {
+        let rust_aggregations: Vec<(&str, &str)> = aggregations.into_iter().map(|js_val| {
+            let arr = js_sys::Array::from(&js_val);
+            let col = arr.get(0).as_string().unwrap_or_default();
+            let agg = arr.get(1).as_string().unwrap_or_default();
+            (Box::leak(col.into_boxed_str()), Box::leak(agg.into_boxed_str()))
+        }).collect();
+        Ok(WasmDataFrame { df: self.grouped_df.agg(rust_aggregations).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+}
+
+#[wasm_bindgen(js_name = WasmExpr)]
+pub struct WasmExpr {
+    expr: Expr,
+}
+
+#[wasm_bindgen]
+impl WasmExpr {
+    #[wasm_bindgen(js_name = column)]
+    pub fn column(name: &str) -> WasmExpr {
+        WasmExpr { expr: Expr::Column(name.to_string()) }
+    }
+
+    #[wasm_bindgen(js_name = literal)]
+    pub fn literal(value: &WasmValue) -> WasmExpr {
+        WasmExpr { expr: Expr::Literal(value.value.clone()) }
+    }
+
+    #[wasm_bindgen(js_name = add)]
+    pub fn add(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::Add(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = subtract)]
+    pub fn subtract(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::Subtract(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = multiply)]
+    pub fn multiply(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::Multiply(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = divide)]
+    pub fn divide(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::Divide(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = equals)]
+    pub fn equals(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::Equals(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = notEquals)]
+    pub fn not_equals(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::NotEquals(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = greaterThan)]
+    pub fn greater_than(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::GreaterThan(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = lessThan)]
+    pub fn less_than(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::LessThan(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = greaterThanOrEqual)]
+    pub fn greater_than_or_equal(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::GreaterThanOrEqual(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = lessThanOrEqual)]
+    pub fn less_than_or_equal(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::LessThanOrEqual(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = and)]
+    pub fn and(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::And(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = or)]
+    pub fn or(left: &WasmExpr, right: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::Or(Box::new(left.expr.clone()), Box::new(right.expr.clone())) }
+    }
+
+    #[wasm_bindgen(js_name = not)]
+    pub fn not(expr: &WasmExpr) -> WasmExpr {
+        WasmExpr { expr: Expr::Not(Box::new(expr.expr.clone())) }
+    }
 }
 
 #[wasm_bindgen]
@@ -312,6 +492,52 @@ impl WasmDataFrame {
     #[wasm_bindgen(js_name = fillNulls)]
     pub fn fill_nulls(&self, value: &WasmValue) -> Result<WasmDataFrame, JsValue> {
         Ok(WasmDataFrame { df: self.df.fill_nulls(value.value.clone()).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+
+    #[wasm_bindgen(js_name = groupBy)]
+    pub fn group_by(&self, by_columns: Box<[JsValue]>) -> Result<WasmGroupedDataFrame, JsValue> {
+        let by_columns_vec: Vec<String> = by_columns.into_iter().map(|s| s.as_string().unwrap_or_default()).collect();
+        Ok(WasmGroupedDataFrame { grouped_df: self.df.group_by(by_columns_vec).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+
+    #[wasm_bindgen(js_name = withColumn)]
+    pub fn with_column(&self, new_col_name: &str, expr: &WasmExpr) -> Result<WasmDataFrame, JsValue> {
+        Ok(WasmDataFrame { df: self.df.with_column(new_col_name, &expr.expr).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+
+    #[wasm_bindgen]
+    pub fn describe(&self) -> Result<WasmDataFrame, JsValue> {
+        Ok(WasmDataFrame { df: self.df.describe().map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+
+    #[wasm_bindgen]
+    pub fn correlation(&self, col1_name: &str, col2_name: &str) -> Result<f64, JsValue> {
+        self.df.correlation(col1_name, col2_name).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    #[wasm_bindgen]
+    pub fn covariance(&self, col1_name: &str, col2_name: &str) -> Result<f64, JsValue> {
+        self.df.covariance(col1_name, col2_name).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    #[wasm_bindgen]
+    pub fn append(&self, other: &WasmDataFrame) -> Result<WasmDataFrame, JsValue> {
+        Ok(WasmDataFrame { df: self.df.append(&other.df).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+
+    #[wasm_bindgen(js_name = fromCsv)]
+    pub fn from_csv(path: &str) -> Result<WasmDataFrame, JsValue> {
+        Ok(WasmDataFrame { df: DataFrame::from_csv(path).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+
+    #[wasm_bindgen(js_name = fromJson)]
+    pub fn from_json(path: &str) -> Result<WasmDataFrame, JsValue> {
+        Ok(WasmDataFrame { df: DataFrame::from_json(path).map_err(|e| JsValue::from_str(&e.to_string()))? })
+    }
+
+    #[wasm_bindgen(js_name = toCsv)]
+    pub fn to_csv(&self, path: &str) -> Result<(), JsValue> {
+        self.df.to_csv(path).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     #[wasm_bindgen]

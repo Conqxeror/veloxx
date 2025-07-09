@@ -30,6 +30,37 @@ class TestPySeries:
         assert s.get_value(0) == 1
         assert s.get_value(2) is None
 
+    def test_series_set_name(self, sample_series_i32):
+        s = sample_series_i32
+        s.set_name("new_name")
+        assert s.name() == "new_name"
+
+    def test_series_filter(self, sample_series_i32):
+        filtered_s = sample_series_i32.filter([0, 3])
+        assert filtered_s.len() == 2
+        assert filtered_s.get_value(0) == 1
+        assert filtered_s.get_value(1) == 4
+
+    def test_series_count(self, sample_series_i32):
+        assert sample_series_i32.count() == 3
+
+    def test_series_median(self):
+        s = veloxx.PySeries("median_series", [1, 5, 2, 4, 3])
+        assert s.median() == 3
+
+        s_even = veloxx.PySeries("median_series_even", [1, 4, 2, 3])
+        assert s_even.median() == 2.5
+
+    def test_series_correlation(self):
+        s1 = veloxx.PySeries("s1", [1, 2, 3, 4, 5])
+        s2 = veloxx.PySeries("s2", [5, 4, 3, 2, 1])
+        assert s1.correlation(s2) == -1.0
+
+    def test_series_covariance(self):
+        s1 = veloxx.PySeries("s1", [1, 2, 3, 4, 5])
+        s2 = veloxx.PySeries("s2", [5, 4, 3, 2, 1])
+        assert s1.covariance(s2) == -2.5
+
     def test_series_fill_nulls(self, sample_series_i32):
         filled_s = sample_series_i32.fill_nulls(99)
         assert filled_s.get_value(2) == 99

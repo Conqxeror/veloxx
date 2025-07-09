@@ -109,6 +109,7 @@ pub mod types;
 pub mod error;
 
 #[cfg(feature = "python")]
+#[path = "../bindings/python/mod.rs"]
 mod python_bindings;
 
 #[cfg(feature = "wasm")]

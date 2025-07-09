@@ -28,5 +28,15 @@
     "analytics",
     "high-performance",
     "lightweight"
-  ]
+  ],
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-transform-stub": "^2.0.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.0.0",
+    "@babel/preset-env": "latest",
+    "babel-jest": "latest"
+  }
 }
