@@ -35,6 +35,7 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_logo = '../../veloxx_logo.png'
 html_theme_options = { 
     'style_external_links': True, 
     'style_nav_header_background': '#2980B9', 

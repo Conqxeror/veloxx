@@ -34,7 +34,7 @@ jobs:
     - name: Install Python Dependencies
       run: |
         source venv/bin/activate
-        pip install sphinx sphinx-rtd-theme sphinx.ext.autodoc sphinx.ext.napoleon maturin
+        pip install sphinx sphinx-rtd-theme maturin
 
     - name: Setup Node.js
       uses: actions/setup-node@v3

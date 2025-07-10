@@ -1,4 +1,4 @@
-# <img width="180" height="180" alt="logo2_png" src="https://github.com/user-attachments/assets/7b02676c-c897-4a20-adaf-c8077504ff58" />
+# <img width="180" height="180" alt="logo2_png" src="./docs/veloxx_logo.png" />
 
 # Veloxx: Lightweight Rust-Powered Data Processing & Analytics Library
 
