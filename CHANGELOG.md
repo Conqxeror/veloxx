@@ -24,7 +24,6 @@
 - Temporary Python example scripts (`temp_inspect_veloxx.py`, `temp_inspect_veloxx_lib.py`).
 - `ISSUES.md` (all issues addressed).
 
-
 ## 0.2.3 - 2025-07-07
 
 ### Changed
@@ -34,8 +33,6 @@
 - Created dedicated `README_WASM.md` for WebAssembly/JavaScript-specific documentation (for npmjs.com).
 - Ensured `pkg/README.md` is consistent with `README_WASM.md`.
 - Updated version to `0.2.3` across `Cargo.toml`, `package.json`, and all relevant documentation.
-
-
 
 ## 0.2.2 - 2025-07-04
 
@@ -59,7 +56,6 @@
 ### Other
 
 - Integrated Jest for WebAssembly testing.
-
 
 ## 0.2.1 - 2025-07-02
 

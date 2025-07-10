@@ -307,17 +307,7 @@ impl PartialOrd for Value {
     /// assert_eq!(Value::I32(1).partial_cmp(&Value::String("a".to_string())), None);
     /// ```
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match (self, other) {
-            (Value::Null, Value::Null) => Some(std::cmp::Ordering::Equal),
-            (Value::Null, _) => Some(std::cmp::Ordering::Less),
-            (_, Value::Null) => Some(std::cmp::Ordering::Greater),
-            (Value::I32(l), Value::I32(r)) => l.partial_cmp(r),
-            (Value::F64(l), Value::F64(r)) => l.partial_cmp(r),
-            (Value::Bool(l), Value::Bool(r)) => l.partial_cmp(r),
-            (Value::String(l), Value::String(r)) => l.partial_cmp(r),
-            (Value::DateTime(l), Value::DateTime(r)) => l.partial_cmp(r),
-            _ => None, // Incomparable types
-        }
+        Some(self.cmp(other))
     }
 }
 

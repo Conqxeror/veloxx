@@ -86,14 +86,14 @@ To run the WebAssembly binding tests:
 
 ## Code Style and Linting
 
--   **Rust:** Follow the [Rust Style Guide](https://github.com/rust-dev-tools/fmt-rfcs/blob/master/guide/guide.md). Use `cargo fmt` to format your code.
--   **Python:** Adhere to [PEP 8](https://www.python.org/dev/peps/pep-0008/). Use a linter like `flake8` or `ruff`.
+- **Rust:** Follow the [Rust Style Guide](https://github.com/rust-dev-tools/fmt-rfcs/blob/master/guide/guide.md). Use `cargo fmt` to format your code.
+- **Python:** Adhere to [PEP 8](https://www.python.org/dev/peps/pep-0008/). Use a linter like `flake8` or `ruff`.
 
 ## Documentation
 
--   Ensure all new public functions, structs, and enums are properly documented using Rustdoc (`///`).
--   Update the `README.md` if your changes introduce new features or significantly alter existing ones.
--   Add entries to `CHANGELOG.md` for new features, bug fixes, and breaking changes.
+- Ensure all new public functions, structs, and enums are properly documented using Rustdoc (`///`).
+- Update the `README.md` if your changes introduce new features or significantly alter existing ones.
+- Add entries to `CHANGELOG.md` for new features, bug fixes, and breaking changes.
 
 ## License
 

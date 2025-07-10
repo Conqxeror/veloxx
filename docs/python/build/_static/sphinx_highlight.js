@@ -1,7 +1,7 @@
 /* Highlighting utilities for Sphinx HTML documentation. */
 "use strict";
 
-const SPHINX_HIGHLIGHT_ENABLED = true
+const SPHINX_HIGHLIGHT_ENABLED = true;
 
 /**
  * highlight a given string on a node by wrapping it in
@@ -33,15 +33,15 @@ const _highlight = (node, addItems, text, className) => {
         span,
         parent.insertBefore(
           document.createTextNode(val.substr(pos + text.length)),
-          node.nextSibling
-        )
+          node.nextSibling,
+        ),
       );
       node.nodeValue = val.substr(0, pos);
 
       if (isInSVG) {
         const rect = document.createElementNS(
           "http://www.w3.org/2000/svg",
-          "rect"
+          "rect",
         );
         const bbox = parent.getBBox();
         rect.x.baseVal.value = bbox.x;
@@ -60,7 +60,7 @@ const _highlightText = (thisNode, text, className) => {
   let addItems = [];
   _highlight(thisNode, addItems, text, className);
   addItems.forEach((obj) =>
-    obj.parent.insertAdjacentElement("beforebegin", obj.target)
+    obj.parent.insertAdjacentElement("beforebegin", obj.target),
   );
 };
 
@@ -68,25 +68,27 @@ const _highlightText = (thisNode, text, className) => {
  * Small JavaScript module for the documentation.
  */
 const SphinxHighlight = {
-
   /**
    * highlight the search words provided in localstorage in the text
    */
   highlightSearchWords: () => {
-    if (!SPHINX_HIGHLIGHT_ENABLED) return;  // bail if no highlight
+    if (!SPHINX_HIGHLIGHT_ENABLED) return; // bail if no highlight
 
     // get and clear terms from localstorage
     const url = new URL(window.location);
     const highlight =
-        localStorage.getItem("sphinx_highlight_terms")
-        || url.searchParams.get("highlight")
-        || "";
-    localStorage.removeItem("sphinx_highlight_terms")
+      localStorage.getItem("sphinx_highlight_terms") ||
+      url.searchParams.get("highlight") ||
+      "";
+    localStorage.removeItem("sphinx_highlight_terms");
     url.searchParams.delete("highlight");
     window.history.replaceState({}, "", url);
 
     // get individual terms from highlight string
-    const terms = highlight.toLowerCase().split(/\s+/).filter(x => x);
+    const terms = highlight
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((x) => x);
     if (terms.length === 0) return; // nothing to do
 
     // There should never be more than one element matching "div.body"
@@ -105,8 +107,8 @@ const SphinxHighlight = {
           '<p class="highlight-link">' +
             '<a href="javascript:SphinxHighlight.hideSearchWords()">' +
             _("Hide Search Matches") +
-            "</a></p>"
-        )
+            "</a></p>",
+        ),
     );
   },
 
@@ -120,7 +122,7 @@ const SphinxHighlight = {
     document
       .querySelectorAll("span.highlighted")
       .forEach((el) => el.classList.remove("highlighted"));
-    localStorage.removeItem("sphinx_highlight_terms")
+    localStorage.removeItem("sphinx_highlight_terms");
   },
 
   initEscapeListener: () => {
@@ -129,10 +131,15 @@ const SphinxHighlight = {
 
     document.addEventListener("keydown", (event) => {
       // bail for input elements
-      if (BLACKLISTED_KEY_CONTROL_ELEMENTS.has(document.activeElement.tagName)) return;
+      if (BLACKLISTED_KEY_CONTROL_ELEMENTS.has(document.activeElement.tagName))
+        return;
       // bail with special keys
-      if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
-      if (DOCUMENTATION_OPTIONS.ENABLE_SEARCH_SHORTCUTS && (event.key === "Escape")) {
+      if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey)
+        return;
+      if (
+        DOCUMENTATION_OPTIONS.ENABLE_SEARCH_SHORTCUTS &&
+        event.key === "Escape"
+      ) {
         SphinxHighlight.hideSearchWords();
         event.preventDefault();
       }

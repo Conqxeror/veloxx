@@ -4,6 +4,6 @@ Welcome to the Veloxx documentation! Veloxx is a high-performance, lightweight R
 
 Use the links below to navigate to the documentation for each language:
 
-*   [Rust API Documentation](./rust/veloxx/index.html)
-*   [Python API Documentation](./python/build/html/index.html)
-*   [JavaScript/Wasm API Documentation](./js/index.html)
+- [Rust API Documentation](./rust/veloxx/index.html)
+- [Python API Documentation](./python/build/html/index.html)
+- [JavaScript/Wasm API Documentation](./js/index.html)

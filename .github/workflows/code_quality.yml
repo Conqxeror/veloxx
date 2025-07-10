@@ -12,59 +12,59 @@ jobs:
   rust-lint-format:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
-        components: clippy, rustfmt
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: clippy, rustfmt
 
-    - name: Run Cargo Clippy
-      run: cargo clippy --all-targets -- -D warnings
+      - name: Run Cargo Clippy
+        run: cargo clippy --all-targets -- -D warnings
 
-    - name: Run Cargo Fmt
-      run: cargo fmt --all -- --check
+      - name: Run Cargo Fmt
+        run: cargo fmt --all -- --check
 
   python-lint-format:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-    - name: Install Ruff
-      run: pip install ruff
+      - name: Install Ruff
+        run: pip install ruff
 
-    - name: Run Ruff Checks
-      run: ruff check .
+      - name: Run Ruff Checks
+        run: ruff check .
 
-    - name: Run Ruff Format Check
-      run: ruff format . --check
+      - name: Run Ruff Format Check
+        run: ruff format . --check
 
   js-lint-format:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-    - name: Install JS Linters/Formatters
-      run: npm install --prefix pkg eslint prettier
+      - name: Install JS Linters/Formatters
+        run: npm install --prefix pkg eslint prettier
 
-    - name: Run Prettier Check
-      run: npx prettier --check .
+      - name: Run Prettier Check
+        run: npx prettier --check .
 
-    - name: Run ESLint
-      run: npx eslint .
+      - name: Run ESLint
+        run: npx eslint .

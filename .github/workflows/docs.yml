@@ -10,57 +10,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-    - name: Create Python Virtual Environment
-      run: python -m venv venv
+      - name: Create Python Virtual Environment
+        run: python -m venv venv
 
-    - name: Activate Python Virtual Environment
-      run: source venv/bin/activate
+      - name: Activate Python Virtual Environment
+        run: source venv/bin/activate
 
-    - name: Install Python Dependencies
-      run: |
-        source venv/bin/activate
-        pip install sphinx sphinx-rtd-theme maturin
+      - name: Install Python Dependencies
+        run: |
+          source venv/bin/activate
+          pip install sphinx sphinx-rtd-theme maturin
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-    - name: Install JS Dependencies
-      run: npm install --prefix pkg typedoc
+      - name: Install JS Dependencies
+        run: npm install --prefix pkg typedoc
 
-    - name: Build Rust Docs
-      run: cargo doc --no-deps --target-dir docs/rust
+      - name: Build Rust Docs
+        run: cargo doc --no-deps --target-dir docs/rust
 
-    - name: Build Python Docs
-      run: |
-        source venv/bin/activate
-        python -m maturin build --release
-        pip install ./target/wheels/veloxx-*.whl
-        cd docs/python
-        sphinx-build -b html source build
+      - name: Build Python Docs
+        run: |
+          source venv/bin/activate
+          python -m maturin build --release
+          pip install ./target/wheels/veloxx-*.whl
+          cd docs/python
+          sphinx-build -b html source build
 
-    - name: Build JS/Wasm Docs
-      run: npm run typedoc --prefix pkg
+      - name: Build JS/Wasm Docs
+        run: npm run typedoc --prefix pkg
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
-        force_orphan: true
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true

@@ -13,54 +13,55 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
 
-    - name: Run Rust Tests
-      run: cargo test --all
+      - name: Run Rust Tests
+        run: cargo test --all
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-    - name: Create Python Virtual Environment
-      run: python -m venv venv
+      - name: Create Python Virtual Environment
+        run: python -m venv venv
 
-    - name: Install Python Dependencies
-      run: |
-        source venv/bin/activate
-        pip install maturin pytest
+      - name: Install Python Dependencies
+        run: |
+          source venv/bin/activate
+          pip install maturin pytest
 
-    - name: Build Python Wheel
-      run: |
-        source venv/bin/activate
-        python -m maturin build --release
+      - name: Build Python Wheel
+        run: |
+          source venv/bin/activate
+          python -m maturin build --release
 
-    - name: Install Python Wheel
-      run: |
-        source venv/bin/activate
-        pip install ./target/wheels/veloxx-*.whl
+      - name: Install Python Wheel
+        run: |
+          source venv/bin/activate
+          pip install ./target/wheels/veloxx-*.whl
 
-    - name: Run Python Tests
-      run: |
-        source venv/bin/activate
-        pytest tests/python/test_veloxx.py
+      - name: Run Python Tests
+        run: |
+          source venv/bin/activate
+          export PYTHONPATH=$PYTHONPATH:./target/wheels
+          pytest tests/python/test_veloxx.py
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-    - name: Install JS Dependencies
-      run: npm install --prefix pkg
+      - name: Install JS Dependencies
+        run: npm install --prefix pkg
 
-    - name: Run JS/Wasm Tests
-      run: npm test --prefix pkg
+      - name: Run JS/Wasm Tests
+        run: npm test --prefix pkg
