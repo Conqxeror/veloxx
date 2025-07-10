@@ -35,6 +35,11 @@ criterion = "0.5"
 name = "my_benchmark"
 harness = false
 
+[[test]]
+name = "dataframe_integration"
+path = "tests/dataframe_integration.rs"
+harness = true
+
 [features]
 python = ["pyo3"]
 wasm = ["wasm-bindgen", "js-sys"]

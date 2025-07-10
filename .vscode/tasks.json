@@ -13,7 +13,7 @@
 		{
 			"type": "shell",
 			"label": "Run all tests (Rust, JS/WASM, Python with venv)",
-			"command": "cargo test --all && npm test --prefix pkg && .\\venv\\Scripts\\activate && pytest tests/python/test_veloxx.py",
+			"command": "cargo test --all && npm test --prefix pkg && D:/Rust/Velox/velox/venv/Scripts/pytest.exe tests/python/test_veloxx.py",
 			"group": "test",
 			"problemMatcher": [
 				"$rustc",
@@ -23,56 +23,12 @@
 		},
 		{
 			"type": "shell",
-			"label": "Run individual Rust test",
-			"command": "cargo test ${input:rustTestName}",
+			"label": "Run Rust benchmarks",
+			"command": "cargo bench",
 			"group": "test",
 			"problemMatcher": [
 				"$rustc"
 			]
-		},
-		{
-			"type": "shell",
-			"label": "Run individual Python test",
-			"command": ".\\venv\\Scripts\\activate && pytest ${input:pythonTestPath}::${input:pythonTestName}",
-			"group": "test",
-			"problemMatcher": [
-				"$pytest"
-			]
-		},
-		{
-			"type": "shell",
-			"label": "Run individual JavaScript/Wasm test",
-			"command": "npm test --prefix pkg -- ${input:jsTestPath}",
-			"group": "test",
-			"problemMatcher": [
-				"$tsc-watch"
-			]
-		}
-	],
-	"inputs": [
-		{
-			"id": "rustTestName",
-			"type": "promptString",
-			"description": "Name of the Rust test to run (e.g., my_module::my_test_function)",
-			"default": ""
-		},
-		{
-			"id": "pythonTestPath",
-			"type": "promptString",
-			"description": "Path to the Python test file (e.g., tests/python/test_veloxx.py)",
-			"default": "tests/python/test_veloxx.py"
-		},
-		{
-			"id": "pythonTestName",
-			"type": "promptString",
-			"description": "Name of the Python test case or function (e.g., TestMyClass::test_method)",
-			"default": ""
-		},
-		{
-			"id": "jsTestPath",
-			"type": "promptString",
-			"description": "Path to the JavaScript/Wasm test file (e.g., test_wasm.test.js)",
-			"default": "test_wasm.test.js"
 		}
 	]
 }
