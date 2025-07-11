@@ -1,32 +1,299 @@
-name: Code Quality Checks
+name: Code Quality & Security
 
 on:
   push:
     branches:
       - main
+      - develop
   pull_request:
     branches:
       - main
+      - develop
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  rust-lint-format:
+  rust-quality:
+    name: Rust Code Quality
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          components: clippy, rustfmt
+          components: rustfmt, clippy
 
-      - name: Run Cargo Clippy
+      - name: Cache Rust Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-quality-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check Rust Formatting
+        run: |
+          echo "🎨 Checking Rust code formatting..."
+          cargo fmt --all -- --check
+
+      - name: Run Clippy (All Features)
+        run: |
+          echo "🔍 Running Clippy lints..."
+          cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run Clippy (Core)
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: Run Cargo Fmt
-        run: cargo fmt --all -- --check
+      - name: Run Clippy (Python Feature)
+        run: cargo clippy --all-targets --features python -- -D warnings
 
-  
+      - name: Run Clippy (WASM Feature)
+        run: cargo clippy --all-targets --features wasm -- -D warnings
+
+      - name: Check Documentation
+        run: |
+          echo "📚 Checking documentation..."
+          cargo doc --all-features --no-deps --document-private-items
+
+  python-quality:
+    name: Python Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Python Quality Tools
+        run: |
+          pip install --upgrade pip
+          pip install black isort flake8 mypy bandit
+
+      - name: Check Python Formatting (Black)
+        run: |
+          echo "🎨 Checking Python code formatting..."
+          black --check --diff tests/python/
+
+      - name: Check Import Sorting (isort)
+        run: |
+          echo "📦 Checking import sorting..."
+          isort --check-only --diff tests/python/
+
+      - name: Run Flake8 Linting
+        run: |
+          echo "🔍 Running Flake8 linting..."
+          flake8 tests/python/ --max-line-length=88 --extend-ignore=E203,W503
+
+      - name: Run Bandit Security Check
+        run: |
+          echo "🔒 Running security checks..."
+          bandit -r tests/python/ -f json -o bandit-report.json || true
+          if [ -f bandit-report.json ]; then
+            echo "📋 Bandit security report generated"
+            cat bandit-report.json
+          fi
+
+  javascript-quality:
+    name: JavaScript Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install Quality Tools
+        run: |
+          npm install -g eslint prettier @typescript-eslint/parser @typescript-eslint/eslint-plugin
+
+      - name: Check JavaScript Formatting
+        run: |
+          echo "🎨 Checking JavaScript code formatting..."
+          prettier --check "tests/**/*.js" "*.js" || echo "⚠️ Formatting issues found"
+
+      - name: Run ESLint
+        run: |
+          echo "🔍 Running ESLint..."
+          npx eslint tests/**/*.js *.js --ext .js || echo "⚠️ Linting issues found"
+
+  dependency-check:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Rust Security Audit
+        run: |
+          echo "🔒 Running Rust security audit..."
+          cargo audit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Node.js Security Audit
+        run: |
+          echo "🔒 Running Node.js security audit..."
+          npm audit --audit-level=moderate || echo "⚠️ Node.js vulnerabilities found"
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Safety
+        run: pip install safety
+
+      - name: Python Security Audit
+        run: |
+          echo "🔒 Running Python security audit..."
+          pip freeze | safety check --stdin || echo "⚠️ Python vulnerabilities found"
+
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-license
+        run: cargo install cargo-license
+
+      - name: Check Rust Dependencies Licenses
+        run: |
+          echo "📜 Checking Rust dependency licenses..."
+          cargo license --json > rust-licenses.json
+          echo "✅ Rust license check completed"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install license-checker
+        run: npm install -g license-checker
+
+      - name: Check Node.js Dependencies Licenses
+        run: |
+          echo "📜 Checking Node.js dependency licenses..."
+          npm install
+          license-checker --json > node-licenses.json || echo "⚠️ License check completed with warnings"
+
+      - name: Archive License Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: license-reports
+          path: |
+            rust-licenses.json
+            node-licenses.json
+
+  performance-check:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-perf-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check Binary Size
+        run: |
+          echo "📏 Checking binary sizes..."
+          cargo build --release
+          ls -lh target/release/
+          echo "✅ Binary size check completed"
+
+      - name: Run Quick Benchmarks
+        run: |
+          echo "⚡ Running quick performance checks..."
+          if [ -d "benches" ]; then
+            cargo bench --bench '*' -- --test
+          else
+            echo "ℹ️ No benchmarks found"
+          fi
+
+  documentation-check:
+    name: Documentation Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check Documentation Build
+        run: |
+          echo "📚 Building documentation..."
+          cargo doc --all-features --no-deps --document-private-items
+
+      - name: Check for Missing Documentation
+        run: |
+          echo "🔍 Checking for missing documentation..."
+          cargo doc --all-features --no-deps 2>&1 | grep -i "warning.*missing" || echo "✅ No missing documentation warnings"
+
+      - name: Validate README
+        run: |
+          echo "📖 Validating README..."
+          if [ -f "README.md" ]; then
+            echo "✅ README.md exists"
+            wc -l README.md
+          else
+            echo "❌ README.md not found"
+            exit 1
+          fi
+
+      - name: Check CHANGELOG
+        run: |
+          echo "📝 Checking CHANGELOG..."
+          if [ -f "CHANGELOG.md" ]; then
+            echo "✅ CHANGELOG.md exists"
+            head -10 CHANGELOG.md
+          else
+            echo "⚠️ CHANGELOG.md not found"
+          fi

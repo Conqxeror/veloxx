@@ -1,4 +1,6 @@
-# <img src="docs/veloxx_logo.png" alt="Veloxx Logo" height="70px"> Veloxx: Lightweight Rust-Powered Data Processing & Analytics Library
+# <img width="180" height="180" alt="logo2_png" src="./docs/veloxx_logo.png" />
+
+# Veloxx: Lightweight Rust-Powered Data Processing & Analytics Library
 
 [![crates.io](https://img.shields.io/crates/v/veloxx.svg)](https://crates.io/crates/veloxx)
 
@@ -87,6 +89,15 @@ To run tests:
 ```bash
 cargo test
 ```
+
+## Documentation
+
+Detailed documentation for Veloxx, including API references and usage guides, can be found here:
+
+- [Overall Documentation Landing Page](./docs/index.html)
+- [Rust API Documentation](./docs/rust/veloxx/index.html)
+- [Python API Documentation](./docs/python/build/html/index.html)
+- [JavaScript/Wasm API Documentation](./docs/js/index.html)
 
 ## Usage Examples
 

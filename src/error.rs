@@ -59,3 +59,10 @@ impl From<std::string::FromUtf8Error> for VeloxxError {
         VeloxxError::Parsing(err.to_string())
     }
 }
+
+#[cfg(feature = "python")]
+impl From<VeloxxError> for pyo3::PyErr {
+    fn from(err: VeloxxError) -> Self {
+        pyo3::exceptions::PyValueError::new_err(err.to_string())
+    }
+}

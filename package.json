@@ -1,5 +1,23 @@
 {
+  "name": "veloxx-wasm-tests",
+  "version": "1.0.0",
+  "description": "WASM bindings tests for Velox",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
   "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0",
     "jest-transform-stub": "^2.0.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "moduleNameMapper": {
+      "\\.(wasm)$": "jest-transform-stub"
+    },
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
   }
 }

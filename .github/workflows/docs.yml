@@ -1,66 +1,607 @@
-name: Deploy Docs to GitHub Pages
+name: Documentation Build & Deploy
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Allow manual triggering
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  deploy:
+  build-rust-docs:
+    name: Build Rust Documentation
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Dependencies
+        uses: actions/cache@v3
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build Rust Documentation
+        run: |
+          echo "📚 Building Rust documentation..."
+          cargo doc --all-features --no-deps --document-private-items
+
+      - name: Prepare Rust Docs
+        run: |
+          echo "📦 Preparing Rust documentation for deployment..."
+          mkdir -p docs-output/rust
+          cp -r target/doc/* docs-output/rust/
+          echo '<meta http-equiv="refresh" content="0; url=veloxx">' > docs-output/rust/index.html
+
+      - name: Upload Rust Docs Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-docs
+          path: docs-output/rust/
+
+  build-python-docs:
+    name: Build Python Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: "3.11"
 
       - name: Create Python Virtual Environment
         run: python -m venv venv
 
-      - name: Activate Python Virtual Environment
-        run: source venv/bin/activate
-
-      - name: Install Python Dependencies
+      - name: Install Documentation Dependencies
         run: |
           source venv/bin/activate
-          pip install sphinx sphinx-rtd-theme maturin
+          pip install --upgrade pip
+          pip install maturin sphinx sphinx-rtd-theme sphinx-autodoc-typehints
+
+      - name: Build Python Bindings
+        run: |
+          source venv/bin/activate
+          maturin develop --features python
+
+      - name: Create Python Documentation Structure
+        run: |
+          mkdir -p docs-output/python
+          source venv/bin/activate
+          
+          # Create basic Sphinx documentation
+          cat > docs-output/python/conf.py << 'EOF'
+          import os
+          import sys
+          sys.path.insert(0, os.path.abspath('.'))
+
+          project = 'Veloxx Python Bindings'
+          copyright = '2024, Veloxx Team'
+          author = 'Veloxx Team'
+
+          extensions = [
+              'sphinx.ext.autodoc',
+              'sphinx.ext.viewcode',
+              'sphinx.ext.napoleon',
+              'sphinx_autodoc_typehints',
+          ]
+
+          templates_path = ['_templates']
+          exclude_patterns = []
+
+          html_theme = 'sphinx_rtd_theme'
+          html_static_path = ['_static']
+
+          autodoc_member_order = 'bysource'
+          autodoc_typehints = 'description'
+          EOF
+
+          cat > docs-output/python/index.rst << 'EOF'
+          Veloxx Python Bindings Documentation
+          ===================================
+
+          Welcome to the Veloxx Python bindings documentation.
+
+          .. toctree::
+             :maxdepth: 2
+             :caption: Contents:
+
+             api
+
+          Installation
+          -----------
+
+          .. code-block:: bash
+
+             pip install veloxx
+
+          Quick Start
+          ----------
+
+          .. code-block:: python
+
+             import veloxx
+
+             # Create a series
+             series = veloxx.PySeries("numbers", [1, 2, 3, 4, 5])
+             print(f"Series length: {series.len}")
+             print(f"Series sum: {series.sum()}")
+
+             # Create a dataframe
+             data = {
+                 "name": ["Alice", "Bob", "Charlie"],
+                 "age": [25, 30, 35],
+                 "salary": [50000, 60000, 70000]
+             }
+             df = veloxx.PyDataFrame(data)
+             print(f"DataFrame shape: {df.row_count} x {df.column_count}")
+
+          API Reference
+          ============
+
+          .. automodule:: veloxx
+             :members:
+             :undoc-members:
+             :show-inheritance:
+          EOF
+
+          cat > docs-output/python/api.rst << 'EOF'
+          API Reference
+          =============
+
+          Series
+          ------
+
+          .. autoclass:: veloxx.PySeries
+             :members:
+             :undoc-members:
+             :show-inheritance:
+
+          DataFrame
+          ---------
+
+          .. autoclass:: veloxx.PyDataFrame
+             :members:
+             :undoc-members:
+             :show-inheritance:
+
+          Data Types
+          ----------
+
+          .. autoclass:: veloxx.PyDataType
+             :members:
+             :undoc-members:
+             :show-inheritance:
+
+          Expressions
+          -----------
+
+          .. autoclass:: veloxx.PyExpr
+             :members:
+             :undoc-members:
+             :show-inheritance:
+          EOF
+
+      - name: Build Python Documentation
+        run: |
+          source venv/bin/activate
+          cd docs-output/python
+          sphinx-build -b html . _build/html
+
+      - name: Upload Python Docs Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-docs
+          path: docs-output/python/_build/html/
+
+  build-wasm-docs:
+    name: Build WASM Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
 
-      - name: Install JS Dependencies
-        run: npm install --prefix pkg typedoc
-
-      - name: Build Rust Docs
-        run: cargo doc --no-deps --target-dir docs/rust
-
-      - name: Build Python Docs
+      - name: Install Documentation Dependencies
         run: |
-          source venv/bin/activate
-          python -m maturin build --release
-          pip install ./target/wheels/veloxx-*.whl
-          cd docs/python
-          sphinx-build -b html source build
+          npm install -g typedoc typescript
+          npm install
 
-      - name: Build JS/Wasm Docs
-        run: npm run typedoc --prefix pkg
+      - name: Build WASM Package
+        run: |
+          echo "🕸️ Building WASM package for documentation..."
+          wasm-pack build --target web --out-dir pkg --dev
+
+      - name: Create TypeScript Definitions
+        run: |
+          echo "📝 Creating TypeScript documentation..."
+          mkdir -p docs-output/wasm
+          
+          # Create a basic TypeDoc configuration
+          cat > typedoc.json << 'EOF'
+          {
+            "entryPoints": ["pkg/veloxx.d.ts"],
+            "out": "docs-output/wasm",
+            "theme": "default",
+            "name": "Veloxx WASM Bindings",
+            "includeVersion": true,
+            "excludeExternals": true,
+            "readme": "none"
+          }
+          EOF
+
+      - name: Generate WASM Documentation
+        run: |
+          if [ -f "pkg/veloxx.d.ts" ]; then
+            echo "📚 Generating TypeScript documentation..."
+            typedoc
+          else
+            echo "⚠️ No TypeScript definitions found, creating basic documentation..."
+            mkdir -p docs-output/wasm
+            cat > docs-output/wasm/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Veloxx WASM Bindings</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; }
+                  .container { max-width: 800px; margin: 0 auto; }
+                  pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+                  code { background: #f0f0f0; padding: 2px 4px; border-radius: 3px; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>🕸️ Veloxx WASM Bindings</h1>
+                  
+                  <h2>Installation</h2>
+                  <pre><code>npm install veloxx</code></pre>
+                  
+                  <h2>Usage</h2>
+                  <pre><code>import init, { WasmDataFrame, WasmSeries } from 'veloxx';
+
+          async function example() {
+              // Initialize the WASM module
+              await init();
+              
+              // Create a DataFrame
+              const data = {
+                  name: ['Alice', 'Bob', 'Charlie'],
+                  age: [25, 30, 35],
+                  salary: [50000, 60000, 70000]
+              };
+              
+              const df = new WasmDataFrame(data);
+              console.log(`DataFrame: ${df.row_count} rows, ${df.column_count} columns`);
+              
+              // Get a column as a series
+              const ageColumn = df.getColumn('age');
+              if (ageColumn) {
+                  console.log(`Average age: ${ageColumn.mean()}`);
+              }
+          }
+
+          example();</code></pre>
+                  
+                  <h2>API Reference</h2>
+                  <p>The WASM bindings provide the following main classes:</p>
+                  <ul>
+                      <li><code>WasmDataFrame</code> - Main data structure for tabular data</li>
+                      <li><code>WasmSeries</code> - One-dimensional data structure</li>
+                      <li><code>WasmGroupedDataFrame</code> - Grouped data operations</li>
+                  </ul>
+                  
+                  <h3>WasmDataFrame Methods</h3>
+                  <ul>
+                      <li><code>new WasmDataFrame(data)</code> - Create from JavaScript object</li>
+                      <li><code>row_count</code> - Number of rows</li>
+                      <li><code>column_count</code> - Number of columns</li>
+                      <li><code>columnNames()</code> - Get column names</li>
+                      <li><code>getColumn(name)</code> - Get column as series</li>
+                      <li><code>filter(indices)</code> - Filter by row indices</li>
+                      <li><code>selectColumns(names)</code> - Select specific columns</li>
+                  </ul>
+                  
+                  <h3>WasmSeries Methods</h3>
+                  <ul>
+                      <li><code>len</code> - Series length</li>
+                      <li><code>isEmpty</code> - Check if empty</li>
+                      <li><code>getValue(index)</code> - Get value at index</li>
+                      <li><code>sum()</code> - Sum of values</li>
+                      <li><code>mean()</code> - Average of values</li>
+                      <li><code>min()</code> - Minimum value</li>
+                      <li><code>max()</code> - Maximum value</li>
+                  </ul>
+              </div>
+          </body>
+          </html>
+          EOF
+          fi
+
+      - name: Upload WASM Docs Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: wasm-docs
+          path: docs-output/wasm/
+
+  build-main-docs:
+    name: Build Main Documentation Site
+    runs-on: ubuntu-latest
+    needs: [build-rust-docs, build-python-docs, build-wasm-docs]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download All Documentation Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: docs-artifacts/
+
+      - name: Create Main Documentation Site
+        run: |
+          echo "🏗️ Creating main documentation site..."
+          mkdir -p docs-site
+          
+          # Create main index page
+          cat > docs-site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Veloxx Documentation</title>
+              <style>
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      line-height: 1.6;
+                      margin: 0;
+                      padding: 0;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      min-height: 100vh;
+                  }
+                  .container {
+                      max-width: 1200px;
+                      margin: 0 auto;
+                      padding: 40px 20px;
+                  }
+                  .header {
+                      text-align: center;
+                      color: white;
+                      margin-bottom: 60px;
+                  }
+                  .header h1 {
+                      font-size: 3.5em;
+                      margin: 0;
+                      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                  }
+                  .header p {
+                      font-size: 1.3em;
+                      margin: 20px 0;
+                      opacity: 0.9;
+                  }
+                  .docs-grid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                      gap: 30px;
+                      margin-top: 40px;
+                  }
+                  .doc-card {
+                      background: white;
+                      border-radius: 15px;
+                      padding: 30px;
+                      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                      transition: transform 0.3s ease, box-shadow 0.3s ease;
+                      text-decoration: none;
+                      color: inherit;
+                  }
+                  .doc-card:hover {
+                      transform: translateY(-5px);
+                      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+                  }
+                  .doc-icon {
+                      font-size: 3em;
+                      margin-bottom: 20px;
+                      display: block;
+                  }
+                  .doc-title {
+                      font-size: 1.5em;
+                      font-weight: bold;
+                      margin-bottom: 15px;
+                      color: #333;
+                  }
+                  .doc-description {
+                      color: #666;
+                      margin-bottom: 20px;
+                  }
+                  .doc-link {
+                      display: inline-block;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      color: white;
+                      padding: 12px 24px;
+                      border-radius: 25px;
+                      text-decoration: none;
+                      font-weight: 500;
+                      transition: opacity 0.3s ease;
+                  }
+                  .doc-link:hover {
+                      opacity: 0.9;
+                  }
+                  .features {
+                      background: white;
+                      border-radius: 15px;
+                      padding: 40px;
+                      margin-top: 40px;
+                      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                  }
+                  .features h2 {
+                      color: #333;
+                      margin-bottom: 30px;
+                      text-align: center;
+                  }
+                  .features-grid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                      gap: 20px;
+                  }
+                  .feature {
+                      text-align: center;
+                      padding: 20px;
+                  }
+                  .feature-icon {
+                      font-size: 2em;
+                      margin-bottom: 15px;
+                      display: block;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      <h1>🦀 Veloxx</h1>
+                      <p>High-performance data processing library with multi-language bindings</p>
+                  </div>
+                  
+                  <div class="docs-grid">
+                      <a href="rust/" class="doc-card">
+                          <span class="doc-icon">🦀</span>
+                          <div class="doc-title">Rust Documentation</div>
+                          <div class="doc-description">
+                              Complete API reference for the core Rust library with detailed examples and type information.
+                          </div>
+                          <span class="doc-link">View Rust Docs</span>
+                      </a>
+                      
+                      <a href="python/" class="doc-card">
+                          <span class="doc-icon">🐍</span>
+                          <div class="doc-title">Python Bindings</div>
+                          <div class="doc-description">
+                              Python API documentation with installation guide, examples, and complete class reference.
+                          </div>
+                          <span class="doc-link">View Python Docs</span>
+                      </a>
+                      
+                      <a href="wasm/" class="doc-card">
+                          <span class="doc-icon">🕸️</span>
+                          <div class="doc-title">WASM/JavaScript</div>
+                          <div class="doc-description">
+                              WebAssembly bindings for JavaScript with TypeScript definitions and browser examples.
+                          </div>
+                          <span class="doc-link">View WASM Docs</span>
+                      </a>
+                  </div>
+                  
+                  <div class="features">
+                      <h2>✨ Key Features</h2>
+                      <div class="features-grid">
+                          <div class="feature">
+                              <span class="feature-icon">⚡</span>
+                              <h3>High Performance</h3>
+                              <p>Optimized Rust core with zero-copy operations</p>
+                          </div>
+                          <div class="feature">
+                              <span class="feature-icon">🌐</span>
+                              <h3>Multi-Language</h3>
+                              <p>Native bindings for Rust, Python, and JavaScript</p>
+                          </div>
+                          <div class="feature">
+                              <span class="feature-icon">🔧</span>
+                              <h3>Type Safe</h3>
+                              <p>Strong typing with comprehensive error handling</p>
+                          </div>
+                          <div class="feature">
+                              <span class="feature-icon">📊</span>
+                              <h3>Data Processing</h3>
+                              <p>Rich set of operations for data manipulation</p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+
+          # Copy documentation artifacts
+          if [ -d "docs-artifacts/rust-docs" ]; then
+            cp -r docs-artifacts/rust-docs/* docs-site/rust/
+          fi
+          
+          if [ -d "docs-artifacts/python-docs" ]; then
+            mkdir -p docs-site/python
+            cp -r docs-artifacts/python-docs/* docs-site/python/
+          fi
+          
+          if [ -d "docs-artifacts/wasm-docs" ]; then
+            mkdir -p docs-site/wasm
+            cp -r docs-artifacts/wasm-docs/* docs-site/wasm/
+          fi
+
+      - name: Upload Complete Documentation Site
+        uses: actions/upload-artifact@v3
+        with:
+          name: complete-docs-site
+          path: docs-site/
+
+  deploy-docs:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build-main-docs
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Download Complete Documentation Site
+        uses: actions/download-artifact@v3
+        with:
+          name: complete-docs-site
+          path: docs-site/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs-site/
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          force_orphan: true
+        id: deployment
+        uses: actions/deploy-pages@v2

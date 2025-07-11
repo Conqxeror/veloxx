@@ -84,7 +84,7 @@ use crate::types::Value;
 ///     Box::new(Expr::Not(Box::new(Expr::Column("is_suspended".to_string())))),
 /// );
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     /// Refers to a column by its name.
     ///

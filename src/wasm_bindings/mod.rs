@@ -1,4 +1,5 @@
 use crate::dataframe::DataFrame;
+use crate::expressions::Expr;
 use crate::series::Series;
 use crate::types::{DataType, Value};
 use std::collections::BTreeMap;
@@ -322,29 +323,34 @@ impl WasmValue {
 
 #[wasm_bindgen(js_name = WasmGroupedDataFrame)]
 pub struct WasmGroupedDataFrame {
-    grouped_df: GroupedDataFrame<'static>,
+    dataframe: DataFrame,
+    group_columns: Vec<String>,
 }
 
 #[wasm_bindgen]
 impl WasmGroupedDataFrame {
     #[wasm_bindgen]
     pub fn agg(&self, aggregations: Box<[JsValue]>) -> Result<WasmDataFrame, JsValue> {
-        let rust_aggregations: Vec<(&str, &str)> = aggregations
-            .into_iter()
+        let rust_aggregations: Vec<(String, String)> = IntoIterator::into_iter(aggregations)
             .map(|js_val| {
                 let arr = js_sys::Array::from(&js_val);
                 let col = arr.get(0).as_string().unwrap_or_default();
                 let agg = arr.get(1).as_string().unwrap_or_default();
-                (
-                    Box::leak(col.into_boxed_str()),
-                    Box::leak(agg.into_boxed_str()),
-                )
+                (col, agg)
             })
             .collect();
+        // Convert to the expected format
+        let string_refs: Vec<(&str, &str)> = rust_aggregations
+            .iter()
+            .map(|(col, agg)| (col.as_str(), agg.as_str()))
+            .collect();
+
+        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
         Ok(WasmDataFrame {
-            df: self
-                .grouped_df
-                .agg(rust_aggregations)
+            df: grouped_df
+                .agg(string_refs)
                 .map_err(|e| JsValue::from_str(&e.to_string()))?,
         })
     }
@@ -583,8 +589,7 @@ impl WasmDataFrame {
 
     #[wasm_bindgen(js_name = selectColumns)]
     pub fn select_columns(&self, names: Box<[JsValue]>) -> Result<WasmDataFrame, JsValue> {
-        let names_vec: Vec<String> = names
-            .into_iter()
+        let names_vec: Vec<String> = IntoIterator::into_iter(names)
             .map(|s| s.as_string().unwrap_or_default())
             .collect();
         Ok(WasmDataFrame {
@@ -597,8 +602,7 @@ impl WasmDataFrame {
 
     #[wasm_bindgen(js_name = dropColumns)]
     pub fn drop_columns(&self, names: Box<[JsValue]>) -> Result<WasmDataFrame, JsValue> {
-        let names_vec: Vec<String> = names
-            .into_iter()
+        let names_vec: Vec<String> = IntoIterator::into_iter(names)
             .map(|s| s.as_string().unwrap_or_default())
             .collect();
         Ok(WasmDataFrame {
@@ -641,15 +645,12 @@ impl WasmDataFrame {
 
     #[wasm_bindgen(js_name = groupBy)]
     pub fn group_by(&self, by_columns: Box<[JsValue]>) -> Result<WasmGroupedDataFrame, JsValue> {
-        let by_columns_vec: Vec<String> = by_columns
-            .into_iter()
+        let by_columns_vec: Vec<String> = IntoIterator::into_iter(by_columns)
             .map(|s| s.as_string().unwrap_or_default())
             .collect();
         Ok(WasmGroupedDataFrame {
-            grouped_df: self
-                .df
-                .group_by(by_columns_vec)
-                .map_err(|e| JsValue::from_str(&e.to_string()))?,
+            dataframe: self.df.clone(),
+            group_columns: by_columns_vec,
         })
     }
 
@@ -694,49 +695,7 @@ impl WasmDataFrame {
     #[wasm_bindgen]
     pub fn append(&self, other: &WasmDataFrame) -> Result<WasmDataFrame, JsValue> {
         Ok(WasmDataFrame {
-            df: self
-                .df
-                .append(&other.df)
-                .map_err(|e| JsValue::from_str(&e.to_string()))?,
-        })
-    }
-
-    #[wasm_bindgen(js_name = fromCsv)]
-    pub fn from_csv(path: &str) -> Result<WasmDataFrame, JsValue> {
-        Ok(WasmDataFrame {
-            df: DataFrame::from_csv(path).map_err(|e| JsValue::from_str(&e.to_string()))?,
-        })
-    }
-
-    #[wasm_bindgen(js_name = fromJson)]
-    pub fn from_json(path: &str) -> Result<WasmDataFrame, JsValue> {
-        Ok(WasmDataFrame {
-            df: DataFrame::from_json(path).map_err(|e| JsValue::from_str(&e.to_string()))?,
-        })
-    }
-
-    #[wasm_bindgen(js_name = toCsv)]
-    pub fn to_csv(&self, path: &str) -> Result<(), JsValue> {
-        self.df
-            .to_csv(path)
-            .map_err(|e| JsValue::from_str(&e.to_string()))
-    }
-
-    #[wasm_bindgen]
-    pub fn sort(
-        &self,
-        by_columns: Box<[JsValue]>,
-        ascending: bool,
-    ) -> Result<WasmDataFrame, JsValue> {
-        let by_columns_vec: Vec<String> = by_columns
-            .into_iter()
-            .map(|s| s.as_string().unwrap_or_default())
-            .collect();
-        Ok(WasmDataFrame {
-            df: self
-                .df
-                .sort(by_columns_vec, ascending)
-                .map_err(|e| JsValue::from_str(&e.to_string()))?,
+            df: self.df.append(&other.df).map_err(|e| JsValue::from_str(&e.to_string()))?,
         })
     }
 }

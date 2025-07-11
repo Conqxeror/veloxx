@@ -1,4 +1,6 @@
-#![doc(html_logo_url = "https://raw.githubusercontent.com/Conqxeror/veloxx/main/docs/veloxx_logo.png")]
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/Conqxeror/veloxx/main/docs/veloxx_logo.png"
+)]
 //! Veloxx is a lightweight Rust library for in-memory data processing and analytics.
 //! It provides core data structures like `DataFrame` and `Series`, along with a suite
 //! of operations for data manipulation, cleaning, aggregation, and basic statistics.
