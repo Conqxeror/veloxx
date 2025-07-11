@@ -46,7 +46,7 @@ jobs:
           echo '<meta http-equiv="refresh" content="0; url=veloxx">' > docs-output/rust/index.html
 
       - name: Upload Rust Docs Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rust-docs
           path: docs-output/rust/
@@ -206,7 +206,7 @@ jobs:
           sphinx-build -b html . _build/html
 
       - name: Upload Python Docs Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-docs
           path: docs-output/python/_build/html/
@@ -349,7 +349,7 @@ jobs:
           fi
 
       - name: Upload WASM Docs Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wasm-docs
           path: docs-output/wasm/
@@ -364,7 +364,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download All Documentation Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: docs-artifacts/
 
@@ -567,7 +567,7 @@ jobs:
           fi
 
       - name: Upload Complete Documentation Site
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: complete-docs-site
           path: docs-site/
@@ -589,7 +589,7 @@ jobs:
     
     steps:
       - name: Download Complete Documentation Site
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: complete-docs-site
           path: docs-site/

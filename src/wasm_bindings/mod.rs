@@ -13,6 +13,7 @@ pub struct WasmSeries {
 #[wasm_bindgen]
 impl WasmSeries {
     #[wasm_bindgen(constructor)]
+    #[allow(clippy::boxed_local)]
     pub fn new(name: &str, data: Box<[JsValue]>) -> Result<WasmSeries, JsValue> {
         let mut i32_data = Vec::new();
         let mut f64_data = Vec::new();
@@ -345,7 +346,9 @@ impl WasmGroupedDataFrame {
             .map(|(col, agg)| (col.as_str(), agg.as_str()))
             .collect();
 
-        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+        let grouped_df = self
+            .dataframe
+            .group_by(self.group_columns.clone())
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
         Ok(WasmDataFrame {
@@ -695,7 +698,10 @@ impl WasmDataFrame {
     #[wasm_bindgen]
     pub fn append(&self, other: &WasmDataFrame) -> Result<WasmDataFrame, JsValue> {
         Ok(WasmDataFrame {
-            df: self.df.append(&other.df).map_err(|e| JsValue::from_str(&e.to_string()))?,
+            df: self
+                .df
+                .append(&other.df)
+                .map_err(|e| JsValue::from_str(&e.to_string()))?,
         })
     }
 }

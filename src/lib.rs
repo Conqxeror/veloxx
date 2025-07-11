@@ -1,3 +1,4 @@
+#![allow(clippy::uninlined_format_args)]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/Conqxeror/veloxx/main/docs/veloxx_logo.png"
 )]

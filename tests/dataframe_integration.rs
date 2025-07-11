@@ -218,11 +218,20 @@ mod tests {
 
     #[test]
     fn test_series_unique() {
-        let series_i32 = Series::new_i32("col1", vec![Some(1), Some(2), Some(1), None, Some(3), None]);
+        let series_i32 =
+            Series::new_i32("col1", vec![Some(1), Some(2), Some(1), None, Some(3), None]);
         let unique_i32 = series_i32.unique().unwrap();
         assert!(unique_i32.len() <= 4); // Should have at most 4 unique values: 1, 2, 3, None
 
-        let series_string = Series::new_string("col3", vec![Some("a".to_string()), Some("b".to_string()), Some("a".to_string()), None]);
+        let series_string = Series::new_string(
+            "col3",
+            vec![
+                Some("a".to_string()),
+                Some("b".to_string()),
+                Some("a".to_string()),
+                None,
+            ],
+        );
         let unique_string = series_string.unique().unwrap();
         assert!(unique_string.len() <= 3); // Should have at most 3 unique values: "a", "b", None
     }

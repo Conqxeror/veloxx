@@ -1,21 +1,32 @@
+[workspace]
+resolver = "2"
+
+[workspace.lints.clippy]
+uninlined_format_args = "allow"
+
 [package]
 name = "veloxx"
 version = "0.2.4"
 edition = "2021"
-description = "Veloxx: A high-performance, lightweight Rust library for in-memory data processing and analytics. Featuring DataFrames, Series, CSV/JSON I/O, powerful transformations, aggregations, and statistical functions for efficient data science and engineering."
-license = "MIT"
-authors = ["Wali Mohammad Kadri"]
-homepage = "https://github.com/Conqxeror/veloxx"
+authors = ["Conqxeror <conqxeror@gmail.com>"]
+description = "A lightweight Rust library for in-memory data processing and analytics"
 repository = "https://github.com/Conqxeror/veloxx"
-keywords = ["dataframe", "data-processing", "analytics", "high-performance", "lightweight"]
-categories = ["data-structures", "science", "parsing", "api-bindings"]
+license = "MIT"
+keywords = ["data", "analytics", "dataframe", "series", "statistics"]
+categories = ["data-structures", "science"]
+readme = "README.md"
 
 [lib]
-path = "src/lib.rs"
+name = "veloxx"
 crate-type = ["cdylib", "rlib"]
 
+[features]
+default = []
+python = ["pyo3"]
+wasm = ["wasm-bindgen", "js-sys"]
+
 [dependencies]
-csv-core = "0.1.10"
+csv-core = "0.1.12"
 microjson = "0.1.6"
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
@@ -24,9 +35,20 @@ thiserror = "1.0"
 bincode = "2.0.1"
 serde = { version = "1.0.219", features = ["derive"] }
 
+[lints]
+workspace = true
+
 [[example]]
 name = "basic_dataframe_operations"
 path = "examples/basic_dataframe_operations.rs"
+
+[[example]]
+name = "dataframe_manipulation"
+path = "examples/dataframe_manipulation.rs"
+
+[[example]]
+name = "dataframe_aggregation_and_stats"
+path = "examples/dataframe_aggregation_and_stats.rs"
 
 [dev-dependencies]
 criterion = "0.5"
@@ -35,16 +57,5 @@ criterion = "0.5"
 name = "my_benchmark"
 harness = false
 
-[[test]]
-name = "dataframe_integration"
-path = "tests/dataframe_integration.rs"
-harness = true
-
-[features]
-python = ["pyo3"]
-wasm = ["wasm-bindgen", "js-sys"]
-
-
-
-
-
+[package.metadata.maturin]
+name = "veloxx"

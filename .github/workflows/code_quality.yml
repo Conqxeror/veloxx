@@ -213,7 +213,7 @@ jobs:
           license-checker --json > node-licenses.json || echo "⚠️ License check completed with warnings"
 
       - name: Archive License Reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: license-reports
           path: |

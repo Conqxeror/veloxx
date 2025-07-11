@@ -1,13 +1,13 @@
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 use std::collections::BTreeMap;
 
-use crate::dataframe::DataFrame;
 use crate::dataframe::join::JoinType;
-use crate::types::Value;
-use crate::series::Series;
+use crate::dataframe::DataFrame;
 use crate::expressions::Expr;
+use crate::series::Series;
+use crate::types::Value;
 
 #[pyclass]
 pub struct PyDataFrame {
@@ -74,7 +74,10 @@ impl PyDataFrame {
 
     fn drop_columns(&self, names: Vec<String>) -> PyResult<Self> {
         Ok(PyDataFrame {
-            df: self.df.drop_columns(names).map_err(|e| PyValueError::new_err(e.to_string()))?,
+            df: self
+                .df
+                .drop_columns(names)
+                .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
 
@@ -89,7 +92,10 @@ impl PyDataFrame {
 
     fn drop_nulls(&self) -> PyResult<Self> {
         Ok(PyDataFrame {
-            df: self.df.drop_nulls().map_err(|e| PyValueError::new_err(e.to_string()))?,
+            df: self
+                .df
+                .drop_nulls()
+                .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
 
@@ -118,7 +124,9 @@ impl PyDataFrame {
     }
 
     fn to_csv(&self, path: &str) -> PyResult<()> {
-        self.df.to_csv(path).map_err(|e| PyValueError::new_err(e.to_string()))
+        self.df
+            .to_csv(path)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     fn join(&self, other: &PyDataFrame, on_column: &str, join_type: PyJoinType) -> PyResult<Self> {
@@ -151,7 +159,10 @@ impl PyDataFrame {
 
     fn describe(&self) -> PyResult<Self> {
         Ok(PyDataFrame {
-            df: self.df.describe().map_err(|e| PyValueError::new_err(e.to_string()))?,
+            df: self
+                .df
+                .describe()
+                .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
 
@@ -169,13 +180,19 @@ impl PyDataFrame {
 
     fn append(&self, other: &PyDataFrame) -> PyResult<Self> {
         Ok(PyDataFrame {
-            df: self.df.append(&other.df).map_err(|e| PyValueError::new_err(e.to_string()))?,
+            df: self
+                .df
+                .append(&other.df)
+                .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
 
     fn sort(&self, by_columns: Vec<String>, ascending: bool) -> PyResult<Self> {
         Ok(PyDataFrame {
-            df: self.df.sort(by_columns, ascending).map_err(|e| PyValueError::new_err(e.to_string()))?,
+            df: self
+                .df
+                .sort(by_columns, ascending)
+                .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
 
@@ -197,7 +214,9 @@ pub struct PyGroupedDataFrame {
 #[pymethods]
 impl PyGroupedDataFrame {
     fn sum(&self) -> PyResult<PyDataFrame> {
-        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+        let grouped_df = self
+            .dataframe
+            .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyDataFrame {
             df: grouped_df
@@ -207,7 +226,9 @@ impl PyGroupedDataFrame {
     }
 
     fn mean(&self) -> PyResult<PyDataFrame> {
-        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+        let grouped_df = self
+            .dataframe
+            .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyDataFrame {
             df: grouped_df
@@ -217,7 +238,9 @@ impl PyGroupedDataFrame {
     }
 
     fn count(&self) -> PyResult<PyDataFrame> {
-        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+        let grouped_df = self
+            .dataframe
+            .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyDataFrame {
             df: grouped_df
@@ -227,7 +250,9 @@ impl PyGroupedDataFrame {
     }
 
     fn max(&self) -> PyResult<PyDataFrame> {
-        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+        let grouped_df = self
+            .dataframe
+            .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyDataFrame {
             df: grouped_df
@@ -237,7 +262,9 @@ impl PyGroupedDataFrame {
     }
 
     fn min(&self) -> PyResult<PyDataFrame> {
-        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+        let grouped_df = self
+            .dataframe
+            .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyDataFrame {
             df: grouped_df
@@ -247,7 +274,9 @@ impl PyGroupedDataFrame {
     }
 
     fn agg(&self, aggregations: Vec<(String, String)>) -> PyResult<PyDataFrame> {
-        let grouped_df = self.dataframe.group_by(self.group_columns.clone())
+        let grouped_df = self
+            .dataframe
+            .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         let string_refs: Vec<(&str, &str)> = aggregations
             .iter()
@@ -562,12 +591,18 @@ impl PySeries {
 
     fn unique(&self) -> PyResult<Self> {
         Ok(PySeries {
-            series: self.series.unique().map_err(|e| PyValueError::new_err(e.to_string()))?,
+            series: self
+                .series
+                .unique()
+                .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
 
     fn to_vec_f64<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
-        let vec_f64 = self.series.to_vec_f64().map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let vec_f64 = self
+            .series
+            .to_vec_f64()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyList::new_bound(py, vec_f64))
     }
 
