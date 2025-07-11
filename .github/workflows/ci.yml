@@ -60,6 +60,9 @@ jobs:
         with:
           node-version: "18"
 
+      - name: Build WASM Package
+        run: wasm-pack build --target node --out-dir pkg
+
       - name: Install JS Dependencies
         run: npm install --prefix pkg
 
