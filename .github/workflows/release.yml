@@ -92,7 +92,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache Rust Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -140,7 +140,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Rust Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -169,7 +169,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     
     steps:
       - name: Checkout Code
@@ -262,7 +262,7 @@ jobs:
       - name: Build WASM Package
         run: |
           echo "🕸️ Building WASM package..."
-          wasm-pack build --target web --out-dir pkg --release
+          wasm-pack build --target web --out-dir pkg --release --features wasm
 
       - name: Verify Package
         run: |

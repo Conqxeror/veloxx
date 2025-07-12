@@ -28,7 +28,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Cache Rust Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -76,7 +76,7 @@ jobs:
       - name: Install Python Quality Tools
         run: |
           pip install --upgrade pip
-          pip install black isort flake8 mypy bandit
+          pip install -r requirements.txt
 
       - name: Check Python Formatting (Black)
         run: |
@@ -171,7 +171,9 @@ jobs:
           python-version: "3.11"
 
       - name: Install Safety
-        run: pip install safety
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Python Security Audit
         run: |
@@ -232,7 +234,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Rust Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry

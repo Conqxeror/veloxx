@@ -37,6 +37,7 @@ impl PyDataFrame {
         self.df.column_count()
     }
 
+    #[allow(deprecated)]
     fn column_names<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
         let names: Vec<String> = self
             .df
@@ -598,6 +599,7 @@ impl PySeries {
         })
     }
 
+    #[allow(deprecated)]
     fn to_vec_f64<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
         let vec_f64 = self
             .series
@@ -679,6 +681,7 @@ fn extract_value(py_value: &Bound<PyAny>) -> PyResult<Value> {
     }
 }
 
+#[allow(deprecated)]
 fn value_to_py(py: Python, value: Value) -> PyObject {
     match value {
         Value::I32(v) => v.into_py(py),

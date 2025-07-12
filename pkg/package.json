@@ -2,9 +2,9 @@
   "name": "veloxx",
   "type": "module",
   "collaborators": [
-    "Wali Mohammad Kadri"
+    "Conqxeror <conqxeror@gmail.com>"
   ],
-  "description": "Veloxx: A high-performance, lightweight Rust library for in-memory data processing and analytics. Featuring DataFrames, Series, CSV/JSON I/O, powerful transformations, aggregations, and statistical functions for efficient data science and engineering.",
+  "description": "A lightweight Rust library for in-memory data processing and analytics",
   "version": "0.2.4",
   "license": "MIT",
   "repository": {
@@ -17,16 +17,15 @@
     "veloxx.d.ts"
   ],
   "main": "veloxx.js",
-  "homepage": "https://github.com/Conqxeror/veloxx",
   "types": "veloxx.d.ts",
   "sideEffects": [
     "./snippets/*"
   ],
   "keywords": [
-    "dataframe",
-    "data-processing",
+    "data",
     "analytics",
-    "high-performance",
-    "lightweight"
+    "dataframe",
+    "series",
+    "statistics"
   ]
 }

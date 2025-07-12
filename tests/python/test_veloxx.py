@@ -1,17 +1,21 @@
-import veloxx
 import pytest
+import veloxx
+
 
 @pytest.fixture
 def sample_series_i32():
     return veloxx.PySeries("test_series_i32", [1, 2, None, 4])
 
+
 @pytest.fixture
 def sample_series_f64():
     return veloxx.PySeries("test_series_f64", [1.0, 2.5, None, 4.0])
 
+
 @pytest.fixture
 def sample_series_string():
     return veloxx.PySeries("test_series_string", ["a", "b", None, "d"])
+
 
 @pytest.fixture
 def sample_dataframe():
@@ -19,6 +23,7 @@ def sample_dataframe():
     s2 = veloxx.PySeries("col2", ["a", "b", "c", "d"])
     s3 = veloxx.PySeries("col3", [1.0, 2.0, 3.0, 4.0])
     return veloxx.PyDataFrame({"col1": s1, "col2": s2, "col3": s3})
+
 
 class TestPySeries:
     def test_series_creation(self, sample_series_i32):
@@ -64,7 +69,7 @@ class TestPySeries:
     def test_series_fill_nulls(self, sample_series_i32):
         filled_s = sample_series_i32.fill_nulls(99)
         assert filled_s.get_value(2) == 99
-        assert filled_s.get_value(0) == 1 # Ensure non-nulls are unchanged
+        assert filled_s.get_value(0) == 1  # Ensure non-nulls are unchanged
 
     def test_series_sum(self, sample_series_i32):
         assert sample_series_i32.sum() == 7
@@ -76,12 +81,12 @@ class TestPySeries:
         casted_s = sample_series_i32.cast(veloxx.PyDataType.F64)
         assert casted_s.data_type() == veloxx.PyDataType.F64
         assert casted_s.get_value(0) == 1.0
-        assert casted_s.get_value(2) is None # Nulls should remain null
+        assert casted_s.get_value(2) is None  # Nulls should remain null
 
     def test_series_unique(self):
         s = veloxx.PySeries("test_series_unique", [1, 2, 2, 3, 1, None])
         unique_s = s.unique()
-        assert unique_s.len() == 4 # 1, 2, 3, None
+        assert unique_s.len() == 4  # 1, 2, 3, None
         assert unique_s.get_value(0) == 1
         assert unique_s.get_value(1) == 2
         assert unique_s.get_value(2) == 3
@@ -118,6 +123,7 @@ class TestPySeries:
     def test_series_std_dev(self):
         s = veloxx.PySeries("std_dev", [1.0, 2.0, 3.0, 4.0, 5.0])
         assert s.std_dev() == pytest.approx(1.5811388300841898)
+
 
 class TestPyDataFrame:
     def test_dataframe_creation(self, sample_dataframe):

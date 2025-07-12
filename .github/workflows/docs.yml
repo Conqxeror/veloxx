@@ -25,7 +25,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Rust Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -72,13 +72,13 @@ jobs:
 
       - name: Install Documentation Dependencies
         run: |
-          source venv/bin/activate
+          source venv/bin/activate || venv\Scripts\activate
           pip install --upgrade pip
-          pip install maturin sphinx sphinx-rtd-theme sphinx-autodoc-typehints
+          pip install -r requirements.txt
 
       - name: Build Python Bindings
         run: |
-          source venv/bin/activate
+          source venv/bin/activate || venv\Scripts\activate
           maturin develop --features python
 
       - name: Create Python Documentation Structure
@@ -201,7 +201,7 @@ jobs:
 
       - name: Build Python Documentation
         run: |
-          source venv/bin/activate
+          source venv/bin/activate || venv\Scripts\activate
           cd docs-output/python
           sphinx-build -b html . _build/html
 
@@ -240,7 +240,7 @@ jobs:
       - name: Build WASM Package
         run: |
           echo "🕸️ Building WASM package for documentation..."
-          wasm-pack build --target web --out-dir pkg --dev
+          wasm-pack build --target web --out-dir pkg --features wasm
 
       - name: Create TypeScript Definitions
         run: |
