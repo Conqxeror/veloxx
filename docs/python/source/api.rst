@@ -18,6 +18,7 @@ PyDataFrame
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
    The main data structure for working with tabular data in Veloxx. A DataFrame consists of named columns (Series) and provides methods for data manipulation, filtering, and analysis.
 
@@ -46,6 +47,7 @@ PySeries
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
    Represents a column of data with a specific type. Series support various operations depending on their data type.
 

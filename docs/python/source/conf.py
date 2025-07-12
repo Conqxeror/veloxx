@@ -39,8 +39,7 @@ html_static_path = ['_static']
 html_logo = '../../veloxx_logo.png'
 html_theme_options = { 
     'style_external_links': True, 
-    'style_nav_header_background': '#2980B9', 
-    'dark_mode': True 
+    'style_nav_header_background': '#2980B9'
 }
 
 autodoc_member_order = 'bysource'

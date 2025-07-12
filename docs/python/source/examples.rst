@@ -87,7 +87,7 @@ Let's analyze a sales dataset to demonstrate common data analysis patterns:
     print(high_value_df)
 
 Employee Performance Analysis
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Analyzing employee performance data:
 
@@ -339,7 +339,7 @@ Performance Optimization Examples
 ---------------------------------
 
 Efficient Data Processing
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
