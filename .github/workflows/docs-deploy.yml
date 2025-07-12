@@ -71,211 +71,24 @@ jobs:
           mkdir -p docs-site
           
           # Copy Rust docs
+          echo "Copying Rust documentation..."
           mkdir -p docs-site/rust
           cp -r target/doc/* docs-site/rust/
           echo '<meta http-equiv="refresh" content="0; url=veloxx">' > docs-site/rust/index.html
           
           # Copy Python docs
+          echo "Copying Python documentation..."
           mkdir -p docs-site/python
           cp -r docs/python/build/* docs-site/python/
           
           # Copy JavaScript docs
+          echo "Copying JavaScript documentation..."
           mkdir -p docs-site/js
           cp -r docs/js/* docs-site/js/
           
-          # Create main index page
-          cat > docs-site/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Veloxx Documentation</title>
-              <style>
-                  body {
-                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                      line-height: 1.6;
-                      margin: 0;
-                      padding: 0;
-                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                      min-height: 100vh;
-                  }
-                  .container {
-                      max-width: 1200px;
-                      margin: 0 auto;
-                      padding: 40px 20px;
-                  }
-                  .header {
-                      text-align: center;
-                      color: white;
-                      margin-bottom: 60px;
-                  }
-                  .header h1 {
-                      font-size: 3.5em;
-                      margin: 0;
-                      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                  }
-                  .header p {
-                      font-size: 1.3em;
-                      margin: 20px 0;
-                      opacity: 0.9;
-                  }
-                  .docs-grid {
-                      display: grid;
-                      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-                      gap: 30px;
-                      margin-top: 40px;
-                  }
-                  .doc-card {
-                      background: white;
-                      border-radius: 15px;
-                      padding: 30px;
-                      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                      transition: transform 0.3s ease, box-shadow 0.3s ease;
-                      text-decoration: none;
-                      color: inherit;
-                  }
-                  .doc-card:hover {
-                      transform: translateY(-5px);
-                      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-                  }
-                  .doc-icon {
-                      font-size: 3em;
-                      margin-bottom: 20px;
-                      display: block;
-                  }
-                  .doc-title {
-                      font-size: 1.5em;
-                      font-weight: bold;
-                      margin-bottom: 15px;
-                      color: #333;
-                  }
-                  .doc-description {
-                      color: #666;
-                      margin-bottom: 20px;
-                  }
-                  .doc-link {
-                      display: inline-block;
-                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                      color: white;
-                      padding: 12px 24px;
-                      border-radius: 25px;
-                      text-decoration: none;
-                      font-weight: 500;
-                      transition: opacity 0.3s ease;
-                  }
-                  .doc-link:hover {
-                      opacity: 0.9;
-                  }
-                  .features {
-                      background: white;
-                      border-radius: 15px;
-                      padding: 40px;
-                      margin-top: 40px;
-                      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                  }
-                  .features h2 {
-                      color: #333;
-                      margin-bottom: 30px;
-                      text-align: center;
-                  }
-                  .features-grid {
-                      display: grid;
-                      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                      gap: 20px;
-                  }
-                  .feature {
-                      text-align: center;
-                      padding: 20px;
-                  }
-                  .feature-icon {
-                      font-size: 2em;
-                      margin-bottom: 15px;
-                      display: block;
-                  }
-              </style>
-          </head>
-          <body>
-              <div class="container">
-                  <div class="header">
-                      <h1>🦀 Veloxx</h1>
-                      <p>High-performance data processing library with multi-language bindings</p>
-                  </div>
-                  
-                  <div class="docs-grid">
-                      <a href="rust/" class="doc-card">
-                          <span class="doc-icon">🦀</span>
-                          <div class="doc-title">Rust Documentation</div>
-                          <div class="doc-description">
-                              Complete API reference for the core Rust library with detailed examples and type information.
-                          </div>
-                          <div class="doc-link">View Rust Docs</div>
-                      </a>
-                      
-                      <a href="python/" class="doc-card">
-                          <span class="doc-icon">🐍</span>
-                          <div class="doc-title">Python Bindings</div>
-                          <div class="doc-description">
-                              Comprehensive Python API documentation with installation guide, tutorials, and examples.
-                          </div>
-                          <div class="doc-link">View Python Docs</div>
-                      </a>
-                      
-                      <a href="js/" class="doc-card">
-                          <span class="doc-icon">🕸️</span>
-                          <div class="doc-title">JavaScript/WebAssembly</div>
-                          <div class="doc-description">
-                              WebAssembly bindings for JavaScript/TypeScript with browser and Node.js support.
-                          </div>
-                          <div class="doc-link">View JS/WASM Docs</div>
-                      </a>
-                  </div>
-                  
-                  <div class="features">
-                      <h2>✨ Key Features</h2>
-                      <div class="features-grid">
-                          <div class="feature">
-                              <span class="feature-icon">⚡</span>
-                              <h3>High Performance</h3>
-                              <p>Zero-cost abstractions and optimized data structures for maximum performance</p>
-                          </div>
-                          <div class="feature">
-                              <span class="feature-icon">🪶</span>
-                              <h3>Lightweight</h3>
-                              <p>Minimal dependencies and small binary size for resource-constrained environments</p>
-                          </div>
-                          <div class="feature">
-                              <span class="feature-icon">🔒</span>
-                              <h3>Memory Safe</h3>
-                              <p>Rust's ownership system ensures memory safety without garbage collection</p>
-                          </div>
-                          <div class="feature">
-                              <span class="feature-icon">🌐</span>
-                              <h3>Multi-Language</h3>
-                              <p>Native bindings for Python and WebAssembly with consistent APIs</p>
-                          </div>
-                          <div class="feature">
-                              <span class="feature-icon">📊</span>
-                              <h3>Data Analytics</h3>
-                              <p>Comprehensive data manipulation, filtering, and aggregation capabilities</p>
-                          </div>
-                          <div class="feature">
-                              <span class="feature-icon">🔧</span>
-                              <h3>Extensible</h3>
-                              <p>Modular design allowing easy extension and customization</p>
-                          </div>
-                      </div>
-                  </div>
-                  
-                  <div style="text-align: center; margin-top: 40px;">
-                      <a href="https://github.com/Conqxeror/veloxx" style="color: white; text-decoration: none; font-size: 1.2em;">
-                          📖 View on GitHub
-                      </a>
-                  </div>
-              </div>
-          </body>
-          </html>
-          EOF
+          # Create main index page using a simpler approach
+          echo "Creating main index page..."
+          cp simple-index.html docs-site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
