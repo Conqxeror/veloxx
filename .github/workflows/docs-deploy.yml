@@ -58,37 +58,80 @@ jobs:
         run: |
           echo "📚 Building Rust documentation..."
           cargo doc --all-features --no-deps --document-private-items
+          echo "✅ Rust documentation build completed"
+          ls -la target/doc/
 
       - name: Build Python Documentation
         run: |
           echo "🐍 Building Python documentation..."
           cd docs/python
           sphinx-build -b html source build
+          echo "✅ Python documentation build completed"
+          ls -la build/
 
       - name: Create Documentation Site
         run: |
           echo "🏗️ Creating documentation site..."
+          
+          # Create main directory
           mkdir -p docs-site
+          echo "✅ Created docs-site directory"
+          
+          # Check if required files exist
+          echo "🔍 Checking required files..."
+          if [ ! -f "simple-index.html" ]; then
+            echo "❌ simple-index.html not found!"
+            exit 1
+          fi
+          echo "✅ simple-index.html found"
+          
+          if [ ! -d "target/doc" ]; then
+            echo "❌ target/doc directory not found!"
+            exit 1
+          fi
+          echo "✅ target/doc directory found"
+          
+          if [ ! -d "docs/python/build" ]; then
+            echo "❌ docs/python/build directory not found!"
+            exit 1
+          fi
+          echo "✅ docs/python/build directory found"
+          
+          if [ ! -d "docs/js" ]; then
+            echo "❌ docs/js directory not found!"
+            exit 1
+          fi
+          echo "✅ docs/js directory found"
           
           # Copy Rust docs
-          echo "Copying Rust documentation..."
+          echo "📋 Copying Rust documentation..."
           mkdir -p docs-site/rust
           cp -r target/doc/* docs-site/rust/
           echo '<meta http-equiv="refresh" content="0; url=veloxx">' > docs-site/rust/index.html
+          echo "✅ Rust docs copied"
           
           # Copy Python docs
-          echo "Copying Python documentation..."
+          echo "📋 Copying Python documentation..."
           mkdir -p docs-site/python
           cp -r docs/python/build/* docs-site/python/
+          echo "✅ Python docs copied"
           
           # Copy JavaScript docs
-          echo "Copying JavaScript documentation..."
+          echo "📋 Copying JavaScript documentation..."
           mkdir -p docs-site/js
           cp -r docs/js/* docs-site/js/
+          echo "✅ JavaScript docs copied"
           
-          # Create main index page using a simpler approach
-          echo "Creating main index page..."
+          # Create main index page
+          echo "📋 Creating main index page..."
           cp simple-index.html docs-site/index.html
+          echo "✅ Main index page created"
+          
+          # Verify the final structure
+          echo "🔍 Final documentation site structure:"
+          find docs-site -type f | head -20
+          
+          echo "🎉 Documentation site creation completed successfully!"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
