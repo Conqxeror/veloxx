@@ -1,0 +1,58 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/veloxx/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/veloxx/docs",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "api/python",
+              "path": "/veloxx/docs/api/python",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "api/rust",
+              "path": "/veloxx/docs/api/rust",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/installation",
+              "path": "/veloxx/docs/getting-started/installation",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started/quick-start",
+              "path": "/veloxx/docs/getting-started/quick-start",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/veloxx/docs/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "performance/benchmarks",
+              "path": "/veloxx/docs/performance/benchmarks",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/veloxx/docs/intro",
+                "label": "intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

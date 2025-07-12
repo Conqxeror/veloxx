@@ -1,0 +1,20 @@
+{
+  "id": "performance/benchmarks",
+  "title": "Performance Benchmarks",
+  "description": "Veloxx is designed for maximum performance while maintaining a minimal footprint. Here are comprehensive benchmarks comparing Veloxx against industry-leading data processing libraries.",
+  "source": "@site/docs/performance/benchmarks.md",
+  "sourceDirName": "performance",
+  "slug": "/performance/benchmarks",
+  "permalink": "/veloxx/docs/performance/benchmarks",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/docs/performance/benchmarks.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Python API Reference",
+    "permalink": "/veloxx/docs/api/python"
+  }
+}

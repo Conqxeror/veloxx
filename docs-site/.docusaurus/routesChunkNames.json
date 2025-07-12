@@ -1,0 +1,52 @@
+{
+  "/veloxx/search-bdd": {
+    "__comp": "1a4e3797",
+    "__context": {
+      "plugin": "c141421f"
+    }
+  },
+  "/veloxx/docs-932": {
+    "__comp": "5e95c892",
+    "__context": {
+      "plugin": "aba21aa0"
+    }
+  },
+  "/veloxx/docs-53f": {
+    "__comp": "a7bd4aaa",
+    "__props": "70330048"
+  },
+  "/veloxx/docs-939": {
+    "__comp": "a94703ab"
+  },
+  "/veloxx/docs/api/python-f3c": {
+    "__comp": "17896441",
+    "content": "db39a754"
+  },
+  "/veloxx/docs/api/rust-cd0": {
+    "__comp": "17896441",
+    "content": "819b3d2c"
+  },
+  "/veloxx/docs/getting-started/installation-9d2": {
+    "__comp": "17896441",
+    "content": "54f44165"
+  },
+  "/veloxx/docs/getting-started/quick-start-a00": {
+    "__comp": "17896441",
+    "content": "588bd741"
+  },
+  "/veloxx/docs/intro-884": {
+    "__comp": "17896441",
+    "content": "0e384e19"
+  },
+  "/veloxx/docs/performance/benchmarks-427": {
+    "__comp": "17896441",
+    "content": "d21108db"
+  },
+  "/veloxx/-1dc": {
+    "__comp": "1df93b7f",
+    "__context": {
+      "plugin": "a7456010"
+    },
+    "config": "5e9f5e1a"
+  }
+}

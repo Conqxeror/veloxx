@@ -1,0 +1,24 @@
+{
+  "id": "getting-started/quick-start",
+  "title": "Quick Start Guide",
+  "description": "Get up and running with Veloxx in just 5 minutes! This guide will walk you through the essential concepts and operations.",
+  "source": "@site/docs/getting-started/quick-start.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/quick-start",
+  "permalink": "/veloxx/docs/getting-started/quick-start",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/docs/getting-started/quick-start.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Installation",
+    "permalink": "/veloxx/docs/getting-started/installation"
+  },
+  "next": {
+    "title": "Rust API Reference",
+    "permalink": "/veloxx/docs/api/rust"
+  }
+}
