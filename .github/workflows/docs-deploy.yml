@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix-docs-workflow  # Temporary: for testing this branch
   workflow_dispatch: # Allow manual triggering
 
 permissions:
