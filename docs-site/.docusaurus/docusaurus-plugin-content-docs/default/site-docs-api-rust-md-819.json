@@ -1,0 +1,24 @@
+{
+  "id": "api/rust",
+  "title": "Rust API Reference",
+  "description": "Complete API reference for the Veloxx Rust library.",
+  "source": "@site/docs/api/rust.md",
+  "sourceDirName": "api",
+  "slug": "/api/rust",
+  "permalink": "/veloxx/docs/api/rust",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/docs/api/rust.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Quick Start Guide",
+    "permalink": "/veloxx/docs/getting-started/quick-start"
+  },
+  "next": {
+    "title": "Python API Reference",
+    "permalink": "/veloxx/docs/api/python"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "api/python",
+  "title": "Python API Reference",
+  "description": "Complete API reference for Veloxx Python bindings.",
+  "source": "@site/docs/api/python.md",
+  "sourceDirName": "api",
+  "slug": "/api/python",
+  "permalink": "/veloxx/docs/api/python",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/docs/api/python.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Rust API Reference",
+    "permalink": "/veloxx/docs/api/rust"
+  },
+  "next": {
+    "title": "Performance Benchmarks",
+    "permalink": "/veloxx/docs/performance/benchmarks"
+  }
+}

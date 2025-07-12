@@ -1,0 +1,20 @@
+{
+  "id": "intro",
+  "title": "Welcome to Veloxx",
+  "description": "Veloxx is a lightning-fast, lightweight Rust library for in-memory data processing and analytics. It provides a modern, ergonomic API that competes with industry leaders like pandas and Polars while maintaining an extremely small footprint.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/intro",
+  "permalink": "/veloxx/docs/intro",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/docs/intro.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "next": {
+    "title": "Installation",
+    "permalink": "/veloxx/docs/getting-started/installation"
+  }
+}
