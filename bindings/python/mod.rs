@@ -627,7 +627,7 @@ impl PySeries {
 }
 
 #[pyclass]
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Hash)]
 pub enum PyDataType {
     I32,
     F64,
@@ -657,6 +657,21 @@ impl From<PyDataType> for crate::types::DataType {
             PyDataType::String => crate::types::DataType::String,
             PyDataType::DateTime => crate::types::DataType::DateTime,
         }
+    }
+}
+
+#[pymethods]
+impl PyDataType {
+    fn __eq__(&self, other: &PyDataType) -> bool {
+        self == other
+    }
+
+    fn __hash__(&self) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        std::mem::discriminant(self).hash(&mut hasher);
+        hasher.finish()
     }
 }
 
@@ -694,7 +709,7 @@ fn value_to_py(py: Python, value: Value) -> PyObject {
 }
 
 #[pymodule]
-fn veloxx(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
+pub fn veloxx(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyDataFrame>()?;
     m.add_class::<PySeries>()?;
     m.add_class::<PyDataType>()?;
