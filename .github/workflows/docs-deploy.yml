@@ -39,10 +39,31 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Python Dependencies
+        run: |
+          echo "🐍 Installing Python documentation dependencies..."
+          pip install sphinx sphinx-rtd-theme
+
       - name: Build Rust Documentation
         run: |
           echo "📚 Building Rust documentation..."
           cargo doc --all-features --no-deps --document-private-items
+
+      - name: Build Python Documentation
+        run: |
+          echo "🐍 Building Python documentation..."
+          cd docs/python
+          sphinx-build -b html source build
 
       - name: Create Documentation Site
         run: |
@@ -53,6 +74,14 @@ jobs:
           mkdir -p docs-site/rust
           cp -r target/doc/* docs-site/rust/
           echo '<meta http-equiv="refresh" content="0; url=veloxx">' > docs-site/rust/index.html
+          
+          # Copy Python docs
+          mkdir -p docs-site/python
+          cp -r docs/python/build/* docs-site/python/
+          
+          # Copy JavaScript docs
+          mkdir -p docs-site/js
+          cp -r docs/js/* docs-site/js/
           
           # Create main index page
           cat > docs-site/index.html << 'EOF'
@@ -183,22 +212,22 @@ jobs:
                           <div class="doc-link">View Rust Docs</div>
                       </a>
                       
-                      <a href="https://github.com/Conqxeror/veloxx/blob/main/README_PYTHON.md" class="doc-card">
+                      <a href="python/" class="doc-card">
                           <span class="doc-icon">🐍</span>
                           <div class="doc-title">Python Bindings</div>
                           <div class="doc-description">
-                              Python bindings documentation with installation guide and usage examples.
+                              Comprehensive Python API documentation with installation guide, tutorials, and examples.
                           </div>
                           <div class="doc-link">View Python Docs</div>
                       </a>
                       
-                      <a href="https://github.com/Conqxeror/veloxx/blob/main/README_WASM.md" class="doc-card">
+                      <a href="js/" class="doc-card">
                           <span class="doc-icon">🕸️</span>
-                          <div class="doc-title">WebAssembly Bindings</div>
+                          <div class="doc-title">JavaScript/WebAssembly</div>
                           <div class="doc-description">
                               WebAssembly bindings for JavaScript/TypeScript with browser and Node.js support.
                           </div>
-                          <div class="doc-link">View WASM Docs</div>
+                          <div class="doc-link">View JS/WASM Docs</div>
                       </a>
                   </div>
                   

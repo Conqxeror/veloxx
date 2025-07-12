@@ -1,0 +1,26 @@
+{
+  "name": "veloxx-docs",
+  "version": "0.2.4",
+  "description": "TypeDoc configuration for Veloxx JavaScript/TypeScript documentation",
+  "scripts": {
+    "docs": "typedoc"
+  },
+  "devDependencies": {
+    "typedoc": "^0.25.0",
+    "typescript": "^5.0.0"
+  },
+  "typedoc": {
+    "entryPoints": ["./pkg/veloxx.d.ts"],
+    "out": "./docs/js",
+    "name": "Veloxx JavaScript/WebAssembly API",
+    "theme": "default",
+    "includeVersion": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "readme": "./README_WASM.md",
+    "navigationLinks": {
+      "GitHub": "https://github.com/Conqxeror/veloxx",
+      "NPM": "https://www.npmjs.com/package/veloxx"
+    }
+  }
+}
