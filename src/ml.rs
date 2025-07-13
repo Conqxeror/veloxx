@@ -48,6 +48,7 @@ use ndarray::{Array1, Array2};
 use crate::dataframe::DataFrame;
 use crate::error::VeloxxError;
 use crate::series::Series;
+#[cfg(feature = "ml")]
 use crate::types::Value;
 
 /// Linear regression model for predictive analytics
