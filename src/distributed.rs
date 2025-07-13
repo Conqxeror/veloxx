@@ -46,8 +46,8 @@
 //! # }
 //! ```
 
-use crate::dataframe::DataFrame;
 use crate::dataframe::join::JoinType;
+use crate::dataframe::DataFrame;
 use crate::error::VeloxxError;
 use crate::series::Series;
 use crate::types::Value;
@@ -904,8 +904,7 @@ impl TaskScheduler {
         target_partition_size_mb: usize,
     ) -> usize {
         let target_partition_size_bytes = target_partition_size_mb * 1024 * 1024;
-        let calculated_partitions =
-            data_size_bytes.div_ceil(target_partition_size_bytes);
+        let calculated_partitions = data_size_bytes.div_ceil(target_partition_size_bytes);
 
         // Ensure we don't exceed max concurrent tasks
         calculated_partitions.min(self.max_concurrent_tasks).max(1)

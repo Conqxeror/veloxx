@@ -1,18 +1,14 @@
-use veloxx::{
-    dataframe::DataFrame,
-    series::Series,
-    types::Value,
-    error::VeloxxError,
-    ml::{LinearRegression, KMeansClustering, Preprocessing},
-};
 use std::collections::BTreeMap;
+use veloxx::{dataframe::DataFrame, error::VeloxxError, series::Series, types::Value};
+
+#[cfg(feature = "ml")]
+use veloxx::ml::{LinearRegression, Preprocessing};
 
 fn main() -> Result<(), VeloxxError> {
     println!("🚀 Veloxx Machine Learning Examples");
     println!("====================================");
 
     linear_regression_example()?;
-    kmeans_clustering_example()?;
     preprocessing_example()?;
 
     Ok(())
@@ -23,18 +19,15 @@ fn linear_regression_example() -> Result<(), VeloxxError> {
     println!("-----------------------------");
 
     // Create sample data for linear regression
-    let x_values: Vec<Option<Value>> = (1..=10).map(|i| Some(Value::F64(i as f64))).collect();
-    let y_values: Vec<Option<Value>> = x_values.iter().map(|x| {
-        if let Some(Value::F64(val)) = x {
-            Some(Value::F64(2.0 * val + 1.0 + (rand::random::<f64>() - 0.5) * 2.0)) // y = 2x + 1 + noise
-        } else {
-            None
-        }
-    }).collect();
+    let x_values: Vec<Option<f64>> = (1..=10).map(|i| Some(i as f64)).collect();
+    let y_values: Vec<Option<f64>> = x_values
+        .iter()
+        .map(|x| x.as_ref().map(|val| 2.0 * val + 1.0 + (val % 3.0 - 1.0)))
+        .collect();
 
     let mut columns = BTreeMap::new();
-    columns.insert("x".to_string(), Series::new("x", x_values));
-    columns.insert("y".to_string(), Series::new("y", y_values));
+    columns.insert("x".to_string(), Series::new_f64("x", x_values));
+    columns.insert("y".to_string(), Series::new_f64("y", y_values));
 
     let df = DataFrame::new(columns)?;
     println!("Training data:");
@@ -42,77 +35,29 @@ fn linear_regression_example() -> Result<(), VeloxxError> {
 
     #[cfg(feature = "ml")]
     {
-        let mut regression = LinearRegression::new();
-        
-        // Train the model
-        regression.fit(&df, "x", "y")?;
+        let regression = LinearRegression::new();
+
+        // Train the model (note: fit returns a FittedLinearRegression)
+        let fitted_model = regression.fit(&df, "y", &["x"])?;
         println!("✓ Linear regression model trained");
 
         // Make predictions
-        let test_x = vec![11.0, 12.0, 13.0];
-        for x in test_x {
-            let prediction = regression.predict(x)?;
-            println!("Prediction for x={}: {:.2}", x, prediction);
+        for i in 11..=13 {
+            let x_val = i as f64;
+            let mut test_columns = BTreeMap::new();
+            test_columns.insert("x".to_string(), Series::new_f64("x", vec![Some(x_val)]));
+            let test_df = DataFrame::new(test_columns)?;
+
+            let predictions = fitted_model.predict(&test_df, &["x"])?;
+            if let Some(prediction) = predictions.first() {
+                println!("Prediction for x={}: {:.2}", x_val, prediction);
+            }
         }
     }
 
     #[cfg(not(feature = "ml"))]
     {
-        println!("\n✗ ML feature not enabled - linear regression not available");
-        println!("Enable with: cargo run --example machine_learning --features ml");
-    }
-
-    Ok(())
-}
-
-fn kmeans_clustering_example() -> Result<(), VeloxxError> {
-    println!("\n🎯 K-Means Clustering Example");
-    println!("------------------------------");
-
-    // Create sample data for clustering
-    let feature1: Vec<Option<Value>> = vec![
-        Some(Value::F64(1.0)), Some(Value::F64(1.5)), Some(Value::F64(2.0)),
-        Some(Value::F64(8.0)), Some(Value::F64(8.5)), Some(Value::F64(9.0)),
-        Some(Value::F64(1.2)), Some(Value::F64(1.8)), Some(Value::F64(2.1)),
-        Some(Value::F64(8.2)), Some(Value::F64(8.7)), Some(Value::F64(9.1)),
-    ];
-
-    let feature2: Vec<Option<Value>> = vec![
-        Some(Value::F64(1.0)), Some(Value::F64(1.2)), Some(Value::F64(1.1)),
-        Some(Value::F64(8.0)), Some(Value::F64(8.2)), Some(Value::F64(8.1)),
-        Some(Value::F64(1.3)), Some(Value::F64(1.0)), Some(Value::F64(1.2)),
-        Some(Value::F64(8.3)), Some(Value::F64(8.0)), Some(Value::F64(8.2)),
-    ];
-
-    let mut columns = BTreeMap::new();
-    columns.insert("feature1".to_string(), Series::new("feature1", feature1));
-    columns.insert("feature2".to_string(), Series::new("feature2", feature2));
-
-    let df = DataFrame::new(columns)?;
-    println!("Clustering data:");
-    println!("{}", df);
-
-    #[cfg(feature = "ml")]
-    {
-        let mut kmeans = KMeansClustering::new(2); // 2 clusters
-        
-        // Fit the model
-        kmeans.fit(&df, &["feature1", "feature2"])?;
-        println!("✓ K-means clustering completed");
-
-        // Get cluster assignments
-        let clusters = kmeans.predict(&df)?;
-        println!("Cluster assignments: {:?}", clusters);
-
-        // Get centroids
-        let centroids = kmeans.get_centroids();
-        println!("Cluster centroids: {:?}", centroids);
-    }
-
-    #[cfg(not(feature = "ml"))]
-    {
-        println!("\n✗ ML feature not enabled - clustering not available");
-        println!("Enable with: cargo run --example machine_learning --features ml");
+        println!("⚠️ Machine learning features not enabled. Enable with --features ml");
     }
 
     Ok(())
@@ -123,92 +68,87 @@ fn preprocessing_example() -> Result<(), VeloxxError> {
     println!("------------------------------");
 
     // Create sample data with different scales
-    let feature1: Vec<Option<Value>> = vec![
-        Some(Value::F64(100.0)), Some(Value::F64(200.0)), Some(Value::F64(300.0)),
-        Some(Value::F64(400.0)), Some(Value::F64(500.0)),
+    let feature1: Vec<Option<f64>> = vec![
+        Some(100.0),
+        Some(200.0),
+        Some(300.0),
+        Some(400.0),
+        Some(500.0),
     ];
 
-    let feature2: Vec<Option<Value>> = vec![
-        Some(Value::F64(1.0)), Some(Value::F64(2.0)), Some(Value::F64(3.0)),
-        Some(Value::F64(4.0)), Some(Value::F64(5.0)),
-    ];
+    let feature2: Vec<Option<f64>> = vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)];
 
     let mut columns = BTreeMap::new();
-    columns.insert("feature1".to_string(), Series::new("feature1", feature1));
-    columns.insert("feature2".to_string(), Series::new("feature2", feature2));
+    columns.insert(
+        "feature1".to_string(),
+        Series::new_f64("feature1", feature1),
+    );
+    columns.insert(
+        "feature2".to_string(),
+        Series::new_f64("feature2", feature2),
+    );
 
-    let original_df = DataFrame::new(columns)?;
-    println!("Original data (different scales):");
-    println!("{}", original_df);
+    let df = DataFrame::new(columns)?;
+    println!("Original data:");
+    println!("{}", df);
 
     #[cfg(feature = "ml")]
     {
-        // Standardization
-        let standardized_df = Preprocessing::standardize(&original_df, &["feature1", "feature2"])?;
-        println!("\nStandardized data (mean=0, std=1):");
+        // Standardization (z-score normalization)
+        let standardized_df = Preprocessing::standardize(&df, &["feature1"])?;
+        println!("\nStandardized feature1:");
         println!("{}", standardized_df);
 
-        // Normalization
-        let normalized_df = Preprocessing::normalize(&original_df, &["feature1", "feature2"])?;
-        println!("\nNormalized data (range [0,1]):");
-        println!("{}", normalized_df);
-
-        // Verify standardization
         if let Some(std_feature1) = standardized_df.get_column("feature1") {
-            let mean = match std_feature1.mean()? {
-                Some(Value::F64(m)) => m,
-                Some(Value::I32(m)) => m as f64,
-                _ => 0.0,
-            };
-            
-            let std_dev = match std_feature1.std_dev()? {
-                Some(Value::F64(s)) => s,
-                Some(Value::I32(s)) => s as f64,
-                _ => 0.0,
-            };
-            
-            println!(
-                "\nStandardized feature1 - Mean: {:.6}, Std: {:.6}",
-                mean, std_dev
-            );
+            if let Some(mean_val) = std_feature1.mean()? {
+                let mean = match mean_val {
+                    Value::F64(m) => m,
+                    Value::I32(m) => m as f64,
+                    _ => 0.0,
+                };
+
+                let std_dev = match std_feature1.std_dev()? {
+                    Some(Value::F64(s)) => s,
+                    Some(Value::I32(s)) => s as f64,
+                    _ => 0.0,
+                };
+
+                println!(
+                    "\nStandardized feature1 - Mean: {:.6}, Std: {:.6}",
+                    mean, std_dev
+                );
+            }
         }
 
-        // Verify normalization
+        // Min-Max normalization
+        let normalized_df = Preprocessing::normalize(&df, &["feature1"])?;
+        println!("\nNormalized feature1 (0-1 range):");
+        println!("{}", normalized_df);
+
         if let Some(norm_feature1) = normalized_df.get_column("feature1") {
             let min_val = match norm_feature1.min()? {
                 Some(Value::F64(m)) => m,
                 Some(Value::I32(m)) => m as f64,
                 _ => 0.0,
             };
-            
+
             let max_val = match norm_feature1.max()? {
                 Some(Value::F64(m)) => m,
                 Some(Value::I32(m)) => m as f64,
                 _ => 0.0,
             };
-            
+
             println!(
                 "Normalized feature1 - Min: {:.6}, Max: {:.6}",
                 min_val, max_val
             );
         }
-
-        println!("\n✓ Data preprocessing completed successfully");
     }
 
     #[cfg(not(feature = "ml"))]
     {
-        println!("\n✗ ML feature not enabled - preprocessing not available");
-        println!("Enable with: cargo run --example machine_learning --features ml");
+        println!("⚠️ Machine learning features not enabled. Enable with --features ml");
     }
-
-    println!("\n" + "=".repeat(50).as_str());
-    println!("🧠 Machine Learning Models");
-    println!("=".repeat(50));
-
-    println!("\n✅ All machine learning examples completed!");
-    println!("💡 Tip: Enable the 'ml' feature for full functionality:");
-    println!("   cargo run --example machine_learning --features ml");
 
     Ok(())
 }
@@ -218,10 +158,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_example_data_creation() {
-        // Test that we can create the example data without errors
+    fn test_linear_regression_example() {
         assert!(linear_regression_example().is_ok());
-        assert!(kmeans_clustering_example().is_ok());
+    }
+
+    #[test]
+    fn test_preprocessing_example() {
         assert!(preprocessing_example().is_ok());
     }
 }

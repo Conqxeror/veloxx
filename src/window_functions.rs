@@ -254,7 +254,8 @@ impl WindowFunction {
         // For simplicity, implement basic row numbering
         // In a full implementation, this would handle partitioning and proper ranking
         match function {
-            RankingFunction::RowNumber => {
+            RankingFunction::RowNumber =>
+            {
                 #[allow(clippy::needless_range_loop)]
                 for i in 0..row_count {
                     rankings[i] = Some((i + 1) as i32);
