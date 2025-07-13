@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+#[allow(unused_imports)]
 use veloxx::{dataframe::DataFrame, error::VeloxxError, series::Series, types::Value};
 
 #[cfg(feature = "ml")]
