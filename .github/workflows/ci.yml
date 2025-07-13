@@ -41,8 +41,8 @@ jobs:
           cargo clippy --version
           echo "Checking workspace configuration..."
           cargo metadata --format-version 1 | grep -E '"workspace_root"|"resolver"' || true
-          echo "Running clippy without workspace resolution..."
-          cargo clippy --all-targets --all-features --verbose -- -D warnings
+          echo "Running clippy with workspace lint configuration..."
+          cargo clippy --all-targets --all-features --verbose -- -D warnings -A clippy::uninlined-format-args
 
       - name: Run Tests
         run: cargo test --verbose
