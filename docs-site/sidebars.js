@@ -30,6 +30,7 @@ const sidebars = {
       items: [
         'api/rust',
         'api/python',
+        'api/javascript',
       ],
     },
     {

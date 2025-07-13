@@ -11,6 +11,11 @@
           "mainDocId": "intro",
           "docs": [
             {
+              "id": "api/javascript",
+              "path": "/veloxx/docs/api/javascript",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "api/python",
               "path": "/veloxx/docs/api/python",
               "sidebar": "tutorialSidebar"

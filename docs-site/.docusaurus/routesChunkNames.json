@@ -5,18 +5,22 @@
       "plugin": "c141421f"
     }
   },
-  "/veloxx/docs-932": {
+  "/veloxx/docs-8ef": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/veloxx/docs-53f": {
+  "/veloxx/docs-d9f": {
     "__comp": "a7bd4aaa",
     "__props": "70330048"
   },
-  "/veloxx/docs-939": {
+  "/veloxx/docs-148": {
     "__comp": "a94703ab"
+  },
+  "/veloxx/docs/api/javascript-0ca": {
+    "__comp": "17896441",
+    "content": "3b281a57"
   },
   "/veloxx/docs/api/python-f3c": {
     "__comp": "17896441",

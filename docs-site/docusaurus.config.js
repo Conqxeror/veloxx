@@ -2,7 +2,7 @@
 // Note: type annotations allow type checking and IDEs autocompletion
 
 const lightCodeTheme = require('prism-react-renderer').themes.github;
-const darkCodeTheme = require('prism-react-renderer').themes.dracula;
+const darkCodeTheme = require('prism-react-renderer').themes.vsDark;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -63,12 +63,18 @@ const config = {
     ({
       // Replace with your project's social card
       image: 'img/veloxx-social-card.jpg',
+      colorMode: {
+        defaultMode: 'light',
+        disableSwitch: false,
+        respectPrefersColorScheme: true,
+      },
       navbar: {
         title: 'Veloxx',
         logo: {
           alt: 'Veloxx Logo',
           src: 'img/veloxx_logo.png',
         },
+        hideOnScroll: false,
         items: [
           {
             type: 'docSidebar',
@@ -77,9 +83,23 @@ const config = {
             label: 'Docs',
           },
           {
-            to: '/docs/api/rust',
+            type: 'dropdown',
             label: 'API Reference',
             position: 'left',
+            items: [
+              {
+                to: '/docs/api/rust',
+                label: 'Rust API',
+              },
+              {
+                to: '/docs/api/python',
+                label: 'Python API',
+              },
+              {
+                to: '/docs/api/javascript',
+                label: 'JavaScript API',
+              },
+            ],
           },
           {
             to: '/docs/performance/benchmarks',
@@ -100,7 +120,7 @@ const config = {
         ],
       },
       footer: {
-        style: 'dark',
+        style: 'light',
         links: [
           {
             title: 'Docs',
@@ -110,8 +130,16 @@ const config = {
                 to: '/docs/getting-started/installation',
               },
               {
-                label: 'API Reference',
+                label: 'Rust API',
                 to: '/docs/api/rust',
+              },
+              {
+                label: 'Python API',
+                to: '/docs/api/python',
+              },
+              {
+                label: 'JavaScript API',
+                to: '/docs/api/javascript',
               },
               {
                 label: 'Examples',
@@ -155,7 +183,7 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
-        additionalLanguages: ['rust', 'python', 'javascript', 'toml'],
+        additionalLanguages: ['rust', 'python', 'javascript', 'toml', 'bash', 'json'],
       },
       algolia: {
         // The application ID provided by Algolia

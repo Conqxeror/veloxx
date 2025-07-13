@@ -3,6 +3,7 @@ export default {
   "17896441": [() => import(/* webpackChunkName: "17896441" */ "@theme/DocItem"), "@theme/DocItem", require.resolveWeak("@theme/DocItem")],
   "1a4e3797": [() => import(/* webpackChunkName: "1a4e3797" */ "@theme/SearchPage"), "@theme/SearchPage", require.resolveWeak("@theme/SearchPage")],
   "1df93b7f": [() => import(/* webpackChunkName: "1df93b7f" */ "@site/src/pages/index.tsx"), "@site/src/pages/index.tsx", require.resolveWeak("@site/src/pages/index.tsx")],
+  "3b281a57": [() => import(/* webpackChunkName: "3b281a57" */ "@site/docs/api/javascript.md"), "@site/docs/api/javascript.md", require.resolveWeak("@site/docs/api/javascript.md")],
   "54f44165": [() => import(/* webpackChunkName: "54f44165" */ "@site/docs/getting-started/installation.md"), "@site/docs/getting-started/installation.md", require.resolveWeak("@site/docs/getting-started/installation.md")],
   "588bd741": [() => import(/* webpackChunkName: "588bd741" */ "@site/docs/getting-started/quick-start.md"), "@site/docs/getting-started/quick-start.md", require.resolveWeak("@site/docs/getting-started/quick-start.md")],
   "5e95c892": [() => import(/* webpackChunkName: "5e95c892" */ "@theme/DocsRoot"), "@theme/DocsRoot", require.resolveWeak("@theme/DocsRoot")],

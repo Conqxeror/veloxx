@@ -1,0 +1,24 @@
+{
+  "id": "api/javascript",
+  "title": "JavaScript API Reference",
+  "description": "Complete API reference for Veloxx JavaScript/WebAssembly bindings.",
+  "source": "@site/docs/api/javascript.md",
+  "sourceDirName": "api",
+  "slug": "/api/javascript",
+  "permalink": "/veloxx/docs/api/javascript",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/docs/api/javascript.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Python API Reference",
+    "permalink": "/veloxx/docs/api/python"
+  },
+  "next": {
+    "title": "Performance Benchmarks",
+    "permalink": "/veloxx/docs/performance/benchmarks"
+  }
+}

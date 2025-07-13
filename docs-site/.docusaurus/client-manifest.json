@@ -46,6 +46,9 @@
       869,
       583
     ],
+    "3b281a57": [
+      744
+    ],
     "54f44165": [
       924
     ],
@@ -153,27 +156,27 @@
     "270": {
       "js": [
         {
-          "file": "assets/js/db39a754.c59ddec2.js",
-          "hash": "c0c8609a3fe17804",
-          "publicPath": "/veloxx/assets/js/db39a754.c59ddec2.js"
+          "file": "assets/js/db39a754.c070fd5c.js",
+          "hash": "c2ddf60a8612592e",
+          "publicPath": "/veloxx/assets/js/db39a754.c070fd5c.js"
         }
       ]
     },
     "324": {
       "js": [
         {
-          "file": "assets/js/588bd741.65622656.js",
-          "hash": "3b78c5b880b32278",
-          "publicPath": "/veloxx/assets/js/588bd741.65622656.js"
+          "file": "assets/js/588bd741.f9ff1313.js",
+          "hash": "a7e190698273cd9d",
+          "publicPath": "/veloxx/assets/js/588bd741.f9ff1313.js"
         }
       ]
     },
     "354": {
       "js": [
         {
-          "file": "assets/js/runtime~main.bdb1db46.js",
-          "hash": "6bdbef69f14c7d1a",
-          "publicPath": "/veloxx/assets/js/runtime~main.bdb1db46.js"
+          "file": "assets/js/runtime~main.0ac184a7.js",
+          "hash": "c990f789cf84f420",
+          "publicPath": "/veloxx/assets/js/runtime~main.0ac184a7.js"
         }
       ]
     },
@@ -198,9 +201,9 @@
     "489": {
       "js": [
         {
-          "file": "assets/js/d21108db.7436f474.js",
-          "hash": "23067fe4b4e668f3",
-          "publicPath": "/veloxx/assets/js/d21108db.7436f474.js"
+          "file": "assets/js/d21108db.a6d2a1aa.js",
+          "hash": "4ee789b93ce67dda",
+          "publicPath": "/veloxx/assets/js/d21108db.a6d2a1aa.js"
         }
       ]
     },
@@ -225,9 +228,9 @@
     "671": {
       "js": [
         {
-          "file": "assets/js/819b3d2c.3910e016.js",
-          "hash": "e259907e550aae18",
-          "publicPath": "/veloxx/assets/js/819b3d2c.3910e016.js"
+          "file": "assets/js/819b3d2c.9fa9e8ca.js",
+          "hash": "6cb9271f08fca2a4",
+          "publicPath": "/veloxx/assets/js/819b3d2c.9fa9e8ca.js"
         }
       ]
     },
@@ -240,21 +243,30 @@
         }
       ]
     },
+    "744": {
+      "js": [
+        {
+          "file": "assets/js/3b281a57.b4856348.js",
+          "hash": "fd0c5d0847f05a4d",
+          "publicPath": "/veloxx/assets/js/3b281a57.b4856348.js"
+        }
+      ]
+    },
     "792": {
       "js": [
         {
-          "file": "assets/js/main.a435b7f8.js",
-          "hash": "d2eb4b13d012e9b5",
-          "publicPath": "/veloxx/assets/js/main.a435b7f8.js"
+          "file": "assets/js/main.753babef.js",
+          "hash": "cd3c6ad1ad14c978",
+          "publicPath": "/veloxx/assets/js/main.753babef.js"
         }
       ]
     },
     "869": {
       "css": [
         {
-          "file": "assets/css/styles.ffcd1cc9.css",
-          "hash": "6a4152a2bd474c3c",
-          "publicPath": "/veloxx/assets/css/styles.ffcd1cc9.css"
+          "file": "assets/css/styles.2359eb14.css",
+          "hash": "634069f5e4b0bb2d",
+          "publicPath": "/veloxx/assets/css/styles.2359eb14.css"
         }
       ]
     },
@@ -270,9 +282,9 @@
     "924": {
       "js": [
         {
-          "file": "assets/js/54f44165.cb943026.js",
-          "hash": "77dcb3a9fc08d58a",
-          "publicPath": "/veloxx/assets/js/54f44165.cb943026.js"
+          "file": "assets/js/54f44165.f406e070.js",
+          "hash": "27766021d1d7f5f6",
+          "publicPath": "/veloxx/assets/js/54f44165.f406e070.js"
         }
       ]
     },
@@ -288,18 +300,18 @@
     "976": {
       "js": [
         {
-          "file": "assets/js/0e384e19.15edd128.js",
-          "hash": "f3db7ed402276cbf",
-          "publicPath": "/veloxx/assets/js/0e384e19.15edd128.js"
+          "file": "assets/js/0e384e19.810c0177.js",
+          "hash": "06e73f54bddc7300",
+          "publicPath": "/veloxx/assets/js/0e384e19.810c0177.js"
         }
       ]
     },
     "996": {
       "js": [
         {
-          "file": "assets/js/70330048.6e904456.js",
-          "hash": "3ee495c0a234afc1",
-          "publicPath": "/veloxx/assets/js/70330048.6e904456.js"
+          "file": "assets/js/70330048.e965a84d.js",
+          "hash": "089116703233893a",
+          "publicPath": "/veloxx/assets/js/70330048.e965a84d.js"
         }
       ]
     }

@@ -9,16 +9,22 @@ export default [
   },
   {
     path: '/veloxx/docs',
-    component: ComponentCreator('/veloxx/docs', '932'),
+    component: ComponentCreator('/veloxx/docs', '8ef'),
     routes: [
       {
         path: '/veloxx/docs',
-        component: ComponentCreator('/veloxx/docs', '53f'),
+        component: ComponentCreator('/veloxx/docs', 'd9f'),
         routes: [
           {
             path: '/veloxx/docs',
-            component: ComponentCreator('/veloxx/docs', '939'),
+            component: ComponentCreator('/veloxx/docs', '148'),
             routes: [
+              {
+                path: '/veloxx/docs/api/javascript',
+                component: ComponentCreator('/veloxx/docs/api/javascript', '0ca'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
               {
                 path: '/veloxx/docs/api/python',
                 component: ComponentCreator('/veloxx/docs/api/python', 'f3c'),
