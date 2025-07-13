@@ -111,6 +111,8 @@ pub mod series;
 /// Defines the fundamental data types (`DataType`) and value (`Value`) enums
 /// used to represent data within Series and DataFrames.
 pub mod types;
+/// Performance optimization module for high-performance data operations
+pub mod performance;
 
 #[cfg(feature = "python")]
 #[path = "../bindings/python/mod.rs"]

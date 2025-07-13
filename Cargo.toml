@@ -34,6 +34,8 @@ pyo3 = { version = "0.24.1", optional = true, features = ["extension-module"] }
 thiserror = "1.0"
 bincode = "2.0.1"
 serde = { version = "1.0.219", features = ["derive"] }
+rayon = "1.8"
+num-traits = "0.2"
 
 [lints]
 workspace = true
@@ -52,6 +54,10 @@ path = "examples/dataframe_aggregation_and_stats.rs"
 [[example]]
 name = "time_series_analysis"
 path = "examples/time_series_analysis.rs"
+
+[[example]]
+name = "performance_optimization"
+path = "examples/performance_optimization.rs"
 
 [dev-dependencies]
 criterion = "0.5"
