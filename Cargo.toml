@@ -11,7 +11,7 @@ manual_map = "allow"
 
 [package]
 name = "veloxx"
-version = "0.2.4"
+version = "0.3.0"
 edition = "2021"
 authors = ["Conqxeror <conqxeror@gmail.com>"]
 description = "A lightweight Rust library for in-memory data processing and analytics"
