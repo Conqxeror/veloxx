@@ -54,7 +54,6 @@ use crate::types::Value;
 #[derive(Debug, Clone)]
 pub struct LinearRegression {
     #[cfg(feature = "ml")]
-    #[allow(dead_code)]
     model: Option<linfa_linear::FittedLinearRegression<f64>>,
     #[cfg(not(feature = "ml"))]
     _phantom: std::marker::PhantomData<()>,
@@ -115,7 +114,7 @@ impl LinearRegression {
     /// ```
     #[cfg(feature = "ml")]
     pub fn fit(
-        &self,
+        &mut self,
         dataframe: &DataFrame,
         target_column: &str,
         feature_columns: &[&str],
@@ -123,16 +122,21 @@ impl LinearRegression {
         let (features, targets) = self.prepare_data(dataframe, target_column, feature_columns)?;
 
         let dataset = Dataset::new(features, targets);
-        let model = LinfaLinearRegression::default()
+        let fitted_model = LinfaLinearRegression::default()
             .fit(&dataset)
             .map_err(|e| VeloxxError::InvalidOperation(format!("Failed to fit model: {}", e)))?;
 
-        Ok(FittedLinearRegression { model })
+        // Store the fitted model internally
+        self.model = Some(fitted_model.clone());
+
+        Ok(FittedLinearRegression {
+            model: fitted_model,
+        })
     }
 
     #[cfg(not(feature = "ml"))]
     pub fn fit(
-        &self,
+        &mut self,
         _dataframe: &DataFrame,
         _target_column: &str,
         _feature_columns: &[&str],
@@ -206,6 +210,30 @@ impl LinearRegression {
             }
         }
         Ok(result)
+    }
+
+    /// Check if the model has been fitted
+    ///
+    /// # Returns
+    ///
+    /// True if a model has been fitted and stored internally
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::ml::LinearRegression;
+    ///
+    /// let model = LinearRegression::new();
+    /// assert!(!model.is_fitted());
+    /// ```
+    #[cfg(feature = "ml")]
+    pub fn is_fitted(&self) -> bool {
+        self.model.is_some()
+    }
+
+    #[cfg(not(feature = "ml"))]
+    pub fn is_fitted(&self) -> bool {
+        false
     }
 }
 

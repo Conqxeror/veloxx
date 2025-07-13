@@ -407,7 +407,6 @@ impl Default for JsonStreamer {
 /// Database connector for various database systems
 pub struct DatabaseConnector {
     #[cfg(feature = "advanced_io")]
-    #[allow(dead_code)]
     connection_string: String,
     #[cfg(not(feature = "advanced_io"))]
     _phantom: std::marker::PhantomData<()>,
@@ -460,11 +459,17 @@ impl DatabaseConnector {
     /// ```
     #[cfg(feature = "advanced_io")]
     pub async fn query(&self, query: &str) -> Result<DataFrame, VeloxxError> {
-        // Placeholder implementation
+        // Placeholder implementation - in a real implementation this would use self.connection_string
         let mut columns = BTreeMap::new();
         columns.insert(
             "query_result".to_string(),
-            Series::new_string("query_result", vec![Some(format!("Executed: {}", query))]),
+            Series::new_string(
+                "query_result",
+                vec![Some(format!(
+                    "Executed '{}' on {}",
+                    query, self.connection_string
+                ))],
+            ),
         );
 
         DataFrame::new(columns)
@@ -512,8 +517,11 @@ impl DatabaseConnector {
         _dataframe: &DataFrame,
         table_name: &str,
     ) -> Result<(), VeloxxError> {
-        // Placeholder implementation
-        println!("Would insert DataFrame into table: {}", table_name);
+        // Placeholder implementation - in a real implementation this would use self.connection_string
+        println!(
+            "Would insert DataFrame into table '{}' using connection: {}",
+            table_name, self.connection_string
+        );
         Ok(())
     }
 
@@ -562,8 +570,11 @@ impl DatabaseConnector {
         }
         create_sql.push(')');
 
-        // In a real implementation, we would execute this SQL
-        println!("Would execute: {}", create_sql);
+        // In a real implementation, we would execute this SQL using self.connection_string
+        println!(
+            "Would execute on {}: {}",
+            self.connection_string, create_sql
+        );
         Ok(())
     }
 

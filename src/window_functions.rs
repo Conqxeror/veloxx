@@ -254,32 +254,27 @@ impl WindowFunction {
         // For simplicity, implement basic row numbering
         // In a full implementation, this would handle partitioning and proper ranking
         match function {
-            RankingFunction::RowNumber =>
-            {
-                #[allow(clippy::needless_range_loop)]
-                for i in 0..row_count {
-                    rankings[i] = Some((i + 1) as i32);
+            RankingFunction::RowNumber => {
+                for (i, ranking) in rankings.iter_mut().enumerate() {
+                    *ranking = Some((i + 1) as i32);
                 }
             }
             RankingFunction::Rank => {
                 // Simplified rank implementation
-                #[allow(clippy::needless_range_loop)]
-                for i in 0..row_count {
-                    rankings[i] = Some((i + 1) as i32);
+                for (i, ranking) in rankings.iter_mut().enumerate() {
+                    *ranking = Some((i + 1) as i32);
                 }
             }
             RankingFunction::DenseRank => {
                 // Simplified dense rank implementation
-                #[allow(clippy::needless_range_loop)]
-                for i in 0..row_count {
-                    rankings[i] = Some((i + 1) as i32);
+                for (i, ranking) in rankings.iter_mut().enumerate() {
+                    *ranking = Some((i + 1) as i32);
                 }
             }
             RankingFunction::PercentRank => {
                 // Simplified percent rank implementation
-                #[allow(clippy::needless_range_loop)]
-                for i in 0..row_count {
-                    rankings[i] = Some(((i as f64 / (row_count - 1) as f64) * 100.0) as i32);
+                for (i, ranking) in rankings.iter_mut().enumerate() {
+                    *ranking = Some(((i as f64 / (row_count - 1) as f64) * 100.0) as i32);
                 }
             }
         }
@@ -339,8 +334,7 @@ impl WindowFunction {
         let mut results = vec![None; row_count];
 
         // Simplified window aggregate - in reality would respect frame bounds
-        #[allow(clippy::needless_range_loop)]
-        for i in 0..row_count {
+        for (i, result) in results.iter_mut().enumerate() {
             let window_values: Vec<f64> = (0..=i)
                 .filter_map(|idx| {
                     series.get_value(idx).and_then(|v| match v {
@@ -352,7 +346,7 @@ impl WindowFunction {
                 .collect();
 
             if !window_values.is_empty() {
-                let result = match function {
+                let computed_result = match function {
                     AggregateFunction::Sum => window_values.iter().sum(),
                     AggregateFunction::Avg => {
                         window_values.iter().sum::<f64>() / window_values.len() as f64
@@ -365,7 +359,7 @@ impl WindowFunction {
                         .fold(f64::NEG_INFINITY, |a, &b| a.max(b)),
                     AggregateFunction::Count => window_values.len() as f64,
                 };
-                results[i] = Some(result);
+                *result = Some(computed_result);
             }
         }
 
@@ -511,8 +505,7 @@ impl WindowFunction {
         let row_count = dataframe.row_count();
         let mut moving_averages = vec![None; row_count];
 
-        #[allow(clippy::needless_range_loop)]
-        for i in 0..row_count {
+        for (i, moving_avg) in moving_averages.iter_mut().enumerate() {
             let start_idx = if window_size > 0 && i + 1 >= window_size {
                 i + 1 - window_size
             } else {
@@ -534,7 +527,7 @@ impl WindowFunction {
                 && (i >= window_size - 1 || window_values.len() == end_idx - start_idx)
             {
                 let avg = window_values.iter().sum::<f64>() / window_values.len() as f64;
-                moving_averages[i] = Some(avg);
+                *moving_avg = Some(avg);
             }
         }
 

@@ -273,7 +273,6 @@ impl DistributedDataFrame {
 
 /// Parallel processor for distributed operations
 pub struct ParallelProcessor {
-    #[allow(dead_code)]
     thread_pool_size: Option<usize>,
 }
 
@@ -354,14 +353,35 @@ impl ParallelProcessor {
     where
         F: Fn(&DataFrame) -> DataFrame + Send + Sync,
     {
-        let processed_partitions: Result<Vec<DataFrame>, VeloxxError> = distributed_df
-            .partitions
-            .par_iter()
-            .map(|partition| {
-                let result = func(partition);
-                Ok(result)
-            })
-            .collect();
+        let processed_partitions: Result<Vec<DataFrame>, VeloxxError> = if let Some(thread_count) =
+            self.thread_pool_size
+        {
+            // Use custom thread pool if specified
+            rayon::ThreadPoolBuilder::new()
+                .num_threads(thread_count)
+                .build()
+                .map_err(|e| VeloxxError::Other(format!("Failed to create thread pool: {}", e)))?
+                .install(|| {
+                    distributed_df
+                        .partitions
+                        .par_iter()
+                        .map(|partition| {
+                            let result = func(partition);
+                            Ok(result)
+                        })
+                        .collect()
+                })
+        } else {
+            // Use default thread pool
+            distributed_df
+                .partitions
+                .par_iter()
+                .map(|partition| {
+                    let result = func(partition);
+                    Ok(result)
+                })
+                .collect()
+        };
 
         let partitions = processed_partitions?;
 

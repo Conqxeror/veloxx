@@ -95,8 +95,10 @@ fn create_sample_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
     Ok(DataFrame::new(columns)?)
 }
 
-#[allow(unused_variables)]
-async fn parquet_operations(sample_df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
+async fn parquet_operations(
+    #[cfg(feature = "advanced_io")] sample_df: &DataFrame,
+    #[cfg(not(feature = "advanced_io"))] _sample_df: &DataFrame,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("\n1. Parquet Operations");
     println!("--------------------");
 
@@ -191,8 +193,10 @@ async fn json_streaming_operations() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[allow(unused_variables)]
-async fn database_operations(sample_df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
+async fn database_operations(
+    #[cfg(feature = "advanced_io")] sample_df: &DataFrame,
+    #[cfg(not(feature = "advanced_io"))] _sample_df: &DataFrame,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("\n3. Database Operations");
     println!("---------------------");
 
@@ -235,8 +239,10 @@ async fn database_operations(sample_df: &DataFrame) -> Result<(), Box<dyn std::e
     Ok(())
 }
 
-#[allow(unused_variables)]
-async fn async_file_operations(sample_df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
+async fn async_file_operations(
+    #[cfg(feature = "advanced_io")] sample_df: &DataFrame,
+    #[cfg(not(feature = "advanced_io"))] _sample_df: &DataFrame,
+) -> Result<(), Box<dyn std::error::Error>> {
     println!("\n4. Async File Operations");
     println!("------------------------");
 

@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-#[allow(unused_imports)]
 use veloxx::{dataframe::DataFrame, error::VeloxxError, series::Series, types::Value};
 
 #[cfg(feature = "ml")]
@@ -36,7 +35,7 @@ fn linear_regression_example() -> Result<(), VeloxxError> {
 
     #[cfg(feature = "ml")]
     {
-        let regression = LinearRegression::new();
+        let mut regression = LinearRegression::new();
 
         // Train the model (note: fit returns a FittedLinearRegression)
         let fitted_model = regression.fit(&df, "y", &["x"])?;
