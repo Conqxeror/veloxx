@@ -1,8 +1,11 @@
 use std::collections::BTreeMap;
-use veloxx::{dataframe::DataFrame, error::VeloxxError, series::Series, types::Value};
+use veloxx::{dataframe::DataFrame, error::VeloxxError, series::Series};
 
 #[cfg(feature = "ml")]
 use veloxx::ml::{LinearRegression, Preprocessing};
+
+#[cfg(feature = "ml")]
+use veloxx::types::Value;
 
 fn main() -> Result<(), VeloxxError> {
     println!("🚀 Veloxx Machine Learning Examples");
