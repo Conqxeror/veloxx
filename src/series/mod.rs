@@ -1,6 +1,7 @@
 use crate::error::VeloxxError;
 use crate::types::{DataType, Value};
 use std::collections::HashSet;
+pub mod time_series;
 
 /// Represents a single-typed, named column of data within a DataFrame.
 ///

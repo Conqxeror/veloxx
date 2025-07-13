@@ -9,6 +9,7 @@ pub mod io;
 pub mod join;
 pub mod manipulation;
 pub mod sources;
+pub mod time_series;
 
 /// Represents a tabular data structure with named columns, similar to a data frame in other data manipulation libraries.
 ///

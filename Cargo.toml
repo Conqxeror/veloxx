@@ -49,6 +49,9 @@ path = "examples/dataframe_manipulation.rs"
 [[example]]
 name = "dataframe_aggregation_and_stats"
 path = "examples/dataframe_aggregation_and_stats.rs"
+[[example]]
+name = "time_series_analysis"
+path = "examples/time_series_analysis.rs"
 
 [dev-dependencies]
 criterion = "0.5"
