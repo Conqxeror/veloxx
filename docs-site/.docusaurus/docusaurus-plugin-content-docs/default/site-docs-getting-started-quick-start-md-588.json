@@ -1,7 +1,7 @@
 {
   "id": "getting-started/quick-start",
-  "title": "Quick Start Guide",
-  "description": "Get up and running with Veloxx in just 5 minutes! This guide will walk you through the essential concepts and operations.",
+  "title": "Quick Start",
+  "description": "Get up and running with Veloxx in just 5 minutes! This guide will walk you through creating your first DataFrame and performing basic operations.",
   "source": "@site/docs/getting-started/quick-start.md",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/quick-start",

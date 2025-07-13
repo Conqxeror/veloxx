@@ -1,105 +1,286 @@
 # Rust API Reference
 
-Complete API reference for the Veloxx Rust library.
+Complete API reference for the Veloxx Rust library. This guide covers all available functionality with practical examples and best practices.
 
-## Core Modules
+## Table of Contents
 
-### `veloxx::dataframe`
+1. [Core Data Structures](#core-data-structures)
+2. [Basic Operations](#basic-operations)
+3. [Advanced I/O Operations](#advanced-io-operations)
+4. [Data Quality & Validation](#data-quality--validation)
+5. [Window Functions & Analytics](#window-functions--analytics)
+6. [Performance Optimization](#performance-optimization)
 
-The `DataFrame` is the primary data structure for working with tabular data.
+## Core Data Structures
 
-#### `DataFrame`
+### DataFrame
+
+The `DataFrame` is the primary data structure in Veloxx, representing a columnar data table with heterogeneous data types.
+
+#### Creation Methods
 
 ```rust
-pub struct DataFrame {
-    // Internal implementation
+use veloxx::dataframe::DataFrame;
+use veloxx::series::Series;
+use std::collections::BTreeMap;
+
+// Create from columns
+let mut columns = BTreeMap::new();
+columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string())]));
+columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30)]));
+let df = DataFrame::new(columns)?;
+
+// Create from Vec<Vec<String>>
+let data = vec![
+    vec!["Alice".to_string(), "30".to_string()],
+    vec!["Bob".to_string(), "25".to_string()],
+];
+let column_names = vec!["name".to_string(), "age".to_string()];
+let df = DataFrame::from_vec_of_vec(data, column_names)?;
+
+// Load from CSV
+let df = DataFrame::from_csv("data.csv")?;
+
+// Load from JSON
+let df = DataFrame::from_json("data.json")?;
+```
+
+#### Core Methods
+
+##### Information Methods
+
+```rust
+// Get basic information
+let row_count = df.row_count();        // Number of rows
+let col_count = df.column_count();     // Number of columns
+let col_names = df.column_names();     // Vector of column names
+
+// Get specific column
+if let Some(age_column) = df.get_column("age") {
+    println!("Age column has {} values", age_column.len());
+}
+
+// Display first/last rows
+let first_5 = df.head(5)?;   // First 5 rows
+let last_5 = df.tail(5)?;    // Last 5 rows
+```
+
+##### Data Inspection
+
+```rust
+// Generate descriptive statistics
+let stats = df.describe()?;
+println!("Statistics:\n{}", stats);
+
+// Check data types
+for name in df.column_names() {
+    if let Some(column) = df.get_column(name) {
+        println!("{}: {:?}", name, column.data_type());
+    }
 }
 ```
 
-##### Constructors
+### Series
 
-<div className="api-section">
-<div className="api-method">DataFrame::new(columns: BTreeMap&lt;String, Series&gt;) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
+The `Series` represents a single column of data with a specific type.
 
-Creates a new DataFrame from a map of column names to Series.
+#### Creation Methods
 
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">columns</span>: <span className="parameter-type">BTreeMap&lt;String, Series&gt;</span> - Map of column names to Series objects
-</div>
-</div>
-
-**Example:**
 ```rust
-use std::collections::BTreeMap;
-use veloxx::{DataFrame, Series};
+use veloxx::series::Series;
 
-let mut columns = BTreeMap::new();
-columns.insert("name".to_string(), Series::new_string("name", vec![
-    Some("Alice".to_string()), 
-    Some("Bob".to_string())
-]));
-columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), Some(25)]));
-
-let df = DataFrame::new(columns)?;
+// Different data types
+let int_series = Series::new_i32("ages", vec![Some(25), Some(30), None]);
+let float_series = Series::new_f64("scores", vec![Some(95.5), Some(87.2)]);
+let string_series = Series::new_string("names", vec![Some("Alice".to_string())]);
+let bool_series = Series::new_bool("active", vec![Some(true), Some(false)]);
+let datetime_series = Series::new_datetime("timestamps", vec![Some(1678886400)]);
 ```
-</div>
 
-<div className="api-section">
-<div className="api-method">DataFrame::from_csv(path: &str) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
+#### Core Methods
 
-Loads a DataFrame from a CSV file with automatic type inference.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">path</span>: <span className="parameter-type">&str</span> - Path to the CSV file
-</div>
-</div>
-
-**Example:**
 ```rust
-let df = DataFrame::from_csv("data/sales.csv")?;
-println!("Loaded {} rows", df.row_count());
+// Basic information
+let length = series.len();
+let data_type = series.data_type();
+let name = series.name();
+
+// Access values
+let value = series.get_value(0)?;  // Get value at index
+let is_null = series.is_null(0);   // Check if null
+let null_count = series.null_count(); // Count nulls
+
+// Statistics (for numeric series)
+let mean = series.mean()?;
+let sum = series.sum()?;
+let max = series.max()?;
+let min = series.min()?;
+let std_dev = series.std()?;
 ```
-</div>
 
-<div className="api-section">
-<div className="api-method">DataFrame::from_json(path: &str) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
+## Basic Operations
 
-Loads a DataFrame from a JSON file.
+### Filtering
 
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">path</span>: <span className="parameter-type">&str</span> - Path to the JSON file
-</div>
-</div>
+Filter rows based on conditions using the `Condition` enum:
 
-**Example:**
 ```rust
-let df = DataFrame::from_json("data/users.json")?;
+use veloxx::conditions::Condition;
+use veloxx::types::Value;
+
+// Simple conditions
+let condition = Condition::Gt("age".to_string(), Value::I32(25));
+let filtered_df = df.filter(&condition)?;
+
+// Available condition types
+let eq_condition = Condition::Eq("status".to_string(), Value::String("active".to_string()));
+let ne_condition = Condition::Ne("status".to_string(), Value::String("inactive".to_string()));
+let lt_condition = Condition::Lt("score".to_string(), Value::F64(80.0));
+let le_condition = Condition::Le("score".to_string(), Value::F64(80.0));
+let gt_condition = Condition::Gt("score".to_string(), Value::F64(80.0));
+let ge_condition = Condition::Ge("score".to_string(), Value::F64(80.0));
+
+// Complex conditions
+let complex_condition = Condition::And(
+    Box::new(Condition::Gt("age".to_string(), Value::I32(25))),
+    Box::new(Condition::Lt("age".to_string(), Value::I32(65)))
+);
+let working_age = df.filter(&complex_condition)?;
+
+let or_condition = Condition::Or(
+    Box::new(Condition::Eq("department".to_string(), Value::String("Engineering".to_string()))),
+    Box::new(Condition::Eq("department".to_string(), Value::String("Research".to_string())))
+);
+let tech_teams = df.filter(&or_condition)?;
 ```
-</div>
 
-<div className="api-section">
-<div className="api-method">DataFrame::from_vec_of_vec(data: Vec&lt;Vec&lt;String&gt;&gt;, column_names: Vec&lt;String&gt;) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
+### Column Operations
 
-Creates a DataFrame from a vector of vectors with automatic type inference.
+#### Selection and Dropping
 
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">data</span>: <span className="parameter-type">Vec&lt;Vec&lt;String&gt;&gt;</span> - 2D vector containing the data
-</div>
-<div className="api-parameter">
-<span className="parameter-name">column_names</span>: <span className="parameter-type">Vec&lt;String&gt;</span> - Names for the columns
-</div>
-</div>
-
-**Example:**
 ```rust
+// Select specific columns
+let selected_df = df.select_columns(vec!["name".to_string(), "age".to_string()])?;
+
+// Drop columns
+let dropped_df = df.drop_columns(vec!["unwanted_col".to_string()])?;
+
+// Rename columns
+let renamed_df = df.rename_column("old_name", "new_name")?;
+```
+
+#### Adding Computed Columns
+
+```rust
+use veloxx::expressions::Expr;
+
+// Simple arithmetic
+let bonus_expr = Expr::Add(
+    Box::new(Expr::Column("salary".to_string())),
+    Box::new(Expr::Literal(Value::F64(5000.0)))
+);
+let df_with_bonus = df.with_column("salary_with_bonus", &bonus_expr)?;
+
+// Complex expressions
+let total_comp = Expr::Add(
+    Box::new(Expr::Multiply(
+        Box::new(Expr::Column("salary".to_string())),
+        Box::new(Expr::Literal(Value::F64(1.1))) // 10% increase
+    )),
+    Box::new(Expr::Column("bonus".to_string()))
+);
+let df_with_total = df.with_column("total_compensation", &total_comp)?;
+
+// Available expression types
+let add_expr = Expr::Add(Box::new(expr1), Box::new(expr2));
+let subtract_expr = Expr::Subtract(Box::new(expr1), Box::new(expr2));
+let multiply_expr = Expr::Multiply(Box::new(expr1), Box::new(expr2));
+let divide_expr = Expr::Divide(Box::new(expr1), Box::new(expr2));
+```
+
+### Aggregation and Grouping
+
+#### Group By Operations
+
+```rust
+// Group by single column
+let grouped_df = df.group_by(vec!["department".to_string()])?;
+let aggregated_df = grouped_df.agg(vec![
+    ("salary", "mean"),
+    ("salary", "sum"),
+    ("age", "count"),
+    ("age", "max"),
+    ("age", "min")
+])?;
+
+// Group by multiple columns
+let multi_grouped = df.group_by(vec!["department".to_string(), "level".to_string()])?;
+let detailed_agg = multi_grouped.agg(vec![
+    ("salary", "mean"),
+    ("bonus", "sum"),
+    ("performance_score", "max")
+])?;
+```
+
+#### Series Aggregations
+
+```rust
+// Direct series aggregations
+if let Some(salary_series) = df.get_column("salary") {
+    let mean_salary = salary_series.mean()?;
+    let total_salary = salary_series.sum()?;
+    let max_salary = salary_series.max()?;
+    let min_salary = salary_series.min()?;
+    let std_salary = salary_series.std()?;
+    
+    println!("Salary Statistics:");
+    println!("Mean: ${:.2}", mean_salary);
+    println!("Total: ${:.2}", total_salary);
+    println!("Range: ${:.2} - ${:.2}", min_salary, max_salary);
+    println!("Std Dev: ${:.2}", std_salary);
+}
+```
+
+### Sorting and Joining
+
+#### Sorting
+
+```rust
+// Sort by single column
+let sorted_df = df.sort(vec!["age".to_string()], true)?; // ascending
+let sorted_desc_df = df.sort(vec!["salary".to_string()], false)?; // descending
+
+// Sort by multiple columns
+let multi_sorted = df.sort(vec!["department".to_string(), "salary".to_string()], true)?;
+```
+
+#### Joining
+
+```rust
+// Inner join
+let joined_df = df1.join(&df2, &["id".to_string()], "inner")?;
+
+// Left join
+let left_joined_df = df1.join(&df2, &["user_id".to_string()], "left")?;
+
+// Join on multiple columns
+let multi_join = df1.join(&df2, &["dept_id".to_string(), "year".to_string()], "inner")?;
+```
+
+## Advanced I/O Operations
+
+### File Format Support
+
+```rust
+// CSV with options
+let df = DataFrame::from_csv("data.csv")?;
+df.to_csv("output.csv")?;
+
+// JSON support
+let df = DataFrame::from_json("data.json")?;
+df.to_json("output.json")?;
+
+// Custom data loading
 let data = vec![
     vec!["Alice".to_string(), "30".to_string(), "Engineer".to_string()],
     vec!["Bob".to_string(), "25".to_string(), "Designer".to_string()],
@@ -107,851 +288,332 @@ let data = vec![
 let columns = vec!["name".to_string(), "age".to_string(), "role".to_string()];
 let df = DataFrame::from_vec_of_vec(data, columns)?;
 ```
-</div>
 
-##### Core Methods
+### Streaming and Large Data
 
-<div className="api-section">
-<div className="api-method">fn row_count(&self) -&gt; usize</div>
-
-Returns the number of rows in the DataFrame.
-
-**Example:**
 ```rust
-println!("DataFrame has {} rows", df.row_count());
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn column_count(&self) -&gt; usize</div>
-
-Returns the number of columns in the DataFrame.
-
-**Example:**
-```rust
-println!("DataFrame has {} columns", df.column_count());
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn column_names(&self) -&gt; Vec&lt;&String&gt;</div>
-
-Returns a vector of column names.
-
-**Example:**
-```rust
-let names = df.column_names();
-for name in names {
-    println!("Column: {}", name);
+// For large datasets, process in chunks
+fn process_large_csv(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let chunk_size = 10000;
+    let mut total_rows = 0;
+    
+    // This is a conceptual example - actual chunked reading would be implemented
+    // in the advanced_io feature
+    let df = DataFrame::from_csv(file_path)?;
+    
+    // Process in chunks
+    for chunk_start in (0..df.row_count()).step_by(chunk_size) {
+        let chunk_end = std::cmp::min(chunk_start + chunk_size, df.row_count());
+        // Process chunk
+        total_rows += chunk_end - chunk_start;
+    }
+    
+    println!("Processed {} rows", total_rows);
+    Ok(())
 }
 ```
-</div>
 
-<div className="api-section">
-<div className="api-method">fn get_column(&self, name: &str) -&gt; Option&lt;&Series&gt;</div>
+## Data Quality & Validation
 
-Gets a reference to a column by name.
+### Handling Missing Data
 
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">name</span>: <span className="parameter-type">&str</span> - Name of the column to retrieve
-</div>
-</div>
-
-**Example:**
 ```rust
-if let Some(age_column) = df.get_column("age") {
-    println!("Age column has {} values", age_column.len());
-}
-```
-</div>
-
-##### Data Manipulation
-
-<div className="api-section">
-<div className="api-method">fn filter(&self, condition: &Condition) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Filters rows based on a condition.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">condition</span>: <span className="parameter-type">&Condition</span> - The filtering condition
-</div>
-</div>
-
-**Example:**
-```rust
-use veloxx::{Condition, Value};
-
-let condition = Condition::Gt("age".to_string(), Value::I32(25));
-let filtered_df = df.filter(&condition)?;
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn select_columns(&self, names: Vec&lt;String&gt;) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Selects specific columns from the DataFrame.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">names</span>: <span className="parameter-type">Vec&lt;String&gt;</span> - Names of columns to select
-</div>
-</div>
-
-**Example:**
-```rust
-let selected = df.select_columns(vec!["name".to_string(), "age".to_string()])?;
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn drop_columns(&self, names: Vec&lt;String&gt;) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Removes specified columns from the DataFrame.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">names</span>: <span className="parameter-type">Vec&lt;String&gt;</span> - Names of columns to drop
-</div>
-</div>
-
-**Example:**
-```rust
-let without_id = df.drop_columns(vec!["id".to_string()])?;
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn rename_column(&self, old_name: &str, new_name: &str) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Renames a column in the DataFrame.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">old_name</span>: <span className="parameter-type">&str</span> - Current name of the column
-</div>
-<div className="api-parameter">
-<span className="parameter-name">new_name</span>: <span className="parameter-type">&str</span> - New name for the column
-</div>
-</div>
-
-**Example:**
-```rust
-let renamed = df.rename_column("age", "years")?;
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn with_column(&self, name: &str, expr: &Expr) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Adds a new column or replaces an existing one using an expression.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">name</span>: <span className="parameter-type">&str</span> - Name of the new column
-</div>
-<div className="api-parameter">
-<span className="parameter-name">expr</span>: <span className="parameter-type">&Expr</span> - Expression to compute the column values
-</div>
-</div>
-
-**Example:**
-```rust
-use veloxx::Expr;
-
-let expr = Expr::Add(
-    Box::new(Expr::Column("salary".to_string())),
-    Box::new(Expr::Literal(Value::F64(1000.0)))
-);
-let with_bonus = df.with_column("salary_with_bonus", &expr)?;
-```
-</div>
-
-##### Aggregation and Grouping
-
-<div className="api-section">
-<div className="api-method">fn group_by(&self, by_columns: Vec&lt;String&gt;) -&gt; Result&lt;GroupedDataFrame, VeloxxError&gt;</div>
-
-Groups the DataFrame by specified columns.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">by_columns</span>: <span className="parameter-type">Vec&lt;String&gt;</span> - Columns to group by
-</div>
-</div>
-
-**Example:**
-```rust
-let grouped = df.group_by(vec!["department".to_string()])?;
-let result = grouped.agg(vec![("salary", "mean"), ("age", "count")])?;
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn describe(&self) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Generates descriptive statistics for numeric columns.
-
-**Example:**
-```rust
-let stats = df.describe()?;
-println!("{}", stats);
-```
-</div>
-
-##### Joining
-
-<div className="api-section">
-<div className="api-method">fn join(&self, other: &DataFrame, on_column: &str, join_type: JoinType) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Joins this DataFrame with another DataFrame.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">other</span>: <span className="parameter-type">&DataFrame</span> - DataFrame to join with
-</div>
-<div className="api-parameter">
-<span className="parameter-name">on_column</span>: <span className="parameter-type">&str</span> - Column name to join on
-</div>
-<div className="api-parameter">
-<span className="parameter-name">join_type</span>: <span className="parameter-type">JoinType</span> - Type of join (Inner, Left, Right)
-</div>
-</div>
-
-**Example:**
-```rust
-use veloxx::JoinType;
-
-let joined = df1.join(&df2, "user_id", JoinType::Inner)?;
-```
-</div>
-
-##### Sorting and Ordering
-
-<div className="api-section">
-<div className="api-method">fn sort(&self, by_columns: Vec&lt;String&gt;, ascending: bool) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Sorts the DataFrame by specified columns.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">by_columns</span>: <span className="parameter-type">Vec&lt;String&gt;</span> - Columns to sort by
-</div>
-<div className="api-parameter">
-<span className="parameter-name">ascending</span>: <span className="parameter-type">bool</span> - Sort order (true for ascending, false for descending)
-</div>
-</div>
-
-**Example:**
-```rust
-let sorted = df.sort(vec!["age".to_string(), "name".to_string()], true)?;
-```
-</div>
-
-##### Data Cleaning
-
-<div className="api-section">
-<div className="api-method">fn drop_nulls(&self) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
-
-Removes rows containing any null values.
-
-**Example:**
-```rust
+// Remove rows with any null values
 let clean_df = df.drop_nulls()?;
-```
-</div>
 
-<div className="api-section">
-<div className="api-method">fn fill_nulls(&self, value: Value) -&gt; Result&lt;DataFrame, VeloxxError&gt;</div>
+// Fill null values
+let filled_df = df.fill_nulls(Value::I32(0))?;
 
-Fills null values with a specified value.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">value</span>: <span className="parameter-type">Value</span> - Value to use for filling nulls
-</div>
-</div>
-
-**Example:**
-```rust
-let filled = df.fill_nulls(Value::I32(0))?;
-```
-</div>
-
-##### I/O Operations
-
-<div className="api-section">
-<div className="api-method">fn to_csv(&self, path: &str) -&gt; Result&lt;(), VeloxxError&gt;</div>
-
-Writes the DataFrame to a CSV file.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">path</span>: <span className="parameter-type">&str</span> - Output file path
-</div>
-</div>
-
-**Example:**
-```rust
-df.to_csv("output/results.csv")?;
-```
-</div>
-
-### `veloxx::series`
-
-The `Series` represents a single column of data with a specific type.
-
-#### `Series`
-
-```rust
-pub enum Series {
-    I32(String, Vec<Option<i32>>),
-    F64(String, Vec<Option<f64>>),
-    Bool(String, Vec<Option<bool>>),
-    String(String, Vec<Option<String>>),
-    DateTime(String, Vec<Option<i64>>),
+// Check for nulls
+for column_name in df.column_names() {
+    if let Some(column) = df.get_column(column_name) {
+        let null_count = column.null_count();
+        if null_count > 0 {
+            println!("Column '{}' has {} null values", column_name, null_count);
+        }
+    }
 }
 ```
 
-##### Constructors
+### Data Validation
 
-<div className="api-section">
-<div className="api-method">Series::new_i32(name: &str, data: Vec&lt;Option&lt;i32&gt;&gt;) -&gt; Series</div>
-
-Creates a new integer Series.
-
-**Example:**
 ```rust
-let ages = Series::new_i32("age", vec![Some(25), Some(30), None, Some(35)]);
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Series::new_f64(name: &str, data: Vec&lt;Option&lt;f64&gt;&gt;) -&gt; Series</div>
-
-Creates a new floating-point Series.
-
-**Example:**
-```rust
-let salaries = Series::new_f64("salary", vec![Some(50000.0), Some(75000.0), Some(60000.0)]);
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Series::new_string(name: &str, data: Vec&lt;Option&lt;String&gt;&gt;) -&gt; Series</div>
-
-Creates a new string Series.
-
-**Example:**
-```rust
-let names = Series::new_string("name", vec![
-    Some("Alice".to_string()), 
-    Some("Bob".to_string()),
-    None
-]);
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Series::new_bool(name: &str, data: Vec&lt;Option&lt;bool&gt;&gt;) -&gt; Series</div>
-
-Creates a new boolean Series.
-
-**Example:**
-```rust
-let active = Series::new_bool("is_active", vec![Some(true), Some(false), Some(true)]);
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Series::new_datetime(name: &str, data: Vec&lt;Option&lt;i64&gt;&gt;) -&gt; Series</div>
-
-Creates a new datetime Series (timestamps as i64).
-
-**Example:**
-```rust
-let timestamps = Series::new_datetime("created_at", vec![
-    Some(1678886400), 
-    Some(1678972800), 
-    None
-]);
-```
-</div>
-
-##### Core Methods
-
-<div className="api-section">
-<div className="api-method">fn name(&self) -&gt; &str</div>
-
-Returns the name of the Series.
-
-**Example:**
-```rust
-println!("Series name: {}", series.name());
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn len(&self) -&gt; usize</div>
-
-Returns the length of the Series.
-
-**Example:**
-```rust
-println!("Series has {} values", series.len());
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn is_empty(&self) -&gt; bool</div>
-
-Checks if the Series is empty.
-
-**Example:**
-```rust
-if series.is_empty() {
-    println!("Series is empty");
+// Validate data ranges
+fn validate_age_range(df: &DataFrame) -> Result<bool, Box<dyn std::error::Error>> {
+    if let Some(age_column) = df.get_column("age") {
+        let min_age = age_column.min()?;
+        let max_age = age_column.max()?;
+        
+        if min_age < 0.0 || max_age > 150.0 {
+            println!("Warning: Age values outside expected range (0-150)");
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
-```
-</div>
 
-<div className="api-section">
-<div className="api-method">fn data_type(&self) -&gt; DataType</div>
-
-Returns the data type of the Series.
-
-**Example:**
-```rust
-match series.data_type() {
-    DataType::I32 => println!("Integer series"),
-    DataType::F64 => println!("Float series"),
-    DataType::String => println!("String series"),
-    _ => println!("Other type"),
-}
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn get_value(&self, index: usize) -&gt; Option&lt;Value&gt;</div>
-
-Gets the value at a specific index.
-
-<div className="api-parameters">
-**Parameters:**
-<div className="api-parameter">
-<span className="parameter-name">index</span>: <span className="parameter-type">usize</span> - Index of the value to retrieve
-</div>
-</div>
-
-**Example:**
-```rust
-if let Some(value) = series.get_value(0) {
-    println!("First value: {:?}", value);
-}
-```
-</div>
-
-##### Statistical Methods
-
-<div className="api-section">
-<div className="api-method">fn sum(&self) -&gt; Result&lt;Option&lt;Value&gt;, VeloxxError&gt;</div>
-
-Calculates the sum of numeric values.
-
-**Example:**
-```rust
-if let Ok(Some(Value::F64(total))) = series.sum() {
-    println!("Sum: {}", total);
-}
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn mean(&self) -&gt; Result&lt;Option&lt;Value&gt;, VeloxxError&gt;</div>
-
-Calculates the mean of numeric values.
-
-**Example:**
-```rust
-if let Ok(Some(Value::F64(avg))) = series.mean() {
-    println!("Average: {}", avg);
-}
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn median(&self) -&gt; Result&lt;Option&lt;Value&gt;, VeloxxError&gt;</div>
-
-Calculates the median of numeric values.
-
-**Example:**
-```rust
-if let Ok(Some(Value::F64(med))) = series.median() {
-    println!("Median: {}", med);
-}
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn min(&self) -&gt; Result&lt;Option&lt;Value&gt;, VeloxxError&gt;</div>
-
-Finds the minimum value.
-
-**Example:**
-```rust
-if let Ok(Some(min_val)) = series.min() {
-    println!("Minimum: {:?}", min_val);
-}
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn max(&self) -&gt; Result&lt;Option&lt;Value&gt;, VeloxxError&gt;</div>
-
-Finds the maximum value.
-
-**Example:**
-```rust
-if let Ok(Some(max_val)) = series.max() {
-    println!("Maximum: {:?}", max_val);
-}
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn std_dev(&self) -&gt; Result&lt;Option&lt;Value&gt;, VeloxxError&gt;</div>
-
-Calculates the standard deviation.
-
-**Example:**
-```rust
-if let Ok(Some(Value::F64(std))) = series.std_dev() {
-    println!("Standard deviation: {}", std);
-}
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn count(&self) -&gt; usize</div>
-
-Counts non-null values.
-
-**Example:**
-```rust
-println!("Non-null values: {}", series.count());
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">fn unique(&self) -&gt; Result&lt;Series, VeloxxError&gt;</div>
-
-Returns a Series with unique values.
-
-**Example:**
-```rust
-let unique_values = series.unique()?;
-println!("Unique values: {}", unique_values.len());
-```
-</div>
-
-### `veloxx::conditions`
-
-Conditions are used for filtering DataFrames.
-
-#### `Condition`
-
-```rust
-pub enum Condition {
-    Eq(String, Value),
-    Ne(String, Value),
-    Lt(String, Value),
-    Le(String, Value),
-    Gt(String, Value),
-    Ge(String, Value),
-    And(Box<Condition>, Box<Condition>),
-    Or(Box<Condition>, Box<Condition>),
-    Not(Box<Condition>),
+// Check for duplicates (conceptual - would be in data_quality feature)
+fn check_duplicates(df: &DataFrame, key_columns: Vec<String>) -> Result<usize, Box<dyn std::error::Error>> {
+    // Implementation would group by key columns and count
+    // This is a placeholder for the actual feature
+    Ok(0)
 }
 ```
 
-##### Comparison Conditions
-
-<div className="api-section">
-<div className="api-method">Condition::Eq(column: String, value: Value)</div>
-
-Equal to condition.
-
-**Example:**
-```rust
-let condition = Condition::Eq("status".to_string(), Value::String("active".to_string()));
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Condition::Ne(column: String, value: Value)</div>
-
-Not equal to condition.
-
-**Example:**
-```rust
-let condition = Condition::Ne("age".to_string(), Value::I32(0));
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Condition::Lt(column: String, value: Value)</div>
-
-Less than condition.
-
-**Example:**
-```rust
-let condition = Condition::Lt("price".to_string(), Value::F64(100.0));
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Condition::Gt(column: String, value: Value)</div>
-
-Greater than condition.
-
-**Example:**
-```rust
-let condition = Condition::Gt("score".to_string(), Value::I32(80));
-```
-</div>
-
-##### Logical Conditions
-
-<div className="api-section">
-<div className="api-method">Condition::And(left: Box&lt;Condition&gt;, right: Box&lt;Condition&gt;)</div>
-
-Logical AND condition.
-
-**Example:**
-```rust
-let condition = Condition::And(
-    Box::new(Condition::Gt("age".to_string(), Value::I32(18))),
-    Box::new(Condition::Lt("age".to_string(), Value::I32(65)))
-);
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Condition::Or(left: Box&lt;Condition&gt;, right: Box&lt;Condition&gt;)</div>
-
-Logical OR condition.
-
-**Example:**
-```rust
-let condition = Condition::Or(
-    Box::new(Condition::Eq("role".to_string(), Value::String("admin".to_string()))),
-    Box::new(Condition::Eq("role".to_string(), Value::String("manager".to_string())))
-);
-```
-</div>
-
-### `veloxx::expressions`
-
-Expressions are used for creating computed columns.
-
-#### `Expr`
+### Data Profiling
 
 ```rust
-pub enum Expr {
-    Column(String),
-    Literal(Value),
-    Add(Box<Expr>, Box<Expr>),
-    Subtract(Box<Expr>, Box<Expr>),
-    Multiply(Box<Expr>, Box<Expr>),
-    Divide(Box<Expr>, Box<Expr>),
-    // ... more expression types
-}
-```
-
-##### Basic Expressions
-
-<div className="api-section">
-<div className="api-method">Expr::Column(name: String)</div>
-
-References a column by name.
-
-**Example:**
-```rust
-let expr = Expr::Column("salary".to_string());
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">Expr::Literal(value: Value)</div>
-
-A literal value.
-
-**Example:**
-```rust
-let expr = Expr::Literal(Value::F64(1000.0));
-```
-</div>
-
-##### Arithmetic Expressions
-
-<div className="api-section">
-<div className="api-method">Expr::Add(left: Box&lt;Expr&gt;, right: Box&lt;Expr&gt;)</div>
-
-Addition expression.
-
-**Example:**
-```rust
-let expr = Expr::Add(
-    Box::new(Expr::Column("base_salary".to_string())),
-    Box::new(Expr::Column("bonus".to_string()))
-);
-```
-</div>
-
-### `veloxx::types`
-
-Core data types and values.
-
-#### `DataType`
-
-```rust
-pub enum DataType {
-    I32,
-    F64,
-    Bool,
-    String,
-    DateTime,
-}
-```
-
-#### `Value`
-
-```rust
-pub enum Value {
-    I32(i32),
-    F64(f64),
-    Bool(bool),
-    String(String),
-    DateTime(i64),
-    Null,
-}
-```
-
-### `veloxx::error`
-
-Error handling for the library.
-
-#### `VeloxxError`
-
-```rust
-pub enum VeloxxError {
-    ColumnNotFound(String),
-    TypeMismatch(String),
-    InvalidOperation(String),
-    IoError(String),
-    ParseError(String),
-}
-```
-
-## Usage Patterns
-
-### Basic DataFrame Operations
-
-```rust
-use veloxx::prelude::*;
-use std::collections::BTreeMap;
-
-fn main() -> Result<(), VeloxxError> {
-    // Create DataFrame
-    let mut columns = BTreeMap::new();
-    columns.insert("name".to_string(), Series::new_string("name", vec![
-        Some("Alice".to_string()), Some("Bob".to_string())
-    ]));
-    columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), Some(25)]));
+// Generate data profile
+fn profile_dataframe(df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
+    println!("DataFrame Profile:");
+    println!("================");
+    println!("Rows: {}", df.row_count());
+    println!("Columns: {}", df.column_count());
+    println!();
     
-    let df = DataFrame::new(columns)?;
-    
-    // Filter
-    let filtered = df.filter(&Condition::Gt("age".to_string(), Value::I32(25)))?;
-    
-    // Add computed column
-    let expr = Expr::Add(
-        Box::new(Expr::Column("age".to_string())),
-        Box::new(Expr::Literal(Value::I32(10)))
-    );
-    let with_future_age = df.with_column("age_in_10_years", &expr)?;
+    for column_name in df.column_names() {
+        if let Some(column) = df.get_column(column_name) {
+            println!("Column: {}", column_name);
+            println!("  Type: {:?}", column.data_type());
+            println!("  Length: {}", column.len());
+            println!("  Null Count: {}", column.null_count());
+            println!("  Null %: {:.2}%", (column.null_count() as f64 / column.len() as f64) * 100.0);
+            
+            // For numeric columns, show statistics
+            match column.data_type() {
+                veloxx::types::DataType::I32 | veloxx::types::DataType::F64 => {
+                    if let (Ok(mean), Ok(std)) = (column.mean(), column.std()) {
+                        println!("  Mean: {:.2}", mean);
+                        println!("  Std Dev: {:.2}", std);
+                        println!("  Min: {:.2}", column.min()?);
+                        println!("  Max: {:.2}", column.max()?);
+                    }
+                }
+                _ => {}
+            }
+            println!();
+        }
+    }
     
     Ok(())
 }
 ```
 
-### Advanced Analytics
+## Window Functions & Analytics
+
+### Window Operations
 
 ```rust
-use veloxx::prelude::*;
+// Window functions (available with window_functions feature)
+use veloxx::window::WindowSpec;
 
-fn analyze_sales_data() -> Result<(), VeloxxError> {
-    // Load data
-    let df = DataFrame::from_csv("sales_data.csv")?;
+// Running totals
+let window_spec = WindowSpec::new()
+    .partition_by(vec!["department".to_string()])
+    .order_by(vec!["date".to_string()]);
+
+// This would be the API for window functions
+// let df_with_running_total = df.with_column(
+//     "running_total",
+//     &Expr::WindowFunction {
+//         func: "sum".to_string(),
+//         args: vec![Expr::Column("sales".to_string())],
+//         window: window_spec,
+//     }
+// )?;
+```
+
+### Time Series Analysis
+
+```rust
+// Time-based operations (conceptual for window_functions feature)
+fn analyze_time_series(df: &DataFrame) -> Result<DataFrame, Box<dyn std::error::Error>> {
+    // Sort by timestamp
+    let sorted_df = df.sort(vec!["timestamp".to_string()], true)?;
     
-    // Complex filtering
-    let condition = Condition::And(
-        Box::new(Condition::Gt("amount".to_string(), Value::F64(1000.0))),
-        Box::new(Condition::Eq("status".to_string(), Value::String("completed".to_string())))
-    );
-    let high_value_sales = df.filter(&condition)?;
+    // Calculate moving averages, trends, etc.
+    // This would be implemented in the window_functions feature
     
-    // Group by and aggregate
-    let summary = high_value_sales
-        .group_by(vec!["region".to_string(), "product_category".to_string()])?
-        .agg(vec![
-            ("amount", "sum"),
-            ("amount", "mean"),
-            ("customer_id", "count")
-        ])?;
-    
-    // Export results
-    summary.to_csv("sales_summary.csv")?;
-    
-    Ok(())
+    Ok(sorted_df)
 }
 ```
 
-## Performance Tips
+## Performance Optimization
 
-1. **Use appropriate data types**: Choose the most specific type for your data
-2. **Leverage lazy evaluation**: Chain operations for better optimization
-3. **Minimize data copying**: Use references where possible
-4. **Process in chunks**: For very large datasets, process in smaller chunks
-5. **Use parallel operations**: Enable parallel processing for CPU-intensive tasks
+### Best Practices
+
+```rust
+// 1. Chain operations efficiently
+let result = df
+    .filter(&Condition::Gt("score".to_string(), Value::F64(80.0)))?
+    .select_columns(vec!["name".to_string(), "score".to_string()])?
+    .sort(vec!["score".to_string()], false)?;
+
+// 2. Use appropriate data types
+let optimized_series = Series::new_i32("count", vec![Some(1), Some(2), Some(3)]);
+// Instead of Series::new_f64 for integer data
+
+// 3. Filter early in the pipeline
+let filtered_first = df
+    .filter(&condition)?  // Apply filters first
+    .group_by(vec!["category".to_string()])?  // Then group
+    .agg(vec![("value", "sum")])?;  // Finally aggregate
+
+// 4. Minimize data copying
+let view = df.select_columns(vec!["needed_col".to_string()])?;
+// Work with the view instead of the full DataFrame
+```
+
+### Memory Management
+
+```rust
+// Monitor memory usage
+fn process_with_memory_awareness(df: DataFrame) -> Result<DataFrame, Box<dyn std::error::Error>> {
+    println!("Processing DataFrame with {} rows", df.row_count());
+    
+    // Process in stages to manage memory
+    let stage1 = df.filter(&Condition::Ne("status".to_string(), Value::String("deleted".to_string())))?;
+    
+    let stage2 = stage1.select_columns(vec![
+        "id".to_string(),
+        "value".to_string(),
+        "category".to_string()
+    ])?;
+    
+    let result = stage2.group_by(vec!["category".to_string()])?
+        .agg(vec![("value", "sum")])?;
+    
+    Ok(result)
+}
+```
+
+### Parallel Processing
+
+```rust
+// Veloxx automatically uses parallel processing for many operations
+// No special configuration needed - operations are optimized internally
+
+// For custom parallel processing:
+use rayon::prelude::*;
+
+fn parallel_series_processing(series_list: Vec<Series>) -> Vec<f64> {
+    series_list
+        .par_iter()
+        .map(|series| series.mean().unwrap_or(0.0))
+        .collect()
+}
+```
 
 ## Error Handling
 
-All operations that can fail return `Result<T, VeloxxError>`. Always handle errors appropriately:
+### Robust Error Management
 
 ```rust
-match df.filter(&condition) {
-    Ok(filtered_df) => {
-        // Process the filtered DataFrame
-        println!("Filtered to {} rows", filtered_df.row_count());
+use veloxx::error::VeloxxxError;
+
+fn robust_data_processing(file_path: &str) -> Result<DataFrame, VeloxxxError> {
+    // Load data with error handling
+    let df = match DataFrame::from_csv(file_path) {
+        Ok(df) => df,
+        Err(e) => {
+            eprintln!("Failed to load CSV: {}", e);
+            return Err(e);
+        }
+    };
+    
+    // Validate data
+    if df.row_count() == 0 {
+        return Err(VeloxxxError::EmptyDataFrame);
     }
-    Err(VeloxxError::ColumnNotFound(col)) => {
-        eprintln!("Column '{}' not found", col);
+    
+    // Process with error handling
+    let result = df
+        .filter(&Condition::Ne("status".to_string(), Value::String("invalid".to_string())))?
+        .group_by(vec!["category".to_string()])?
+        .agg(vec![("value", "mean")])?;
+    
+    Ok(result)
+}
+
+// Usage with proper error handling
+match robust_data_processing("data.csv") {
+    Ok(result) => {
+        println!("Processing successful: {} rows", result.row_count());
+        result.to_csv("output.csv")?;
     }
     Err(e) => {
-        eprintln!("Error: {}", e);
+        eprintln!("Processing failed: {}", e);
+        // Handle error appropriately
     }
 }
 ```
+
+## Complete Example
+
+Here's a comprehensive example demonstrating multiple features:
+
+```rust
+use veloxx::dataframe::DataFrame;
+use veloxx::conditions::Condition;
+use veloxx::expressions::Expr;
+use veloxx::types::Value;
+use std::collections::BTreeMap;
+
+fn comprehensive_analysis() -> Result<(), Box<dyn std::error::Error>> {
+    // 1. Load and inspect data
+    let df = DataFrame::from_csv("sales_data.csv")?;
+    println!("Loaded {} rows, {} columns", df.row_count(), df.column_count());
+    
+    // 2. Data cleaning
+    let clean_df = df
+        .filter(&Condition::Ne("status".to_string(), Value::String("cancelled".to_string())))?
+        .drop_nulls()?;
+    
+    // 3. Feature engineering
+    let profit_expr = Expr::Subtract(
+        Box::new(Expr::Column("revenue".to_string())),
+        Box::new(Expr::Column("cost".to_string()))
+    );
+    let enriched_df = clean_df.with_column("profit", &profit_expr)?;
+    
+    // 4. Analysis
+    let regional_analysis = enriched_df
+        .group_by(vec!["region".to_string()])?
+        .agg(vec![
+            ("profit", "sum"),
+            ("revenue", "mean"),
+            ("customer_id", "count")
+        ])?;
+    
+    // 5. Filter for high-performing regions
+    let top_regions = regional_analysis
+        .filter(&Condition::Gt("profit_sum".to_string(), Value::F64(100000.0)))?
+        .sort(vec!["profit_sum".to_string()], false)?;
+    
+    // 6. Export results
+    top_regions.to_csv("top_regions.csv")?;
+    
+    // 7. Summary statistics
+    if let Some(profit_series) = enriched_df.get_column("profit") {
+        println!("Profit Analysis:");
+        println!("Total Profit: ${:.2}", profit_series.sum()?);
+        println!("Average Profit: ${:.2}", profit_series.mean()?);
+        println!("Profit Range: ${:.2} to ${:.2}", profit_series.min()?, profit_series.max()?);
+    }
+    
+    Ok(())
+}
+```
+
+This comprehensive API reference covers all major Veloxx functionality. For more examples and advanced usage patterns, check out the [examples repository](https://github.com/Conqxeror/veloxx/tree/main/examples) and [performance benchmarks](/docs/performance/benchmarks).
+
+:::tip Performance Note
+Veloxx is optimized for columnar operations and automatically parallelizes many computations. For best performance, chain operations together and filter data early in your pipeline.
+:::
+
+:::info Feature Flags
+Some advanced features require enabling specific feature flags in your `Cargo.toml`:
+- `advanced_io`: Enhanced I/O operations and format support
+- `data_quality`: Data validation and profiling tools  
+- `window_functions`: Window functions and time series analysis
+:::

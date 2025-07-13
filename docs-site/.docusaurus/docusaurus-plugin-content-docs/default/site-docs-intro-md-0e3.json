@@ -1,7 +1,7 @@
 {
   "id": "intro",
   "title": "Welcome to Veloxx",
-  "description": "Veloxx is a lightning-fast, lightweight Rust library for in-memory data processing and analytics. It provides a modern, ergonomic API that competes with industry leaders like pandas and Polars while maintaining an extremely small footprint.",
+  "description": "Veloxx is a lightning-fast, lightweight Rust library for in-memory data processing and analytics. It provides a modern, ergonomic API that competes with industry leaders like pandas and Polars while maintaining excellent performance and memory efficiency.",
   "source": "@site/docs/intro.md",
   "sourceDirName": ".",
   "slug": "/intro",

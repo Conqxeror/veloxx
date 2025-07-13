@@ -1,0 +1,7 @@
+[advisories]
+# Ignore known issues with no available fixes
+ignore = [
+    "RUSTSEC-2023-0071",  # RSA Marvin Attack - no fix available
+    "RUSTSEC-2024-0384",  # instant unmaintained - transitive dependency
+    "RUSTSEC-2024-0436",  # paste unmaintained - transitive dependency
+]

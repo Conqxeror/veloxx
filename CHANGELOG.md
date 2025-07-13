@@ -1,3 +1,26 @@
+## 0.3.0 - 2025-07-14
+
+### Added
+
+- Comprehensive performance optimization module for faster core operations and reduced memory usage.
+- Full-featured time series analysis capabilities, including advanced resampling, rolling, and window functions.
+- Extensive new documentation for Python and JavaScript bindings, covering all major features and usage patterns.
+- Python: Implemented equality comparison for PyDataType enum for improved cross-language compatibility.
+- New Docusaurus-based documentation site with live deployment and CI integration.
+
+### Changed
+
+- Bumped project version to `0.3.0` in `Cargo.toml`.
+- Modernized and restructured main `README.md`: improved layout, added project badges, and included comprehensive external links (PyPI, crates.io, npm, GitHub, documentation site) with icons/emojis/logos as appropriate.
+- Synchronized documentation to reflect the new version and project status.
+
+
+### Changed
+
+- Bumped project version to `0.3.0` in `Cargo.toml`.
+- Modernized and restructured main `README.md`: improved layout, added project badges, and included comprehensive external links (PyPI, crates.io, npm, GitHub, documentation site) with icons/emojis/logos as appropriate.
+- Synchronized documentation to reflect the new version and project status.
+
 # Changelog
 
 ## 0.2.4 - 2025-07-09
