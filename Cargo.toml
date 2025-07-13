@@ -1,8 +1,13 @@
 [workspace]
 resolver = "2"
+members = ["."]
 
 [workspace.lints.clippy]
 uninlined_format_args = "allow"
+# CI environment specific allowances
+needless_return = "allow"
+redundant_field_names = "allow"
+manual_map = "allow"
 
 [package]
 name = "veloxx"
