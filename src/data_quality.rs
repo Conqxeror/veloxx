@@ -223,7 +223,7 @@ impl SchemaValidator {
         series: &Series,
         column_schema: &ColumnSchema,
         errors: &mut Vec<ValidationError>,
-        _warnings: &mut Vec<ValidationError>,
+        _warnings: &mut [ValidationError],
     ) -> Result<(), VeloxxError> {
         for constraint in &column_schema.constraints {
             match constraint {
@@ -478,14 +478,14 @@ impl DataProfiler {
             .filter(|&i| series.get_value(i).is_none())
             .count();
 
-        let null_percentage = if series.len() > 0 {
+        let null_percentage = if !series.is_empty() {
             (null_count as f64 / series.len() as f64) * 100.0
         } else {
             0.0
         };
 
         let unique_count = series.unique()?.len();
-        let unique_percentage = if series.len() > 0 {
+        let unique_percentage = if !series.is_empty() {
             (unique_count as f64 / series.len() as f64) * 100.0
         } else {
             0.0
@@ -516,7 +516,7 @@ impl DataProfiler {
                     .filter(|&i| series.get_value(i).is_none())
                     .count();
 
-                let completeness = if series.len() > 0 {
+                let completeness = if !series.is_empty() {
                     1.0 - (null_count as f64 / series.len() as f64)
                 } else {
                     1.0

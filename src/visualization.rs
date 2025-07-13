@@ -277,7 +277,7 @@ impl<'a> Plot<'a> {
                 VeloxxError::InvalidOperation(format!("Failed to draw line series: {}", e))
             })?
             .label("Data")
-            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 10, y)], &BLUE));
+            .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 10, y)], BLUE));
 
         if self.config.show_legend {
             chart.configure_series_labels().draw().map_err(|e| {
@@ -546,9 +546,11 @@ mod tests {
         let columns = BTreeMap::new();
         let df = DataFrame::new(columns).unwrap();
 
-        let mut config = PlotConfig::default();
-        config.title = "Custom Title".to_string();
-        config.width = 1000;
+        let config = PlotConfig {
+            title: "Custom Title".to_string(),
+            width: 1000,
+            ..Default::default()
+        };
 
         let plot = Plot::new(&df, ChartType::Scatter).with_config(config);
         assert_eq!(plot.config.title, "Custom Title");

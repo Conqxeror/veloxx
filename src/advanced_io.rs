@@ -800,8 +800,6 @@ impl AsyncFileOps {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::series::Series;
-    use std::collections::BTreeMap;
 
     #[test]
     fn test_parquet_reader_creation() {

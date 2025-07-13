@@ -47,12 +47,13 @@
 //! ```
 
 use crate::dataframe::DataFrame;
+use crate::dataframe::join::JoinType;
 use crate::error::VeloxxError;
 use crate::series::Series;
-use crate::types::{DataType, Value};
+use crate::types::Value;
 use rayon::prelude::*;
 use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 #[cfg(feature = "distributed")]
 use arrow::array::{Array, BooleanArray, Float64Array, Int32Array, StringArray};
@@ -116,7 +117,7 @@ impl DistributedDataFrame {
             });
         }
 
-        let rows_per_partition = (row_count + partition_count - 1) / partition_count;
+        let rows_per_partition = row_count.div_ceil(partition_count);
         let mut partitions = Vec::new();
 
         for i in 0..partition_count {
@@ -132,7 +133,7 @@ impl DistributedDataFrame {
         }
 
         Ok(Self {
-            partitions,
+            partitions: partitions.clone(),
             partition_count: partitions.len(),
         })
     }
@@ -272,6 +273,7 @@ impl DistributedDataFrame {
 
 /// Parallel processor for distributed operations
 pub struct ParallelProcessor {
+    #[allow(dead_code)]
     thread_pool_size: Option<usize>,
 }
 
@@ -364,7 +366,7 @@ impl ParallelProcessor {
         let partitions = processed_partitions?;
 
         Ok(DistributedDataFrame {
-            partitions,
+            partitions: partitions.clone(),
             partition_count: partitions.len(),
         })
     }
@@ -429,12 +431,12 @@ impl ParallelProcessor {
                 Ok(Value::I32(count))
             }
             AggregationOperation::Min => {
-                results.into_iter().filter_map(|x| x).min().ok_or_else(|| {
+                results.into_iter().flatten().min().ok_or_else(|| {
                     VeloxxError::InvalidOperation("No values to aggregate".to_string())
                 })
             }
             AggregationOperation::Max => {
-                results.into_iter().filter_map(|x| x).max().ok_or_else(|| {
+                results.into_iter().flatten().max().ok_or_else(|| {
                     VeloxxError::InvalidOperation("No values to aggregate".to_string())
                 })
             }
@@ -472,7 +474,7 @@ impl ParallelProcessor {
         left_df: &DistributedDataFrame,
         right_df: &DistributedDataFrame,
         left_key: &str,
-        right_key: &str,
+        _right_key: &str,
     ) -> Result<DistributedDataFrame, VeloxxError> {
         // Simplified parallel join implementation
         // In a real implementation, this would handle data shuffling and partitioning
@@ -484,7 +486,7 @@ impl ParallelProcessor {
             .map(|(i, left_partition)| {
                 // For simplicity, join with corresponding right partition
                 if let Some(right_partition) = right_df.partitions.get(i) {
-                    left_partition.join(right_partition, left_key, right_key, "inner")
+                    left_partition.join(right_partition, left_key, JoinType::Inner)
                 } else {
                     // If no corresponding right partition, return empty DataFrame
                     Ok(left_partition.clone())
@@ -495,7 +497,7 @@ impl ParallelProcessor {
         let partitions = joined_partitions?;
 
         Ok(DistributedDataFrame {
-            partitions,
+            partitions: partitions.clone(),
             partition_count: partitions.len(),
         })
     }
@@ -521,7 +523,7 @@ impl ParallelProcessor {
         let sorted_partitions: Result<Vec<DataFrame>, VeloxxError> = distributed_df
             .partitions
             .par_iter()
-            .map(|partition| partition.sort(column_name, ascending))
+            .map(|partition| partition.sort(vec![column_name.to_string()], ascending))
             .collect();
 
         let partitions = sorted_partitions?;
@@ -529,7 +531,7 @@ impl ParallelProcessor {
         // Note: This doesn't provide global sorting across partitions
         // A full implementation would need to merge sorted partitions
         Ok(DistributedDataFrame {
-            partitions,
+            partitions: partitions.clone(),
             partition_count: partitions.len(),
         })
     }
@@ -789,7 +791,7 @@ impl MemoryMappedOps {
     /// Distributed DataFrame with file data
     pub fn read_csv_mmap(
         file_path: &str,
-        chunk_size: usize,
+        _chunk_size: usize,
     ) -> Result<DistributedDataFrame, VeloxxError> {
         // Placeholder implementation for memory-mapped CSV reading
         // In a real implementation, this would use memory mapping for efficient large file access
@@ -819,7 +821,7 @@ impl MemoryMappedOps {
     ///
     /// Success or error
     pub fn write_csv_mmap(
-        distributed_df: &DistributedDataFrame,
+        _distributed_df: &DistributedDataFrame,
         file_path: &str,
     ) -> Result<(), VeloxxError> {
         // Placeholder implementation
@@ -903,7 +905,7 @@ impl TaskScheduler {
     ) -> usize {
         let target_partition_size_bytes = target_partition_size_mb * 1024 * 1024;
         let calculated_partitions =
-            (data_size_bytes + target_partition_size_bytes - 1) / target_partition_size_bytes;
+            data_size_bytes.div_ceil(target_partition_size_bytes);
 
         // Ensure we don't exceed max concurrent tasks
         calculated_partitions.min(self.max_concurrent_tasks).max(1)

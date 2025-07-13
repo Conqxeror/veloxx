@@ -117,7 +117,7 @@ impl CompressedColumn {
         let mut values = Vec::new();
         let mut counts = Vec::new();
 
-        if series.len() == 0 {
+        if series.is_empty() {
             return Ok(CompressedColumn::RunLength { values, counts });
         }
 

@@ -67,7 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("⚡ Parallel Processing Performance");
     println!("--------------------------------");
 
-    let large_series = Series::new_i32("large", (0..10_000).map(|i| Some(i)).collect());
+    let large_series = Series::new_i32("large", (0..10_000).map(Some).collect());
 
     // Traditional sum
     let start = Instant::now();

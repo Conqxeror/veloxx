@@ -255,24 +255,28 @@ impl WindowFunction {
         // In a full implementation, this would handle partitioning and proper ranking
         match function {
             RankingFunction::RowNumber => {
+                #[allow(clippy::needless_range_loop)]
                 for i in 0..row_count {
                     rankings[i] = Some((i + 1) as i32);
                 }
             }
             RankingFunction::Rank => {
                 // Simplified rank implementation
+                #[allow(clippy::needless_range_loop)]
                 for i in 0..row_count {
                     rankings[i] = Some((i + 1) as i32);
                 }
             }
             RankingFunction::DenseRank => {
                 // Simplified dense rank implementation
+                #[allow(clippy::needless_range_loop)]
                 for i in 0..row_count {
                     rankings[i] = Some((i + 1) as i32);
                 }
             }
             RankingFunction::PercentRank => {
                 // Simplified percent rank implementation
+                #[allow(clippy::needless_range_loop)]
                 for i in 0..row_count {
                     rankings[i] = Some(((i as f64 / (row_count - 1) as f64) * 100.0) as i32);
                 }
@@ -334,6 +338,7 @@ impl WindowFunction {
         let mut results = vec![None; row_count];
 
         // Simplified window aggregate - in reality would respect frame bounds
+        #[allow(clippy::needless_range_loop)]
         for i in 0..row_count {
             let window_values: Vec<f64> = (0..=i)
                 .filter_map(|idx| {
@@ -505,6 +510,7 @@ impl WindowFunction {
         let row_count = dataframe.row_count();
         let mut moving_averages = vec![None; row_count];
 
+        #[allow(clippy::needless_range_loop)]
         for i in 0..row_count {
             let start_idx = if window_size > 0 && i + 1 >= window_size {
                 i + 1 - window_size

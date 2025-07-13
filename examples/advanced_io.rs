@@ -217,11 +217,11 @@ async fn database_operations(sample_df: &DataFrame) -> Result<(), Box<dyn std::e
         println!("{}", query_result);
 
         // PostgreSQL example (would need actual database)
-        let pg_connector = DatabaseConnector::new("postgresql://user:password@localhost/database");
+        let _pg_connector = DatabaseConnector::new("postgresql://user:password@localhost/database");
         println!("✓ PostgreSQL connector created (connection not tested)");
 
         // MySQL example (would need actual database)
-        let mysql_connector = DatabaseConnector::new("mysql://user:password@localhost/database");
+        let _mysql_connector = DatabaseConnector::new("mysql://user:password@localhost/database");
         println!("✓ MySQL connector created (connection not tested)");
     }
 

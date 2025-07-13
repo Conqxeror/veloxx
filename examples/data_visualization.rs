@@ -79,10 +79,12 @@ fn create_line_plot_example() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(feature = "visualization")]
     {
-        let mut config = PlotConfig::default();
-        config.title = "Time Series - Quadratic Growth".to_string();
-        config.x_label = "Time".to_string();
-        config.y_label = "Value".to_string();
+        let config = PlotConfig {
+            title: "Time Series - Quadratic Growth".to_string(),
+            x_label: "Time".to_string(),
+            y_label: "Value".to_string(),
+            ..Default::default()
+        };
 
         let plot = Plot::new(&df, ChartType::Line)
             .with_config(config)
@@ -149,10 +151,12 @@ fn create_scatter_plot_example() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(feature = "visualization")]
     {
-        let mut config = PlotConfig::default();
-        config.title = "Scatter Plot - Linear Correlation".to_string();
-        config.x_label = "X Values".to_string();
-        config.y_label = "Y Values".to_string();
+        let config = PlotConfig {
+            title: "Scatter Plot - Linear Correlation".to_string(),
+            x_label: "X Values".to_string(),
+            y_label: "Y Values".to_string(),
+            ..Default::default()
+        };
 
         let plot = Plot::new(&df, ChartType::Scatter)
             .with_config(config)
@@ -209,10 +213,12 @@ fn create_bar_chart_example() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(feature = "visualization")]
     {
-        let mut config = PlotConfig::default();
-        config.title = "Sales by Product Category".to_string();
-        config.x_label = "Product".to_string();
-        config.y_label = "Sales ($000)".to_string();
+        let config = PlotConfig {
+            title: "Sales by Product Category".to_string(),
+            x_label: "Product".to_string(),
+            y_label: "Sales ($000)".to_string(),
+            ..Default::default()
+        };
 
         let plot = Plot::new(&df, ChartType::Bar)
             .with_config(config)

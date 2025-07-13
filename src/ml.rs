@@ -54,6 +54,7 @@ use crate::types::Value;
 #[derive(Debug, Clone)]
 pub struct LinearRegression {
     #[cfg(feature = "ml")]
+    #[allow(dead_code)]
     model: Option<linfa_linear::FittedLinearRegression<f64>>,
     #[cfg(not(feature = "ml"))]
     _phantom: std::marker::PhantomData<()>,
