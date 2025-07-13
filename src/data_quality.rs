@@ -58,6 +58,8 @@
 use crate::dataframe::DataFrame;
 use crate::error::VeloxxError;
 use crate::series::Series;
+
+#[cfg(feature = "data_quality")]
 use crate::types::{DataType, Value};
 use std::collections::BTreeMap;
 

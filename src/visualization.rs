@@ -48,6 +48,8 @@ use plotters_svg::SVGBackend;
 use crate::dataframe::DataFrame;
 use crate::error::VeloxxError;
 use crate::series::Series;
+
+#[cfg(feature = "visualization")]
 use crate::types::Value;
 
 /// Chart types supported by the visualization module

@@ -1,6 +1,8 @@
 use crate::dataframe::DataFrame;
 use crate::expressions::Expr;
 use crate::series::Series;
+
+#[cfg(feature = "wasm")]
 use crate::types::{DataType, Value};
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;

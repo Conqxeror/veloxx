@@ -57,6 +57,8 @@
 use crate::dataframe::DataFrame;
 use crate::error::VeloxxError;
 use crate::series::Series;
+
+#[cfg(feature = "window_functions")]
 use crate::types::Value;
 use std::collections::BTreeMap;
 

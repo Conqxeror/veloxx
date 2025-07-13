@@ -50,6 +50,8 @@ use crate::dataframe::join::JoinType;
 use crate::dataframe::DataFrame;
 use crate::error::VeloxxError;
 use crate::series::Series;
+
+#[cfg(feature = "distributed")]
 use crate::types::Value;
 use rayon::prelude::*;
 use std::collections::BTreeMap;
