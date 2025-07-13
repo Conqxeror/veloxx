@@ -29,6 +29,28 @@ Veloxx is a new Rust library designed for highly performant and **extremely ligh
 - **CSV Support:** Minimalistic, highly efficient CSV parser for loading data.
 - **JSON Support:** Efficient parsing for common JSON structures.
 - **Custom Data Sources:** Traits/interfaces for users to implement their own data loading mechanisms.
+### Advanced I/O Operations *(Feature: `advanced_io`)*
+
+- **Parquet Support:** High-performance columnar storage with compression options
+- **Database Connectivity:** SQLite, PostgreSQL, and MySQL integration with async operations
+- **JSON Streaming:** Efficient streaming for large JSON datasets
+- **Async File Operations:** Non-blocking I/O for improved performance
+
+### Data Quality & Validation *(Feature: `data_quality`)*
+
+- **Schema Validation:** Enforce data structure and constraints with custom rules
+- **Data Profiling:** Comprehensive statistical analysis and data understanding
+- **Anomaly Detection:** Advanced algorithms for outlier and anomaly identification
+- **Quality Metrics:** Automated quality scoring and reporting
+
+### Window Functions & Advanced Analytics *(Feature: `window_functions`)*
+
+- **SQL-Style Window Functions:** ROW_NUMBER, RANK, DENSE_RANK, and more
+- **Time-Series Operations:** Moving averages, lag/lead functions with date/time windows
+- **Advanced Analytics:** Growth rates, market share calculations, z-scores
+- **Flexible Windowing:** Customizable partitioning, ordering, and frame specifications
+
+### Data Cleaning & Preparation
 
 ### Data Cleaning & Preparation
 
@@ -59,6 +81,24 @@ Veloxx is a new Rust library designed for highly performant and **extremely ligh
 - `correlation()`: Calculate Pearson correlation between two numeric Series.
 - `covariance()`: Calculate covariance.
 
+### Performance Optimization *(Feature: `performance`)*
+
+- **Parallel Operations:** Multi-threaded processing for large datasets
+- **SIMD Acceleration:** Vectorized operations when available
+- **Memory Optimization:** Efficient memory usage and compression
+
+### Visualization *(Feature: `visualization`)*
+
+- **Chart Generation:** Bar charts, line plots, scatter plots, and histograms
+- **SVG Export:** High-quality vector graphics output
+- **Customizable Styling:** Flexible theming and styling options
+
+### Machine Learning Integration *(Feature: `ml`)*
+
+- **Linear Regression:** Built-in linear modeling capabilities
+- **Data Preprocessing:** Feature scaling, normalization, and encoding
+- **Model Evaluation:** Cross-validation and performance metrics
+
 ### Output & Export
 
 - **To `Vec<Vec<T>>`:** Export DataFrame content back to standard Rust collections.
@@ -66,6 +106,70 @@ Veloxx is a new Rust library designed for highly performant and **extremely ligh
 - **Display/Pretty Print:** User-friendly console output for DataFrame and Series.
 
 ## Installation
+## Quick Start Guide
+
+### Basic Usage
+
+```rust
+use veloxx::dataframe::DataFrame;
+use veloxx::series::Series;
+use std::collections::BTreeMap;
+
+// Create a DataFrame
+let mut columns = BTreeMap::new();
+columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string())]));
+columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30)]));
+let df = DataFrame::new(columns)?;
+
+// Filter and aggregate
+let filtered = df.filter(&condition)?;
+let grouped = df.group_by(vec!["category".to_string()])?;
+```
+
+### Feature Flags
+
+Enable specific features based on your needs:
+
+```toml
+[dependencies]
+veloxx = { version = "0.2.4", features = ["advanced_io", "data_quality", "window_functions"] }
+```
+
+Available features:
+- `advanced_io` - Parquet, databases, async operations
+- `data_quality` - Schema validation, profiling, anomaly detection  
+- `window_functions` - SQL-style window functions and analytics
+- `visualization` - Chart generation and plotting
+- `ml` - Machine learning integration
+- `python` - Python bindings
+- `wasm` - WebAssembly support
+
+### Examples
+
+Run examples to see Velox in action:
+
+```bash
+# Basic operations
+cargo run --example basic_dataframe_operations
+
+# Advanced I/O with Parquet and databases
+cargo run --example advanced_io --features advanced_io
+
+# Data quality and validation
+cargo run --example data_quality_validation --features data_quality
+
+# Window functions and analytics
+cargo run --example window_functions_analytics --features window_functions
+
+# Performance optimization
+cargo run --example performance_optimization
+
+# Machine learning
+cargo run --example machine_learning --features ml
+
+# Data visualization
+cargo run --example data_visualization --features visualization
+```
 
 ### Rust
 
@@ -93,6 +197,9 @@ cargo test
 ## Documentation
 
 Detailed documentation for Veloxx, including API references and usage guides, can be found here:
+- **[Getting Started Guide](./docs/GETTING_STARTED.md)** - Quick start tutorial for new users
+- **[API Guide](./docs/API_GUIDE.md)** - Comprehensive API documentation with examples
+- [Overall Documentation Landing Page](./docs/index.html)
 
 - [Overall Documentation Landing Page](./docs/index.html)
 - [Rust API Documentation](./docs/rust/veloxx/index.html)

@@ -1,5 +1,5 @@
 //! SIMD-optimized operations for numeric computations
-//! 
+//!
 //! This module provides vectorized implementations of common mathematical
 //! operations for improved performance on numeric data.
 
@@ -7,10 +7,10 @@
 pub trait SimdOps<T> {
     /// Vectorized addition
     fn simd_add(&self, other: &[T]) -> Vec<T>;
-    
+
     /// Vectorized sum reduction
     fn simd_sum(&self) -> T;
-    
+
     /// Vectorized mean calculation
     fn simd_mean(&self) -> Option<T>;
 }
@@ -21,14 +21,14 @@ impl SimdOps<f64> for [f64] {
         if self.len() != other.len() {
             panic!("Arrays must have same length for SIMD operations");
         }
-        
+
         self.iter().zip(other.iter()).map(|(a, b)| a + b).collect()
     }
-    
+
     fn simd_sum(&self) -> f64 {
         self.iter().sum()
     }
-    
+
     fn simd_mean(&self) -> Option<f64> {
         if self.is_empty() {
             None

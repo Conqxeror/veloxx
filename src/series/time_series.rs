@@ -41,21 +41,19 @@ impl Series {
         }
 
         let name = format!("{}_rolling_mean_{}", self.name(), window_size);
-        
+
         match self {
             Series::I32(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<i32> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<i32> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -65,22 +63,20 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             Series::F64(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<f64> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -90,7 +86,7 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -138,21 +134,19 @@ impl Series {
         }
 
         let name = format!("{}_rolling_sum_{}", self.name(), window_size);
-        
+
         match self {
             Series::I32(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<i32> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<i32> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -161,22 +155,20 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::I32(name, result))
             }
             Series::F64(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<f64> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -185,7 +177,7 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -233,21 +225,19 @@ impl Series {
         }
 
         let name = format!("{}_rolling_min_{}", self.name(), window_size);
-        
+
         match self {
             Series::I32(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<i32> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<i32> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -256,22 +246,20 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::I32(name, result))
             }
             Series::F64(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<f64> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -280,7 +268,7 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -328,21 +316,19 @@ impl Series {
         }
 
         let name = format!("{}_rolling_max_{}", self.name(), window_size);
-        
+
         match self {
             Series::I32(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<i32> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<i32> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -351,22 +337,20 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::I32(name, result))
             }
             Series::F64(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<f64> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.is_empty() {
                             result.push(None);
                         } else {
@@ -375,7 +359,7 @@ impl Series {
                         }
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -422,11 +406,11 @@ impl Series {
         }
 
         let name = format!("{}_rolling_std_{}", self.name(), window_size);
-        
+
         match self {
             Series::I32(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
@@ -436,52 +420,51 @@ impl Series {
                             .iter()
                             .filter_map(|&x| x.map(|v| v as f64))
                             .collect();
-                        
+
                         if window_data.len() < 2 {
                             result.push(None);
                         } else {
                             let mean = window_data.iter().sum::<f64>() / window_data.len() as f64;
-                            let variance = window_data.iter()
-                                .map(|&x| (x - mean).powi(2))
-                                .sum::<f64>() / (window_data.len() - 1) as f64;
+                            let variance =
+                                window_data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>()
+                                    / (window_data.len() - 1) as f64;
                             let std_dev = variance.sqrt();
                             result.push(Some(std_dev));
                         }
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             Series::F64(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
-                
+
                 for i in 0..data.len() {
                     if i < window_size - 1 {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> = data[window_start..=i]
-                            .iter()
-                            .filter_map(|&x| x)
-                            .collect();
-                        
+                        let window_data: Vec<f64> =
+                            data[window_start..=i].iter().filter_map(|&x| x).collect();
+
                         if window_data.len() < 2 {
                             result.push(None);
                         } else {
                             let mean = window_data.iter().sum::<f64>() / window_data.len() as f64;
-                            let variance = window_data.iter()
-                                .map(|&x| (x - mean).powi(2))
-                                .sum::<f64>() / (window_data.len() - 1) as f64;
+                            let variance =
+                                window_data.iter().map(|&x| (x - mean).powi(2)).sum::<f64>()
+                                    / (window_data.len() - 1) as f64;
                             let std_dev = variance.sqrt();
                             result.push(Some(std_dev));
                         }
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             _ => Err(VeloxxError::InvalidOperation(
-                "Rolling standard deviation is only supported for numeric series (I32, F64)".to_string(),
+                "Rolling standard deviation is only supported for numeric series (I32, F64)"
+                    .to_string(),
             )),
         }
     }
@@ -508,14 +491,14 @@ impl Series {
     /// ```
     pub fn pct_change(&self) -> Result<Series, VeloxxError> {
         let name = format!("{}_pct_change", self.name());
-        
+
         match self {
             Series::I32(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
                 result.push(None); // First value is always None
-                
+
                 for i in 1..data.len() {
-                    match (data[i-1], data[i]) {
+                    match (data[i - 1], data[i]) {
                         (Some(prev), Some(curr)) if prev != 0 => {
                             let pct = (curr - prev) as f64 / prev as f64;
                             result.push(Some(pct));
@@ -523,15 +506,15 @@ impl Series {
                         _ => result.push(None),
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             Series::F64(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
                 result.push(None); // First value is always None
-                
+
                 for i in 1..data.len() {
-                    match (data[i-1], data[i]) {
+                    match (data[i - 1], data[i]) {
                         (Some(prev), Some(curr)) if prev != 0.0 => {
                             let pct = (curr - prev) / prev;
                             result.push(Some(pct));
@@ -539,7 +522,7 @@ impl Series {
                         _ => result.push(None),
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -570,12 +553,12 @@ impl Series {
     /// ```
     pub fn cumsum(&self) -> Result<Series, VeloxxError> {
         let name = format!("{}_cumsum", self.name());
-        
+
         match self {
             Series::I32(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
                 let mut running_sum = 0i32;
-                
+
                 for &value in data {
                     match value {
                         Some(v) => {
@@ -585,13 +568,13 @@ impl Series {
                         None => result.push(None),
                     }
                 }
-                
+
                 Ok(Series::I32(name, result))
             }
             Series::F64(_, data) => {
                 let mut result = Vec::with_capacity(data.len());
                 let mut running_sum = 0.0f64;
-                
+
                 for &value in data {
                     match value {
                         Some(v) => {
@@ -601,7 +584,7 @@ impl Series {
                         None => result.push(None),
                     }
                 }
-                
+
                 Ok(Series::F64(name, result))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -619,7 +602,7 @@ mod tests {
     fn test_rolling_mean_i32() {
         let series = Series::new_i32("test", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]);
         let result = series.rolling_mean(3).unwrap();
-        
+
         match result {
             Series::F64(_, values) => {
                 assert_eq!(values[0], None);
@@ -636,7 +619,7 @@ mod tests {
     fn test_rolling_sum_f64() {
         let series = Series::new_f64("test", vec![Some(1.5), Some(2.5), Some(3.5), Some(4.5)]);
         let result = series.rolling_sum(2).unwrap();
-        
+
         match result {
             Series::F64(_, values) => {
                 assert_eq!(values[0], None);
@@ -651,16 +634,16 @@ mod tests {
     #[test]
     fn test_rolling_min_max() {
         let series = Series::new_i32("test", vec![Some(5), Some(2), Some(8), Some(1), Some(9)]);
-        
+
         let min_result = series.rolling_min(3).unwrap();
         let max_result = series.rolling_max(3).unwrap();
-        
+
         match (min_result, max_result) {
             (Series::I32(_, min_values), Series::I32(_, max_values)) => {
                 assert_eq!(min_values[2], Some(2));
                 assert_eq!(min_values[3], Some(1));
                 assert_eq!(min_values[4], Some(1));
-                
+
                 assert_eq!(max_values[2], Some(8));
                 assert_eq!(max_values[3], Some(8));
                 assert_eq!(max_values[4], Some(9));
@@ -673,7 +656,7 @@ mod tests {
     fn test_rolling_std() {
         let series = Series::new_f64("test", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]);
         let result = series.rolling_std(3).unwrap();
-        
+
         match result {
             Series::F64(_, values) => {
                 assert_eq!(values[0], None);
@@ -691,7 +674,7 @@ mod tests {
     fn test_pct_change() {
         let series = Series::new_f64("test", vec![Some(100.0), Some(110.0), Some(99.0)]);
         let result = series.pct_change().unwrap();
-        
+
         match result {
             Series::F64(_, values) => {
                 assert_eq!(values[0], None);
@@ -706,7 +689,7 @@ mod tests {
     fn test_cumsum() {
         let series = Series::new_i32("test", vec![Some(1), Some(2), Some(3), Some(4)]);
         let result = series.cumsum().unwrap();
-        
+
         match result {
             Series::I32(_, values) => {
                 assert_eq!(values[0], Some(1));
@@ -722,7 +705,7 @@ mod tests {
     fn test_rolling_operations_with_nulls() {
         let series = Series::new_i32("test", vec![Some(1), None, Some(3), Some(4), None]);
         let result = series.rolling_mean(3).unwrap();
-        
+
         match result {
             Series::F64(_, values) => {
                 assert_eq!(values[0], None);
@@ -738,15 +721,16 @@ mod tests {
     #[test]
     fn test_rolling_operations_errors() {
         let series = Series::new_i32("test", vec![Some(1), Some(2), Some(3)]);
-        
+
         // Test zero window size
         assert!(series.rolling_mean(0).is_err());
-        
+
         // Test window size greater than series length
         assert!(series.rolling_mean(5).is_err());
-        
+
         // Test non-numeric series
-        let string_series = Series::new_string("test", vec![Some("a".to_string()), Some("b".to_string())]);
+        let string_series =
+            Series::new_string("test", vec![Some("a".to_string()), Some("b".to_string())]);
         assert!(string_series.rolling_mean(2).is_err());
     }
 }

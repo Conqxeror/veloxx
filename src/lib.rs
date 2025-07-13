@@ -94,25 +94,43 @@
 //!
 //! ![Veloxx Logo](https://raw.githubusercontent.com/Conqxeror/veloxx/main/docs/veloxx_logo.png)
 
+/// Advanced I/O operations module
+#[cfg(feature = "advanced_io")]
+pub mod advanced_io;
 /// Defines conditions used for filtering DataFrames, supporting various comparison
 /// and logical operations.
 pub mod conditions;
+/// Data quality and validation module
+#[cfg(feature = "data_quality")]
+pub mod data_quality;
 /// Core DataFrame and its associated operations, including data ingestion, manipulation,
 /// cleaning, joining, grouping, and display.
 pub mod dataframe;
+/// Distributed computing support module
+#[cfg(feature = "distributed")]
+pub mod distributed;
 /// Defines the custom error type `VeloxxError` for unified error handling.
 pub mod error;
 /// Defines expressions that can be used to create new columns or perform calculations
 /// based on existing data within a DataFrame.
 pub mod expressions;
+/// Machine learning integration module
+#[cfg(feature = "ml")]
+pub mod ml;
+/// Performance optimization module for high-performance data operations
+pub mod performance;
 /// Core Series (column) data structure and its associated operations, including
 /// type casting, aggregation, and statistical calculations.
 pub mod series;
 /// Defines the fundamental data types (`DataType`) and value (`Value`) enums
 /// used to represent data within Series and DataFrames.
 pub mod types;
-/// Performance optimization module for high-performance data operations
-pub mod performance;
+/// Data visualization and plotting module
+#[cfg(feature = "visualization")]
+pub mod visualization;
+/// Window functions and advanced analytics module
+#[cfg(feature = "window_functions")]
+pub mod window_functions;
 
 #[cfg(feature = "python")]
 #[path = "../bindings/python/mod.rs"]

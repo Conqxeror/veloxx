@@ -24,6 +24,12 @@ crate-type = ["cdylib", "rlib"]
 default = []
 python = ["pyo3"]
 wasm = ["wasm-bindgen", "js-sys"]
+visualization = ["plotters", "plotters-svg"]
+ml = ["ndarray", "linfa", "linfa-linear"]
+advanced_io = ["parquet", "tokio", "sqlx"]
+data_quality = ["regex"]
+window_functions = ["chrono"]
+distributed = ["arrow", "arrow-flight"]
 
 [dependencies]
 csv-core = "0.1.12"
@@ -36,6 +42,22 @@ bincode = "2.0.1"
 serde = { version = "1.0.219", features = ["derive"] }
 rayon = "1.8"
 num-traits = "0.2"
+plotters = { version = "0.3", optional = true }
+plotters-svg = { version = "0.3", optional = true }
+ndarray = { version = "0.15", optional = true }
+linfa = { version = "0.7", optional = true }
+linfa-linear = { version = "0.7", optional = true }
+# Advanced I/O dependencies
+parquet = { version = "51.0", optional = true }
+tokio = { version = "1.0", features = ["full"], optional = true }
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "postgres", "mysql"], optional = true }
+# Data Quality dependencies
+regex = { version = "1.0", optional = true }
+# Window Functions dependencies
+chrono = { version = "0.4.31", features = ["serde"], optional = true }
+# Distributed Computing dependencies
+arrow = { version = "51.0", optional = true }
+arrow-flight = { version = "51.0", optional = true }
 
 [lints]
 workspace = true
@@ -59,8 +81,28 @@ path = "examples/time_series_analysis.rs"
 name = "performance_optimization"
 path = "examples/performance_optimization.rs"
 
+[[example]]
+name = "data_visualization"
+path = "examples/data_visualization.rs"
+
+[[example]]
+name = "machine_learning"
+path = "examples/machine_learning.rs"
+
+[[example]]
+name = "advanced_io"
+path = "examples/advanced_io.rs"
+[[example]]
+name = "data_quality_validation"
+path = "examples/data_quality_validation.rs"
+
+[[example]]
+name = "window_functions_analytics"
+path = "examples/window_functions_analytics.rs"
+
 [dev-dependencies]
 criterion = "0.5"
+tokio = { version = "1.0", features = ["full"] }
 
 [[bench]]
 name = "my_benchmark"

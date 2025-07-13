@@ -34,17 +34,22 @@ impl DataFrame {
     ///
     /// let result = df.rolling_mean(vec!["price".to_string()], 3).unwrap();
     /// ```
-    pub fn rolling_mean(&self, columns: Vec<String>, window_size: usize) -> Result<DataFrame, VeloxxError> {
+    pub fn rolling_mean(
+        &self,
+        columns: Vec<String>,
+        window_size: usize,
+    ) -> Result<DataFrame, VeloxxError> {
         let mut new_columns = self.columns.clone();
-        
+
         for column_name in columns {
-            let series = self.get_column(&column_name)
+            let series = self
+                .get_column(&column_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.clone()))?;
-            
+
             let rolling_series = series.rolling_mean(window_size)?;
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
-        
+
         DataFrame::new(new_columns)
     }
 
@@ -61,17 +66,22 @@ impl DataFrame {
     /// # Returns
     ///
     /// A new `DataFrame` with the original columns plus the new rolling sum columns
-    pub fn rolling_sum(&self, columns: Vec<String>, window_size: usize) -> Result<DataFrame, VeloxxError> {
+    pub fn rolling_sum(
+        &self,
+        columns: Vec<String>,
+        window_size: usize,
+    ) -> Result<DataFrame, VeloxxError> {
         let mut new_columns = self.columns.clone();
-        
+
         for column_name in columns {
-            let series = self.get_column(&column_name)
+            let series = self
+                .get_column(&column_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.clone()))?;
-            
+
             let rolling_series = series.rolling_sum(window_size)?;
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
-        
+
         DataFrame::new(new_columns)
     }
 
@@ -88,17 +98,22 @@ impl DataFrame {
     /// # Returns
     ///
     /// A new `DataFrame` with the original columns plus the new rolling minimum columns
-    pub fn rolling_min(&self, columns: Vec<String>, window_size: usize) -> Result<DataFrame, VeloxxError> {
+    pub fn rolling_min(
+        &self,
+        columns: Vec<String>,
+        window_size: usize,
+    ) -> Result<DataFrame, VeloxxError> {
         let mut new_columns = self.columns.clone();
-        
+
         for column_name in columns {
-            let series = self.get_column(&column_name)
+            let series = self
+                .get_column(&column_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.clone()))?;
-            
+
             let rolling_series = series.rolling_min(window_size)?;
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
-        
+
         DataFrame::new(new_columns)
     }
 
@@ -115,17 +130,22 @@ impl DataFrame {
     /// # Returns
     ///
     /// A new `DataFrame` with the original columns plus the new rolling maximum columns
-    pub fn rolling_max(&self, columns: Vec<String>, window_size: usize) -> Result<DataFrame, VeloxxError> {
+    pub fn rolling_max(
+        &self,
+        columns: Vec<String>,
+        window_size: usize,
+    ) -> Result<DataFrame, VeloxxError> {
         let mut new_columns = self.columns.clone();
-        
+
         for column_name in columns {
-            let series = self.get_column(&column_name)
+            let series = self
+                .get_column(&column_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.clone()))?;
-            
+
             let rolling_series = series.rolling_max(window_size)?;
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
-        
+
         DataFrame::new(new_columns)
     }
 
@@ -142,17 +162,22 @@ impl DataFrame {
     /// # Returns
     ///
     /// A new `DataFrame` with the original columns plus the new rolling standard deviation columns
-    pub fn rolling_std(&self, columns: Vec<String>, window_size: usize) -> Result<DataFrame, VeloxxError> {
+    pub fn rolling_std(
+        &self,
+        columns: Vec<String>,
+        window_size: usize,
+    ) -> Result<DataFrame, VeloxxError> {
         let mut new_columns = self.columns.clone();
-        
+
         for column_name in columns {
-            let series = self.get_column(&column_name)
+            let series = self
+                .get_column(&column_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.clone()))?;
-            
+
             let rolling_series = series.rolling_std(window_size)?;
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
-        
+
         DataFrame::new(new_columns)
     }
 
@@ -184,15 +209,16 @@ impl DataFrame {
     /// ```
     pub fn pct_change(&self, columns: Vec<String>) -> Result<DataFrame, VeloxxError> {
         let mut new_columns = self.columns.clone();
-        
+
         for column_name in columns {
-            let series = self.get_column(&column_name)
+            let series = self
+                .get_column(&column_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.clone()))?;
-            
+
             let pct_change_series = series.pct_change()?;
             new_columns.insert(pct_change_series.name().to_string(), pct_change_series);
         }
-        
+
         DataFrame::new(new_columns)
     }
 
@@ -210,15 +236,16 @@ impl DataFrame {
     /// A new `DataFrame` with the original columns plus the new cumulative sum columns
     pub fn cumsum(&self, columns: Vec<String>) -> Result<DataFrame, VeloxxError> {
         let mut new_columns = self.columns.clone();
-        
+
         for column_name in columns {
-            let series = self.get_column(&column_name)
+            let series = self
+                .get_column(&column_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.clone()))?;
-            
+
             let cumsum_series = series.cumsum()?;
             new_columns.insert(cumsum_series.name().to_string(), cumsum_series);
         }
-        
+
         DataFrame::new(new_columns)
     }
 }
@@ -230,16 +257,34 @@ mod tests {
     #[test]
     fn test_dataframe_rolling_mean() {
         let mut columns = BTreeMap::new();
-        columns.insert("price".to_string(), Series::new_f64("price", vec![Some(10.0), Some(15.0), Some(12.0), Some(18.0), Some(20.0)]));
-        columns.insert("volume".to_string(), Series::new_i32("volume", vec![Some(100), Some(150), Some(120), Some(180), Some(200)]));
+        columns.insert(
+            "price".to_string(),
+            Series::new_f64(
+                "price",
+                vec![Some(10.0), Some(15.0), Some(12.0), Some(18.0), Some(20.0)],
+            ),
+        );
+        columns.insert(
+            "volume".to_string(),
+            Series::new_i32(
+                "volume",
+                vec![Some(100), Some(150), Some(120), Some(180), Some(200)],
+            ),
+        );
         let df = DataFrame::new(columns).unwrap();
 
-        let result = df.rolling_mean(vec!["price".to_string(), "volume".to_string()], 3).unwrap();
-        
+        let result = df
+            .rolling_mean(vec!["price".to_string(), "volume".to_string()], 3)
+            .unwrap();
+
         assert_eq!(result.column_count(), 4); // original 2 + 2 new rolling mean columns
-        assert!(result.column_names().contains(&&"price_rolling_mean_3".to_string()));
-        assert!(result.column_names().contains(&&"volume_rolling_mean_3".to_string()));
-        
+        assert!(result
+            .column_names()
+            .contains(&&"price_rolling_mean_3".to_string()));
+        assert!(result
+            .column_names()
+            .contains(&&"volume_rolling_mean_3".to_string()));
+
         let price_rolling = result.get_column("price_rolling_mean_3").unwrap();
         match price_rolling {
             Series::F64(_, values) => {
@@ -254,14 +299,22 @@ mod tests {
     #[test]
     fn test_dataframe_pct_change() {
         let mut columns = BTreeMap::new();
-        columns.insert("price".to_string(), Series::new_f64("price", vec![Some(100.0), Some(110.0), Some(99.0), Some(108.9)]));
+        columns.insert(
+            "price".to_string(),
+            Series::new_f64(
+                "price",
+                vec![Some(100.0), Some(110.0), Some(99.0), Some(108.9)],
+            ),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         let result = df.pct_change(vec!["price".to_string()]).unwrap();
-        
+
         assert_eq!(result.column_count(), 2); // original 1 + 1 new pct_change column
-        assert!(result.column_names().contains(&&"price_pct_change".to_string()));
-        
+        assert!(result
+            .column_names()
+            .contains(&&"price_pct_change".to_string()));
+
         let pct_change = result.get_column("price_pct_change").unwrap();
         match pct_change {
             Series::F64(_, values) => {
@@ -276,14 +329,17 @@ mod tests {
     #[test]
     fn test_dataframe_cumsum() {
         let mut columns = BTreeMap::new();
-        columns.insert("sales".to_string(), Series::new_i32("sales", vec![Some(10), Some(20), Some(15), Some(25)]));
+        columns.insert(
+            "sales".to_string(),
+            Series::new_i32("sales", vec![Some(10), Some(20), Some(15), Some(25)]),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         let result = df.cumsum(vec!["sales".to_string()]).unwrap();
-        
+
         assert_eq!(result.column_count(), 2); // original 1 + 1 new cumsum column
         assert!(result.column_names().contains(&&"sales_cumsum".to_string()));
-        
+
         let cumsum = result.get_column("sales_cumsum").unwrap();
         match cumsum {
             Series::I32(_, values) => {
@@ -299,13 +355,16 @@ mod tests {
     #[test]
     fn test_dataframe_rolling_operations_error() {
         let mut columns = BTreeMap::new();
-        columns.insert("price".to_string(), Series::new_f64("price", vec![Some(10.0), Some(15.0)]));
+        columns.insert(
+            "price".to_string(),
+            Series::new_f64("price", vec![Some(10.0), Some(15.0)]),
+        );
         let df = DataFrame::new(columns).unwrap();
 
         // Test with non-existent column
         let result = df.rolling_mean(vec!["non_existent".to_string()], 2);
         assert!(result.is_err());
-        
+
         // Test with window size larger than data
         let result = df.rolling_mean(vec!["price".to_string()], 5);
         assert!(result.is_err());

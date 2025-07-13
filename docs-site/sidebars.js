@@ -35,6 +35,22 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Examples & Guides',
+      items: [
+        {
+          type: 'link',
+          label: 'Data Processing Examples',
+          href: 'https://github.com/Conqxeror/veloxx/tree/main/examples',
+        },
+        {
+          type: 'link',
+          label: 'Advanced Tutorials',
+          href: 'https://github.com/Conqxeror/veloxx/tree/main/docs',
+        },
+      ],
+    },
+    {
+      type: 'category',
       label: 'Performance',
       items: [
         'performance/benchmarks',

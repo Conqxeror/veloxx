@@ -1,7 +1,7 @@
 {
   "id": "api/rust",
   "title": "Rust API Reference",
-  "description": "Complete API reference for the Veloxx Rust library.",
+  "description": "Complete API reference for the Veloxx Rust library. This guide covers all available functionality with practical examples and best practices.",
   "source": "@site/docs/api/rust.md",
   "sourceDirName": "api",
   "slug": "/api/rust",
@@ -14,7 +14,7 @@
   "frontMatter": {},
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "Quick Start Guide",
+    "title": "Quick Start",
     "permalink": "/veloxx/docs/getting-started/quick-start"
   },
   "next": {
