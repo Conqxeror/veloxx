@@ -40,6 +40,13 @@ jobs:
       - name: Build Release
         run: cargo build --release --verbose
 
+      - name: Ensure Clean Workspace
+        run: |
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            echo "❌ Uncommitted changes present. Aborting publish."
+            git status
+            exit 1
+          fi
       - name: Publish to Crates.io
         run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
         if: success()
