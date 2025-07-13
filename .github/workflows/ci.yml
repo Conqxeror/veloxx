@@ -36,7 +36,13 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Lint with Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: |
+          echo "Running clippy with full output..."
+          cargo clippy --version
+          echo "Checking workspace configuration..."
+          cargo metadata --format-version 1 | grep -E '"workspace_root"|"resolver"' || true
+          echo "Running clippy without workspace resolution..."
+          cargo clippy --all-targets --all-features --verbose -- -D warnings
 
       - name: Run Tests
         run: cargo test --verbose
