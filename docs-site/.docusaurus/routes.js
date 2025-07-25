@@ -3,41 +3,6 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
-    path: '/veloxx/__docusaurus/debug',
-    component: ComponentCreator('/veloxx/__docusaurus/debug', '93a'),
-    exact: true
-  },
-  {
-    path: '/veloxx/__docusaurus/debug/config',
-    component: ComponentCreator('/veloxx/__docusaurus/debug/config', '76d'),
-    exact: true
-  },
-  {
-    path: '/veloxx/__docusaurus/debug/content',
-    component: ComponentCreator('/veloxx/__docusaurus/debug/content', '3dc'),
-    exact: true
-  },
-  {
-    path: '/veloxx/__docusaurus/debug/globalData',
-    component: ComponentCreator('/veloxx/__docusaurus/debug/globalData', '860'),
-    exact: true
-  },
-  {
-    path: '/veloxx/__docusaurus/debug/metadata',
-    component: ComponentCreator('/veloxx/__docusaurus/debug/metadata', '762'),
-    exact: true
-  },
-  {
-    path: '/veloxx/__docusaurus/debug/registry',
-    component: ComponentCreator('/veloxx/__docusaurus/debug/registry', '322'),
-    exact: true
-  },
-  {
-    path: '/veloxx/__docusaurus/debug/routes',
-    component: ComponentCreator('/veloxx/__docusaurus/debug/routes', 'afa'),
-    exact: true
-  },
-  {
     path: '/veloxx/search',
     component: ComponentCreator('/veloxx/search', 'bdd'),
     exact: true
