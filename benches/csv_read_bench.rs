@@ -1,6 +1,5 @@
-
-use std::hint::black_box;
 use criterion::{criterion_group, criterion_main, Criterion};
+use std::hint::black_box;
 use veloxx::dataframe::DataFrame;
 
 fn bench_csv_read(c: &mut Criterion) {

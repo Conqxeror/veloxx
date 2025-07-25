@@ -1,11 +1,14 @@
-use veloxx::dataframe::DataFrame;
-use veloxx::series::Series;
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::collections::BTreeMap;
+use veloxx::dataframe::DataFrame;
+use veloxx::series::Series;
 
 fn filter_benchmark(c: &mut Criterion) {
     let mut columns = BTreeMap::new();
-    columns.insert("a".to_string(), Series::new_i32("a", (0..1000).map(Some).collect()));
+    columns.insert(
+        "a".to_string(),
+        Series::new_i32("a", (0..1000).map(Some).collect()),
+    );
     let df = DataFrame::new(columns).unwrap();
 
     c.bench_function("filter", |b| {
@@ -18,7 +21,10 @@ fn filter_benchmark(c: &mut Criterion) {
 
 fn aggregation_benchmark(c: &mut Criterion) {
     let mut columns = BTreeMap::new();
-    columns.insert("a".to_string(), Series::new_i32("a", (0..1000).map(Some).collect()));
+    columns.insert(
+        "a".to_string(),
+        Series::new_i32("a", (0..1000).map(Some).collect()),
+    );
     let df = DataFrame::new(columns).unwrap();
 
     c.bench_function("aggregate", |b| {

@@ -1,7 +1,7 @@
-use veloxx::io::{JsonReader, JsonWriter};
-use veloxx::dataframe::DataFrame;
-use veloxx::series::Series;
 use std::collections::BTreeMap;
+use veloxx::dataframe::DataFrame;
+use veloxx::io::{JsonReader, JsonWriter};
+use veloxx::series::Series;
 
 #[test]
 fn test_json_reader_creation() {
@@ -14,7 +14,7 @@ fn test_json_reader_creation() {
 fn test_json_writer_creation() {
     let _writer = JsonWriter::new();
     assert!(true); // JsonWriter doesn't have public fields to inspect
-    
+
     let _pretty_writer = JsonWriter::pretty();
     assert!(true); // JsonWriter doesn't have public fields to inspect
 }
@@ -54,9 +54,12 @@ fn test_json_reader_stream_string() {
 fn test_json_writer_write_file() {
     let _writer = JsonWriter::new();
     let mut columns = BTreeMap::new();
-    columns.insert("test".to_string(), Series::new_i32("test", vec![Some(1), Some(2)]));
+    columns.insert(
+        "test".to_string(),
+        Series::new_i32("test", vec![Some(1), Some(2)]),
+    );
     let df = DataFrame::new(columns).unwrap();
-    
+
     let result = _writer.write_file(&df, "test_output.json");
     assert!(result.is_ok());
 }
@@ -65,9 +68,12 @@ fn test_json_writer_write_file() {
 fn test_json_writer_write_string() {
     let _writer = JsonWriter::new();
     let mut columns = BTreeMap::new();
-    columns.insert("test".to_string(), Series::new_i32("test", vec![Some(1), Some(2)]));
+    columns.insert(
+        "test".to_string(),
+        Series::new_i32("test", vec![Some(1), Some(2)]),
+    );
     let df = DataFrame::new(columns).unwrap();
-    
+
     let result = _writer.write_string(&df);
     assert!(result.is_some());
     let json_string = result.unwrap();

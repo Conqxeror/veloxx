@@ -7,7 +7,7 @@ fn test_datatype_equality() {
     assert_eq!(DataType::Bool, DataType::Bool);
     assert_eq!(DataType::String, DataType::String);
     assert_eq!(DataType::DateTime, DataType::DateTime);
-    
+
     assert_ne!(DataType::I32, DataType::F64);
     assert_ne!(DataType::Bool, DataType::String);
 }
@@ -86,10 +86,13 @@ fn test_value_equality() {
     assert_eq!(Value::I32(42), Value::I32(42));
     assert_eq!(Value::F64(3.14), Value::F64(3.14));
     assert_eq!(Value::Bool(true), Value::Bool(true));
-    assert_eq!(Value::String("test".to_string()), Value::String("test".to_string()));
+    assert_eq!(
+        Value::String("test".to_string()),
+        Value::String("test".to_string())
+    );
     assert_eq!(Value::DateTime(123), Value::DateTime(123));
     assert_eq!(Value::Null, Value::Null);
-    
+
     assert_ne!(Value::I32(42), Value::I32(43));
     assert_ne!(Value::I32(42), Value::F64(42.0));
     assert_ne!(Value::Null, Value::I32(0));
@@ -118,7 +121,7 @@ fn test_value_ordering() {
     assert!(Value::Bool(false) < Value::Bool(true));
     assert!(Value::String("a".to_string()) < Value::String("b".to_string()));
     assert!(Value::DateTime(100) < Value::DateTime(200));
-    
+
     // Null should be less than any non-null value
     assert!(Value::Null < Value::I32(0));
     assert!(Value::Null < Value::F64(0.0));
@@ -130,14 +133,17 @@ fn test_value_ordering() {
 #[test]
 fn test_value_hash() {
     use std::collections::HashMap;
-    
+
     let mut map = HashMap::new();
     map.insert(Value::I32(42), "forty-two");
     map.insert(Value::String("hello".to_string()), "greeting");
     map.insert(Value::Null, "nothing");
-    
+
     assert_eq!(map.get(&Value::I32(42)), Some(&"forty-two"));
-    assert_eq!(map.get(&Value::String("hello".to_string())), Some(&"greeting"));
+    assert_eq!(
+        map.get(&Value::String("hello".to_string())),
+        Some(&"greeting")
+    );
     assert_eq!(map.get(&Value::Null), Some(&"nothing"));
     assert_eq!(map.get(&Value::I32(43)), None);
 }

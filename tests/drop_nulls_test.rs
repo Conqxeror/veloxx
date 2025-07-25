@@ -28,11 +28,17 @@ fn test_drop_nulls_with_mixed_data() {
         Series::I32(_, data) => data.iter().map(|v| v.map(|x| x.to_string())).collect(),
         _ => panic!("Wrong type"),
     };
-    assert_eq!(col1_values, vec![Some("1".to_string()), Some("4".to_string())]);
+    assert_eq!(
+        col1_values,
+        vec![Some("1".to_string()), Some("4".to_string())]
+    );
 
     let col2_values: Vec<Option<String>> = match cleaned_df.get_column("col2").unwrap() {
         Series::String(_, data) => data.iter().map(|v| v.clone()).collect(),
         _ => panic!("Wrong type"),
     };
-    assert_eq!(col2_values, vec![Some("a".to_string()), Some("d".to_string())]);
+    assert_eq!(
+        col2_values,
+        vec![Some("a".to_string()), Some("d".to_string())]
+    );
 }

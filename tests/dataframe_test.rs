@@ -7,8 +7,21 @@ use std::collections::BTreeMap;
 #[test]
 fn test_to_csv() {
     let mut columns = BTreeMap::new();
-    columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1), Some(2), Some(3)]));
-    columns.insert("col2".to_string(), Series::new_string("col2", vec![Some("a".to_string()), Some("b".to_string()), Some("c".to_string())]));
+    columns.insert(
+        "col1".to_string(),
+        Series::new_i32("col1", vec![Some(1), Some(2), Some(3)]),
+    );
+    columns.insert(
+        "col2".to_string(),
+        Series::new_string(
+            "col2",
+            vec![
+                Some("a".to_string()),
+                Some("b".to_string()),
+                Some("c".to_string()),
+            ],
+        ),
+    );
     let df = DataFrame::new(columns).unwrap();
 
     let path = "test.csv";
@@ -20,7 +33,6 @@ fn test_to_csv() {
 
     std::fs::remove_file(path).unwrap();
 }
-
 
 #[test]
 fn test_from_csv() {
@@ -48,11 +60,13 @@ fn test_from_csv() {
         .collect();
 
     assert_eq!(col1_values, vec![1, 2, 3]);
-    assert_eq!(col2_values, vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+    assert_eq!(
+        col2_values,
+        vec!["a".to_string(), "b".to_string(), "c".to_string()]
+    );
 
     std::fs::remove_file(path).unwrap();
 }
-
 
 #[test]
 fn test_from_csv_nonexistent_file() {

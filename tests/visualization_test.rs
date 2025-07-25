@@ -1,7 +1,7 @@
+use std::collections::BTreeMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
-use veloxx::visualization::{Plot, ChartType};
-use std::collections::BTreeMap;
+use veloxx::visualization::{ChartType, Plot};
 
 #[test]
 fn test_save_histogram() {

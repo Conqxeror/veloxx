@@ -256,15 +256,16 @@ impl WindowFunction {
         let order_by_col_name = window_spec.order_by.first().ok_or_else(|| {
             VeloxxError::InvalidOperation("Order by column is required for ranking".to_string())
         })?;
-        let order_by_series = dataframe.get_column(order_by_col_name).ok_or_else(|| {
-            VeloxxError::ColumnNotFound(order_by_col_name.clone())
-        })?;
+        let order_by_series = dataframe
+            .get_column(order_by_col_name)
+            .ok_or_else(|| VeloxxError::ColumnNotFound(order_by_col_name.clone()))?;
 
         let mut indexed_values: Vec<(usize, Option<Value>)> = (0..row_count)
             .map(|i| (i, order_by_series.get_value(i)))
             .collect();
 
-        indexed_values.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        indexed_values
+            .sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
         let mut rankings = vec![None; row_count];
         match function {

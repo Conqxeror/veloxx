@@ -4,8 +4,6 @@ use pyo3::types::{PyDict, PyList};
 use pyo3::BoundObject;
 use std::collections::BTreeMap;
 
-
-
 use crate::dataframe::join::JoinType;
 use crate::dataframe::DataFrame;
 use crate::expressions::Expr;
@@ -18,25 +16,12 @@ impl<'py> pyo3::IntoPyObject<'py> for Value {
     type Error = pyo3::PyErr;
     fn into_pyobject(self, py: Python<'py>) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
         match self {
-    Value::I32(v) => Ok(v.into_pyobject(py)?.into_any()),
-    Value::F64(v) => Ok(v.into_pyobject(py)?.into_any()),
-    Value::Bool(v) => Ok(v.into_pyobject(py)?.into_bound().into_any()),
-    Value::String(v) => Ok(v.into_pyobject(py)?.into_any()),
-    Value::DateTime(v) => Ok(v.into_pyobject(py)?.into_any()),
-    Value::Null => Ok(py.None().bind(py).clone().into_any()),
-    
-
-
-
-
-
-
-            
-            
-            
-            
-            
-            
+            Value::I32(v) => Ok(v.into_pyobject(py)?.into_any()),
+            Value::F64(v) => Ok(v.into_pyobject(py)?.into_any()),
+            Value::Bool(v) => Ok(v.into_pyobject(py)?.into_bound().into_any()),
+            Value::String(v) => Ok(v.into_pyobject(py)?.into_any()),
+            Value::DateTime(v) => Ok(v.into_pyobject(py)?.into_any()),
+            Value::Null => Ok(py.None().bind(py).clone().into_any()),
         }
     }
 }
@@ -288,7 +273,8 @@ impl PyGroupedDataFrame {
             .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyDataFrame {
-                        df: grouped_df.agg(vec![("*", "max")])
+            df: grouped_df
+                .agg(vec![("*", "max")])
                 .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
@@ -512,8 +498,10 @@ impl PySeries {
         self.series.set_name(new_name);
     }
 
-        fn get_value<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Option<PyObject>> {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        self.series.get_value(index).map_or(Ok(None), |v| v.into_pyobject(py).map(|b| Some(b.unbind())))
+    fn get_value<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Option<PyObject>> {
+        self.series
+            .get_value(index)
+            .map_or(Ok(None), |v| v.into_pyobject(py).map(|b| Some(b.unbind())))
     }
 
     fn filter(&self, row_indices: Vec<usize>) -> PyResult<Self> {
@@ -583,8 +571,6 @@ fn extract_value(value: &Bound<PyAny>) -> PyResult<Value> {
         Err(PyValueError::new_err("Unsupported value type"))
     }
 }
-
-
 
 #[pymodule]
 fn veloxx(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {

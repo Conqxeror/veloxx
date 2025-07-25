@@ -13,7 +13,10 @@ impl DataFrame {
             .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
 
         let mut trimmed_bytes = contents.as_slice();
-        if let Some(i) = trimmed_bytes.iter().rposition(|&x| x != b'\n' && x != b'\r') {
+        if let Some(i) = trimmed_bytes
+            .iter()
+            .rposition(|&x| x != b'\n' && x != b'\r')
+        {
             trimmed_bytes = &trimmed_bytes[..=i];
         }
 
@@ -88,10 +91,11 @@ impl DataFrame {
         let data_rows = all_rows_as_strings.clone();
         for row in &all_rows_as_strings {
             if row.len() != header.len() {
-                return Err(VeloxxError::Parsing("CSV rows have inconsistent number of columns.".to_string()));
+                return Err(VeloxxError::Parsing(
+                    "CSV rows have inconsistent number of columns.".to_string(),
+                ));
             }
         }
-
 
         if data_rows.is_empty() {
             // If only header exists, create an empty DataFrame with correct columns
@@ -127,7 +131,6 @@ impl DataFrame {
                 } else {
                     ""
                 };
-
 
                 // Try parsing as i32
                 if is_i32 {

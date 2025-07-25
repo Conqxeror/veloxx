@@ -26,7 +26,7 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! 
+//!
 //!
 //! let mut columns = BTreeMap::new();
 //! columns.insert(
@@ -49,7 +49,7 @@
 //! use veloxx::series::Series;
 //! use veloxx::conditions::Condition;
 //! use veloxx::types::Value;
-//! 
+//!
 //!
 //! let mut columns = BTreeMap::new();
 //! columns.insert(
@@ -73,7 +73,7 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! 
+//!
 //!
 //! let mut columns = BTreeMap::new();
 //! columns.insert(
@@ -116,11 +116,11 @@ pub mod error;
 /// Defines expressions that can be used to create new columns or perform calculations
 /// based on existing data within a DataFrame.
 pub mod expressions;
+/// I/O operations for reading and writing data
+pub mod io;
 /// Machine learning integration module
 #[cfg(feature = "ml")]
 pub mod ml;
-/// I/O operations for reading and writing data
-pub mod io;
 /// Performance optimization module for high-performance data operations
 /// Core Series (column) data structure and its associated operations, including
 /// type casting, aggregation, and statistical calculations.
@@ -146,14 +146,13 @@ pub use wasm_bindings::*;
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
     use crate::conditions::Condition;
     use crate::dataframe::DataFrame;
     use crate::error::VeloxxError;
-    
+    use std::collections::BTreeMap;
+
     use crate::series::Series;
     use crate::types::Value;
-    
 
     #[test]
     fn test_dataframe_new() {
@@ -176,7 +175,6 @@ mod tests {
 
     #[test]
     fn test_dataframe_new_empty() {
-        
         let columns = BTreeMap::new();
         let df = DataFrame::new(columns).unwrap();
         assert_eq!(df.row_count(), 0);
@@ -185,7 +183,6 @@ mod tests {
 
     #[test]
     fn test_dataframe_new_mismatched_lengths() {
-        
         let mut columns = BTreeMap::new();
         columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1)]));
         columns.insert(
@@ -204,7 +201,6 @@ mod tests {
 
     #[test]
     fn test_dataframe_get_column() {
-        
         let mut columns = BTreeMap::new();
         columns.insert(
             "col1".to_string(),
@@ -223,7 +219,6 @@ mod tests {
 
     #[test]
     fn test_dataframe_display() {
-        
         let mut columns = BTreeMap::new();
         columns.insert(
             "col1".to_string(),

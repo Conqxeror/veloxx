@@ -1,13 +1,15 @@
-
-use veloxx::dataframe::DataFrame;
-use veloxx::series::Series;
-use veloxx::expressions::Expr;
 use std::collections::BTreeMap;
+use veloxx::dataframe::DataFrame;
+use veloxx::expressions::Expr;
+use veloxx::series::Series;
 
 #[test]
 fn test_simple_expression() {
     let mut columns = BTreeMap::new();
-    columns.insert("a".to_string(), Series::new_i32("a", vec![Some(1), Some(2), Some(3)]));
+    columns.insert(
+        "a".to_string(),
+        Series::new_i32("a", vec![Some(1), Some(2), Some(3)]),
+    );
     let df = DataFrame::new(columns).unwrap();
 
     let expr = Expr::Add(
@@ -23,7 +25,13 @@ fn test_simple_expression() {
 #[test]
 fn test_string_expression() {
     let mut columns = BTreeMap::new();
-    columns.insert("a".to_string(), Series::new_string("a", vec![Some("hello".to_string()), Some("world".to_string())]));
+    columns.insert(
+        "a".to_string(),
+        Series::new_string(
+            "a",
+            vec![Some("hello".to_string()), Some("world".to_string())],
+        ),
+    );
     // let df = DataFrame::new(columns).unwrap();
 
     // let expr = Expr::Column("a".to_string());

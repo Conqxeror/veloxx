@@ -1,8 +1,8 @@
+use std::collections::BTreeMap;
+use veloxx::data_quality::{ColumnSchema, Constraint, DataProfiler, Schema, SchemaValidator};
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
-use veloxx::data_quality::{SchemaValidator, Schema, ColumnSchema, Constraint, DataProfiler};
 use veloxx::types::{DataType, Value};
-use std::collections::BTreeMap;
 
 #[test]
 fn test_validate() {
@@ -23,7 +23,9 @@ fn test_validate() {
             constraints: vec![Constraint::MinValue(Value::I32(0))],
         },
     );
-    let schema = Schema { columns: schema_columns };
+    let schema = Schema {
+        columns: schema_columns,
+    };
     let validator = SchemaValidator::new();
     let result = validator.validate(&df, &schema).unwrap();
     assert!(result.is_valid);

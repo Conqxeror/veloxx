@@ -1,6 +1,6 @@
-use std::collections::HashSet;
 use crate::error::VeloxxError;
 use crate::types::{DataType, Value};
+use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Series {
@@ -521,24 +521,27 @@ impl Series {
                 }
 
                 let variance = match self {
-                    Series::I32(_, data) => data
-                        .iter()
-                        .filter_map(|&x| x)
-                        .map(|x| (x as f64 - mean_val).powi(2))
-                        .sum::<f64>()
-                        / (count - 1) as f64,
-                    Series::F64(_, data) => data
-                        .iter()
-                        .filter_map(|&x| x)
-                        .map(|x| (x - mean_val).powi(2))
-                        .sum::<f64>()
-                        / (count - 1) as f64,
-                    Series::DateTime(_, data) => data
-                        .iter()
-                        .filter_map(|&x| x)
-                        .map(|x| (x as f64 - mean_val).powi(2))
-                        .sum::<f64>()
-                        / (count - 1) as f64,
+                    Series::I32(_, data) => {
+                        data.iter()
+                            .filter_map(|&x| x)
+                            .map(|x| (x as f64 - mean_val).powi(2))
+                            .sum::<f64>()
+                            / (count - 1) as f64
+                    }
+                    Series::F64(_, data) => {
+                        data.iter()
+                            .filter_map(|&x| x)
+                            .map(|x| (x - mean_val).powi(2))
+                            .sum::<f64>()
+                            / (count - 1) as f64
+                    }
+                    Series::DateTime(_, data) => {
+                        data.iter()
+                            .filter_map(|&x| x)
+                            .map(|x| (x as f64 - mean_val).powi(2))
+                            .sum::<f64>()
+                            / (count - 1) as f64
+                    }
                     _ => {
                         return Err(VeloxxError::Unsupported(format!(
                             "Std Dev not supported for {:?} series",
@@ -660,8 +663,7 @@ impl Series {
             .sum::<f64>();
 
         let numerator = n * sum_xy - sum_x * sum_y;
-        let denominator =
-            ((n * sum_x_sq - sum_x.powi(2)) * (n * sum_y_sq - sum_y.powi(2))).sqrt();
+        let denominator = ((n * sum_x_sq - sum_x.powi(2)) * (n * sum_y_sq - sum_y.powi(2))).sqrt();
 
         if denominator == 0.0 {
             Ok(None)

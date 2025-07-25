@@ -10,7 +10,6 @@ pub mod join;
 pub mod manipulation;
 pub mod sources;
 
-
 /// Represents a tabular data structure with named columns, similar to a data frame in other data manipulation libraries.
 ///
 /// Each column in a `DataFrame` is a `Series`, and all series must have the same length.

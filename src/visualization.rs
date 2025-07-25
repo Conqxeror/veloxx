@@ -40,11 +40,11 @@
 //! # }
 //! ```
 
-#[cfg(feature = "visualization")]
-use std::borrow::BorrowMut;
 use plotters::prelude::*;
 #[cfg(feature = "visualization")]
 use plotters_svg::SVGBackend;
+#[cfg(feature = "visualization")]
+use std::borrow::BorrowMut;
 
 use crate::dataframe::DataFrame;
 use crate::error::VeloxxError;
@@ -450,18 +450,15 @@ impl<'a> Plot<'a> {
             .x_desc(&self.config.x_label)
             .y_desc(&self.config.y_label)
             .draw()
-            .map_err(|e| {
-                VeloxxError::InvalidOperation(format!("Failed to draw mesh: {}", e))
-            })?;
+            .map_err(|e| VeloxxError::InvalidOperation(format!("Failed to draw mesh: {}", e)))?;
 
         let hist_data: Vec<f64> = data.to_vec();
         let series = Histogram::vertical(chart.borrow_mut())
-                .style(BLUE.filled())
-                .data(hist_data.iter().map(|x| (*x, 1)));
+            .style(BLUE.filled())
+            .data(hist_data.iter().map(|x| (*x, 1)));
         chart.draw_series(series).map_err(|e| {
             VeloxxError::InvalidOperation(format!("Failed to draw histogram series: {}", e))
         })?;
-
 
         root.present()
             .map_err(|e| VeloxxError::InvalidOperation(format!("Failed to save plot: {}", e)))?;

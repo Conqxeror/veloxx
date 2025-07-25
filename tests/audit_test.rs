@@ -5,7 +5,7 @@ fn test_audit_trail_log() {
     // Test that log function doesn't panic
     AuditTrail::log("Test audit event");
     AuditTrail::log("Another test event");
-    
+
     // Since log just prints to stdout, we can't easily test the output
     // but we can ensure it doesn't crash
     assert!(true);

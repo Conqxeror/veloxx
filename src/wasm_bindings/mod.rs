@@ -1,11 +1,9 @@
-
-
 #![allow(clippy::boxed_local)]
 
 use crate::dataframe::join::JoinType;
-use std::collections::BTreeMap;
 use crate::dataframe::DataFrame;
 use crate::expressions::Expr;
+use std::collections::BTreeMap;
 
 use crate::types::{DataType, Value};
 
@@ -58,9 +56,7 @@ impl WasmDataFrame {
 
     #[wasm_bindgen(js_name = getColumn)]
     pub fn get_column(&self, name: &str) -> Option<js_sys::Object> {
-        self.df.get_column(name).map(|_s| {
-            js_sys::Object::new()
-        })
+        self.df.get_column(name).map(|_s| js_sys::Object::new())
     }
 
     #[wasm_bindgen]
@@ -249,9 +245,6 @@ impl WasmDataFrame {
                 .map_err(|e| JsValue::from_str(&e.to_string()))?,
         })
     }
-
-    
-    
 }
 
 #[wasm_bindgen]
@@ -270,12 +263,6 @@ impl From<WasmJoinType> for JoinType {
         }
     }
 }
-
-
-
-
-
-
 
 #[wasm_bindgen]
 pub enum WasmDataType {

@@ -148,7 +148,9 @@ impl DataFrame {
     /// assert_eq!(interpolated_df.get_column("A").unwrap().get_value(1), Some(Value::F64(2.0)));
     /// ```
     pub fn interpolate_nulls(&self, column_name: &str) -> Result<Self, VeloxxError> {
-        let series = self.get_column(column_name).ok_or(VeloxxError::ColumnNotFound(column_name.to_string()))?;
+        let series = self
+            .get_column(column_name)
+            .ok_or(VeloxxError::ColumnNotFound(column_name.to_string()))?;
         let interpolated = series.interpolate_nulls()?;
         let mut new_columns = self.columns.clone();
         new_columns.insert(column_name.to_string(), interpolated);

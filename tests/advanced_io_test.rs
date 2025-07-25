@@ -1,4 +1,6 @@
-use veloxx::advanced_io::{CompressionType, ParquetReader, ParquetWriter, JsonStreamer, DatabaseConnector};
+use veloxx::advanced_io::{
+    CompressionType, DatabaseConnector, JsonStreamer, ParquetReader, ParquetWriter,
+};
 
 #[test]
 fn test_compression_type_variants() {
@@ -10,38 +12,38 @@ fn test_compression_type_variants() {
     let lzo = CompressionType::Lzo;
     let brotli = CompressionType::Brotli;
     let zstd = CompressionType::Zstd;
-    
+
     // Test that they can be used in match statements
     match none {
         CompressionType::None => assert!(true),
         _ => assert!(false),
     }
-    
+
     match gzip {
         CompressionType::Gzip => assert!(true),
         _ => assert!(false),
     }
-    
+
     match snappy {
         CompressionType::Snappy => assert!(true),
         _ => assert!(false),
     }
-    
+
     match lz4 {
         CompressionType::Lz4 => assert!(true),
         _ => assert!(false),
     }
-    
+
     match lzo {
         CompressionType::Lzo => assert!(true),
         _ => assert!(false),
     }
-    
+
     match brotli {
         CompressionType::Brotli => assert!(true),
         _ => assert!(false),
     }
-    
+
     match zstd {
         CompressionType::Zstd => assert!(true),
         _ => assert!(false),
@@ -51,7 +53,7 @@ fn test_compression_type_variants() {
 #[test]
 fn test_parquet_reader_creation() {
     let _reader = ParquetReader::new();
-    
+
     // Test that reader can be created
     assert!(true); // Basic existence test
 }
@@ -59,7 +61,7 @@ fn test_parquet_reader_creation() {
 #[test]
 fn test_parquet_writer_creation() {
     let _writer = ParquetWriter::new();
-    
+
     // Test that writer can be created
     assert!(true); // Basic existence test
 }
@@ -67,7 +69,7 @@ fn test_parquet_writer_creation() {
 #[test]
 fn test_json_streamer_creation() {
     let _streamer = JsonStreamer::new();
-    
+
     // Test that streamer can be created
     assert!(true); // Basic existence test
 }
@@ -75,7 +77,7 @@ fn test_json_streamer_creation() {
 #[test]
 fn test_database_connector_creation() {
     let _connector = DatabaseConnector::new("sqlite://test.db");
-    
+
     // Test that connector can be created
     assert!(true); // Basic existence test
 }
@@ -84,7 +86,7 @@ fn test_database_connector_creation() {
 fn test_compression_type_debug() {
     let compression = CompressionType::Gzip;
     let debug_str = format!("{:?}", compression);
-    
+
     assert!(debug_str.contains("Gzip"));
 }
 
@@ -92,7 +94,7 @@ fn test_compression_type_debug() {
 fn test_compression_type_clone() {
     let compression = CompressionType::Snappy;
     let cloned = compression.clone();
-    
+
     // Test that they match in pattern matching
     match (compression, cloned) {
         (CompressionType::Snappy, CompressionType::Snappy) => assert!(true),
@@ -104,13 +106,13 @@ fn test_compression_type_clone() {
 fn test_compression_type_copy() {
     let compression = CompressionType::Lz4;
     let copied = compression; // Should work because Copy is implemented
-    
+
     // Both should be usable
     match compression {
         CompressionType::Lz4 => assert!(true),
         _ => assert!(false),
     }
-    
+
     match copied {
         CompressionType::Lz4 => assert!(true),
         _ => assert!(false),
@@ -120,7 +122,7 @@ fn test_compression_type_copy() {
 #[test]
 fn test_parquet_reader_default() {
     let _reader = ParquetReader::default();
-    
+
     // Test that default implementation works
     assert!(true);
 }
@@ -128,7 +130,7 @@ fn test_parquet_reader_default() {
 #[test]
 fn test_parquet_writer_default() {
     let _writer = ParquetWriter::default();
-    
+
     // Test that default implementation works
     assert!(true);
 }
@@ -136,7 +138,7 @@ fn test_parquet_writer_default() {
 #[test]
 fn test_json_streamer_default() {
     let _streamer = JsonStreamer::default();
-    
+
     // Test that default implementation works
     assert!(true);
 }
@@ -147,7 +149,7 @@ fn test_async_file_ops_exists() {
     // In a real async test, we would call:
     // let _df = AsyncFileOps::read_csv_async("test.csv").await?;
     // let _df = AsyncFileOps::read_json_async("test.json").await?;
-    
+
     assert!(true);
 }
 
@@ -156,7 +158,7 @@ fn test_database_connector_with_different_connection_strings() {
     let _sqlite_connector = DatabaseConnector::new("sqlite://test.db");
     let _postgres_connector = DatabaseConnector::new("postgresql://user:pass@localhost/db");
     let _mysql_connector = DatabaseConnector::new("mysql://user:pass@localhost/db");
-    
+
     // Test that different connection strings can be used
     assert!(true);
 }
@@ -172,10 +174,10 @@ fn test_compression_type_all_variants() {
         CompressionType::Lz4,
         CompressionType::Zstd,
     ];
-    
+
     // Test that all variants can be stored in a vector
     assert_eq!(variants.len(), 7);
-    
+
     // Test that each variant can be pattern matched
     for variant in variants {
         match variant {
