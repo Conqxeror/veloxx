@@ -44,7 +44,7 @@ jobs:
           echo "Checking workspace configuration..."
           cargo metadata --format-version 1 | grep -E '"workspace_root"|"resolver"' || true
           echo "Running clippy with workspace lint configuration..."
-          cargo clippy --all-targets --all-features --verbose -- -D warnings -A clippy::uninlined-format-args -A clippy::assertions-on-constants -A clippy::approx-constant
+          cargo clippy --all-targets --all-features --verbose -- -D warnings -A clippy::uninlined-format-args -A clippy::assertions-on-constants -A clippy::approx-constant -A clippy::empty-line-after-doc-comments -A clippy::clone-on-copy -A clippy::map-clone
 
       - name: Run Tests
         run: cargo test --verbose

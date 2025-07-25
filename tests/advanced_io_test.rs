@@ -15,38 +15,38 @@ fn test_compression_type_variants() {
 
     // Test that they can be used in match statements
     match none {
-        CompressionType::None => assert!(true),
-        _ => assert!(false),
+        CompressionType::None => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 
     match gzip {
-        CompressionType::Gzip => assert!(true),
-        _ => assert!(false),
+        CompressionType::Gzip => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 
     match snappy {
-        CompressionType::Snappy => assert!(true),
-        _ => assert!(false),
+        CompressionType::Snappy => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 
     match lz4 {
-        CompressionType::Lz4 => assert!(true),
-        _ => assert!(false),
+        CompressionType::Lz4 => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 
     match lzo {
-        CompressionType::Lzo => assert!(true),
-        _ => assert!(false),
+        CompressionType::Lzo => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 
     match brotli {
-        CompressionType::Brotli => assert!(true),
-        _ => assert!(false),
+        CompressionType::Brotli => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 
     match zstd {
-        CompressionType::Zstd => assert!(true),
-        _ => assert!(false),
+        CompressionType::Zstd => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 }
 
@@ -55,7 +55,7 @@ fn test_parquet_reader_creation() {
     let _reader = ParquetReader::new();
 
     // Test that reader can be created
-    assert!(true); // Basic existence test
+    // Test that reader can be created without errors
 }
 
 #[test]
@@ -63,7 +63,7 @@ fn test_parquet_writer_creation() {
     let _writer = ParquetWriter::new();
 
     // Test that writer can be created
-    assert!(true); // Basic existence test
+    // Test that reader can be created without errors
 }
 
 #[test]
@@ -71,7 +71,7 @@ fn test_json_streamer_creation() {
     let _streamer = JsonStreamer::new();
 
     // Test that streamer can be created
-    assert!(true); // Basic existence test
+    // Test that reader can be created without errors
 }
 
 #[test]
@@ -79,7 +79,7 @@ fn test_database_connector_creation() {
     let _connector = DatabaseConnector::new("sqlite://test.db");
 
     // Test that connector can be created
-    assert!(true); // Basic existence test
+    // Test that reader can be created without errors
 }
 
 #[test]
@@ -97,8 +97,8 @@ fn test_compression_type_clone() {
 
     // Test that they match in pattern matching
     match (compression, cloned) {
-        (CompressionType::Snappy, CompressionType::Snappy) => assert!(true),
-        _ => assert!(false),
+        (CompressionType::Snappy, CompressionType::Snappy) => {}, // Expected matching variants
+        _ => panic!("Expected None variant"),
     }
 }
 
@@ -109,13 +109,13 @@ fn test_compression_type_copy() {
 
     // Both should be usable
     match compression {
-        CompressionType::Lz4 => assert!(true),
-        _ => assert!(false),
+        CompressionType::Lz4 => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 
     match copied {
-        CompressionType::Lz4 => assert!(true),
-        _ => assert!(false),
+        CompressionType::Lz4 => {}, // Expected variant found
+        _ => panic!("Expected None variant"),
     }
 }
 
@@ -124,7 +124,7 @@ fn test_parquet_reader_default() {
     let _reader = ParquetReader::default();
 
     // Test that default implementation works
-    assert!(true);
+    // Test that default implementation works without errors
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn test_parquet_writer_default() {
     let _writer = ParquetWriter::default();
 
     // Test that default implementation works
-    assert!(true);
+    // Test that default implementation works without errors
 }
 
 #[test]
@@ -140,7 +140,7 @@ fn test_json_streamer_default() {
     let _streamer = JsonStreamer::default();
 
     // Test that default implementation works
-    assert!(true);
+    // Test that default implementation works without errors
 }
 
 #[test]
@@ -150,7 +150,7 @@ fn test_async_file_ops_exists() {
     // let _df = AsyncFileOps::read_csv_async("test.csv").await?;
     // let _df = AsyncFileOps::read_json_async("test.json").await?;
 
-    assert!(true);
+    // Test that default implementation works without errors
 }
 
 #[test]
@@ -160,7 +160,7 @@ fn test_database_connector_with_different_connection_strings() {
     let _mysql_connector = DatabaseConnector::new("mysql://user:pass@localhost/db");
 
     // Test that different connection strings can be used
-    assert!(true);
+    // Test that default implementation works without errors
 }
 
 #[test]
@@ -181,13 +181,13 @@ fn test_compression_type_all_variants() {
     // Test that each variant can be pattern matched
     for variant in variants {
         match variant {
-            CompressionType::None => assert!(true),
-            CompressionType::Snappy => assert!(true),
-            CompressionType::Gzip => assert!(true),
-            CompressionType::Lzo => assert!(true),
-            CompressionType::Brotli => assert!(true),
-            CompressionType::Lz4 => assert!(true),
-            CompressionType::Zstd => assert!(true),
+            CompressionType::None => {}, // Expected variant found
+            CompressionType::Snappy => {}, // Expected variant found
+            CompressionType::Gzip => {}, // Expected variant found
+            CompressionType::Lzo => {}, // Expected variant found
+            CompressionType::Brotli => {}, // Expected variant found
+            CompressionType::Lz4 => {}, // Expected variant found
+            CompressionType::Zstd => {}, // Expected variant found
         }
     }
 }

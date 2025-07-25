@@ -7,16 +7,16 @@ use veloxx::series::Series;
 fn test_json_reader_creation() {
     let _reader = JsonReader::new();
     // Test that reader can be created without errors
-    assert!(true); // JsonReader doesn't have public fields to inspect
+    // JsonReader doesn't have public fields to inspect - test passes if no panic
 }
 
 #[test]
 fn test_json_writer_creation() {
     let _writer = JsonWriter::new();
-    assert!(true); // JsonWriter doesn't have public fields to inspect
+    // JsonWriter doesn't have public fields to inspect - test passes if no panic
 
     let _pretty_writer = JsonWriter::pretty();
-    assert!(true); // JsonWriter doesn't have public fields to inspect
+    // JsonWriter doesn't have public fields to inspect - test passes if no panic
 }
 
 #[test]
