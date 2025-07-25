@@ -15,37 +15,37 @@ fn test_compression_type_variants() {
 
     // Test that they can be used in match statements
     match none {
-        CompressionType::None => {}, // Expected variant found
+        CompressionType::None => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 
     match gzip {
-        CompressionType::Gzip => {}, // Expected variant found
+        CompressionType::Gzip => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 
     match snappy {
-        CompressionType::Snappy => {}, // Expected variant found
+        CompressionType::Snappy => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 
     match lz4 {
-        CompressionType::Lz4 => {}, // Expected variant found
+        CompressionType::Lz4 => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 
     match lzo {
-        CompressionType::Lzo => {}, // Expected variant found
+        CompressionType::Lzo => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 
     match brotli {
-        CompressionType::Brotli => {}, // Expected variant found
+        CompressionType::Brotli => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 
     match zstd {
-        CompressionType::Zstd => {}, // Expected variant found
+        CompressionType::Zstd => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 }
@@ -97,7 +97,7 @@ fn test_compression_type_clone() {
 
     // Test that they match in pattern matching
     match (compression, cloned) {
-        (CompressionType::Snappy, CompressionType::Snappy) => {}, // Expected matching variants
+        (CompressionType::Snappy, CompressionType::Snappy) => {} // Expected matching variants
         _ => panic!("Expected None variant"),
     }
 }
@@ -109,12 +109,12 @@ fn test_compression_type_copy() {
 
     // Both should be usable
     match compression {
-        CompressionType::Lz4 => {}, // Expected variant found
+        CompressionType::Lz4 => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 
     match copied {
-        CompressionType::Lz4 => {}, // Expected variant found
+        CompressionType::Lz4 => {} // Expected variant found
         _ => panic!("Expected None variant"),
     }
 }
@@ -181,13 +181,13 @@ fn test_compression_type_all_variants() {
     // Test that each variant can be pattern matched
     for variant in variants {
         match variant {
-            CompressionType::None => {}, // Expected variant found
-            CompressionType::Snappy => {}, // Expected variant found
-            CompressionType::Gzip => {}, // Expected variant found
-            CompressionType::Lzo => {}, // Expected variant found
-            CompressionType::Brotli => {}, // Expected variant found
-            CompressionType::Lz4 => {}, // Expected variant found
-            CompressionType::Zstd => {}, // Expected variant found
+            CompressionType::None => {}   // Expected variant found
+            CompressionType::Snappy => {} // Expected variant found
+            CompressionType::Gzip => {}   // Expected variant found
+            CompressionType::Lzo => {}    // Expected variant found
+            CompressionType::Brotli => {} // Expected variant found
+            CompressionType::Lz4 => {}    // Expected variant found
+            CompressionType::Zstd => {}   // Expected variant found
         }
     }
 }

@@ -90,7 +90,7 @@ fn test_not_expression() {
     let expr = Expr::Not(Box::new(inner));
 
     match expr {
-        Expr::Not(_) => {}, // Test passes - we found the expected Not expression
+        Expr::Not(_) => {} // Test passes - we found the expected Not expression
         _ => panic!("Expected Not expression"),
     }
 }
