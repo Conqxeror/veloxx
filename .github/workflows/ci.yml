@@ -50,7 +50,7 @@ jobs:
         run: cargo test --verbose
 
       - name: Test Documentation
-        run: cargo test --doc --verbose
+        run: cargo test --doc --no-default-features --verbose
 
       - name: Build Release
         run: cargo build --release --verbose

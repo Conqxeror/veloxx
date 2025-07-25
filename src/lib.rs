@@ -26,6 +26,7 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
+//! use std::collections::BTreeMap;
 //!
 //!
 //! let mut columns = BTreeMap::new();
@@ -49,6 +50,7 @@
 //! use veloxx::series::Series;
 //! use veloxx::conditions::Condition;
 //! use veloxx::types::Value;
+//! use std::collections::BTreeMap;
 //!
 //!
 //! let mut columns = BTreeMap::new();
@@ -73,6 +75,7 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
+//! use std::collections::BTreeMap;
 //!
 //!
 //! let mut columns = BTreeMap::new();
