@@ -31,7 +31,7 @@ fn test_add_expression() {
     let expr = Expr::Add(Box::new(left), Box::new(right));
 
     match expr {
-        Expr::Add(_, _) => assert!(true),
+        Expr::Add(_, _) => {} // Test passes if we reach this point
         _ => panic!("Expected Add expression"),
     }
 }
@@ -43,7 +43,7 @@ fn test_multiply_expression() {
     let expr = Expr::Multiply(Box::new(left), Box::new(right));
 
     match expr {
-        Expr::Multiply(_, _) => assert!(true),
+        Expr::Multiply(_, _) => {} // Test passes if we reach this point
         _ => panic!("Expected Multiply expression"),
     }
 }
@@ -55,7 +55,7 @@ fn test_equals_expression() {
     let expr = Expr::Equals(Box::new(left), Box::new(right));
 
     match expr {
-        Expr::Equals(_, _) => assert!(true),
+        Expr::Equals(_, _) => {} // Test passes if we reach this point
         _ => panic!("Expected Equals expression"),
     }
 }
@@ -67,7 +67,7 @@ fn test_greater_than_expression() {
     let expr = Expr::GreaterThan(Box::new(left), Box::new(right));
 
     match expr {
-        Expr::GreaterThan(_, _) => assert!(true),
+        Expr::GreaterThan(_, _) => {} // Test passes if we reach this point
         _ => panic!("Expected GreaterThan expression"),
     }
 }
@@ -79,7 +79,7 @@ fn test_and_expression() {
     let expr = Expr::And(Box::new(left), Box::new(right));
 
     match expr {
-        Expr::And(_, _) => assert!(true),
+        Expr::And(_, _) => {} // Test passes if we reach this point
         _ => panic!("Expected And expression"),
     }
 }

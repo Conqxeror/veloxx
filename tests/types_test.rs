@@ -37,9 +37,9 @@ fn test_value_i32() {
 
 #[test]
 fn test_value_f64() {
-    let val = Value::F64(3.14);
+    let val = Value::F64(2.5);
     match val {
-        Value::F64(f) => assert_eq!(f, 3.14),
+        Value::F64(f) => assert_eq!(f, 2.5),
         _ => panic!("Expected F64 value"),
     }
 }
@@ -76,7 +76,7 @@ fn test_value_datetime() {
 fn test_value_null() {
     let val = Value::Null;
     match val {
-        Value::Null => assert!(true),
+        Value::Null => {} // Test passes if we reach this point
         _ => panic!("Expected Null value"),
     }
 }
@@ -84,7 +84,7 @@ fn test_value_null() {
 #[test]
 fn test_value_equality() {
     assert_eq!(Value::I32(42), Value::I32(42));
-    assert_eq!(Value::F64(3.14), Value::F64(3.14));
+    assert_eq!(Value::F64(2.5), Value::F64(2.5));
     assert_eq!(Value::Bool(true), Value::Bool(true));
     assert_eq!(
         Value::String("test".to_string()),

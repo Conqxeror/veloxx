@@ -34,7 +34,7 @@ fn test_drop_nulls_with_mixed_data() {
     );
 
     let col2_values: Vec<Option<String>> = match cleaned_df.get_column("col2").unwrap() {
-        Series::String(_, data) => data.iter().map(|v| v.clone()).collect(),
+        Series::String(_, data) => data.to_vec(),
         _ => panic!("Wrong type"),
     };
     assert_eq!(

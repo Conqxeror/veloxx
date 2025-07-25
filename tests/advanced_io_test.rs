@@ -93,7 +93,7 @@ fn test_compression_type_debug() {
 #[test]
 fn test_compression_type_clone() {
     let compression = CompressionType::Snappy;
-    let cloned = compression.clone();
+    let cloned = compression;
 
     // Test that they match in pattern matching
     match (compression, cloned) {

@@ -115,7 +115,7 @@ fn test_linear_regression_with_nulls() {
         }
         Err(_) => {
             // If it fails, that's also acceptable for null handling
-            assert!(true);
+            // Test passes if we reach this point
         }
     }
 }

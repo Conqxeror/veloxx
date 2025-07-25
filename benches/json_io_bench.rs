@@ -9,7 +9,6 @@ use veloxx::series::Series;
 
 /// Performance benchmarks for JSON I/O operations
 /// Tests various data sizes and scenarios to identify optimization opportunities
-
 fn create_test_dataframe(rows: usize) -> DataFrame {
     let mut columns = BTreeMap::new();
 
