@@ -229,13 +229,13 @@ fn bench_series_apply(c: &mut Criterion) {
 
     c.bench_function("series_apply_i32", |b| {
         b.iter(|| {
-            series_i32.apply_i32(|v| v.map(|x| x * 2)).unwrap();
+            series_i32.apply(|v: &i32| v * 2).unwrap();
         });
     });
 
     c.bench_function("series_apply_f64", |b| {
         b.iter(|| {
-            series_f64.apply_f64(|v| v.map(|x| x * 2.0)).unwrap();
+            series_f64.apply(|v: &f64| v * 2.0).unwrap();
         });
     });
 

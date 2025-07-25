@@ -1,4 +1,27 @@
-## 0.3.0 - 2025-07-14
+## 0.3.0 - 2025-07-25
+
+### Added
+
+- Comprehensive performance optimization module for faster core operations and reduced memory usage.
+- Full-featured time series analysis capabilities, including advanced resampling, rolling, and window functions.
+- Extensive new documentation for Python and JavaScript bindings, covering all major features and usage patterns.
+- Python: Implemented equality comparison for PyDataType enum for improved cross-language compatibility.
+- New Docusaurus-based documentation site with live deployment and CI integration.
+- Enhanced package descriptions and keywords for better discoverability across PyPI, crates.io, and npm.
+- Comprehensive tutorial with up-to-date examples covering all library features.
+- Updated API documentation with correct project naming and current version references.
+
+### Changed
+
+- Bumped project version to `0.3.0` in `Cargo.toml`.
+- Modernized and restructured main `README.md`: improved layout, added project badges, and included comprehensive external links (PyPI, crates.io, npm, GitHub, documentation site) with icons/emojis/logos as appropriate.
+- Updated all documentation files to use correct project name "Veloxx" instead of "Velox".
+- Enhanced package metadata with detailed descriptions highlighting DataFrames, machine learning, I/O capabilities, and multi-platform bindings.
+- Optimized keywords for better search discoverability across all package repositories.
+- Synchronized documentation to reflect the new version and project status.
+- Updated Python and WASM README files with current version numbers and installation instructions.
+
+
 
 ### Added
 

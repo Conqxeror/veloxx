@@ -242,6 +242,19 @@ impl PartialEq for Value {
 ///
 /// This is a marker trait that indicates that `PartialEq` implies a total equivalence relation.
 /// It has no methods and simply inherits `PartialEq`'s requirements.
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Null => write!(f, "null"),
+            Value::I32(v) => write!(f, "{}", v),
+            Value::F64(v) => write!(f, "{}", v),
+            Value::Bool(v) => write!(f, "{}", v),
+            Value::String(v) => write!(f, "{}", v),
+            Value::DateTime(v) => write!(f, "{}", v),
+        }
+    }
+}
+
 impl Eq for Value {}
 
 impl Value {

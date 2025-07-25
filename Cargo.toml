@@ -14,10 +14,10 @@ name = "veloxx"
 version = "0.3.0"
 edition = "2021"
 authors = ["Conqxeror <conqxeror@gmail.com>"]
-description = "A lightweight Rust library for in-memory data processing and analytics"
+description = "Veloxx: High-performance, lightweight Rust library for in-memory data processing and analytics. Features DataFrames, Series, advanced I/O (CSV, JSON, Parquet), machine learning (linear regression, K-means, logistic regression), time-series analysis, data visualization, parallel processing, and multi-platform bindings (Python, WebAssembly). Designed for minimal dependencies, optimal memory usage, and blazing speed - ideal for data science, analytics, and performance-critical applications."
 repository = "https://github.com/Conqxeror/veloxx"
 license = "MIT"
-keywords = ["data", "analytics", "dataframe", "series", "statistics"]
+keywords = ["dataframe", "analytics", "data-processing", "machine-learning", "time-series", "statistics", "csv", "json", "parquet", "visualization", "python-bindings", "wasm", "parallel", "simd", "performance"]
 categories = ["data-structures", "science"]
 readme = "README.md"
 
@@ -26,11 +26,12 @@ name = "veloxx"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = []
+default = ["full"]
+full = ["python", "wasm", "visualization", "ml", "advanced_io", "data_quality", "window_functions", "distributed"]
 python = ["pyo3"]
 wasm = ["wasm-bindgen", "js-sys"]
 visualization = ["plotters", "plotters-svg"]
-ml = ["ndarray", "linfa", "linfa-linear"]
+ml = ["ndarray", "linfa", "linfa-linear", "linfa-trees"]
 advanced_io = ["parquet", "tokio", "sqlx"]
 data_quality = ["regex"]
 window_functions = ["chrono"]
@@ -63,6 +64,8 @@ chrono = { version = "0.4.31", features = ["serde"], optional = true }
 # Distributed Computing dependencies
 arrow = { version = "53.0", optional = true }
 arrow-flight = { version = "53.0", optional = true }
+linfa-trees = { version = "0.7", optional = true }
+
 
 [lints]
 workspace = true

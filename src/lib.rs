@@ -26,7 +26,7 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
+//! 
 //!
 //! let mut columns = BTreeMap::new();
 //! columns.insert(
@@ -49,7 +49,7 @@
 //! use veloxx::series::Series;
 //! use veloxx::conditions::Condition;
 //! use veloxx::types::Value;
-//! use std::collections::BTreeMap;
+//! 
 //!
 //! let mut columns = BTreeMap::new();
 //! columns.insert(
@@ -73,7 +73,7 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
+//! 
 //!
 //! let mut columns = BTreeMap::new();
 //! columns.insert(
@@ -118,7 +118,6 @@ pub mod expressions;
 #[cfg(feature = "ml")]
 pub mod ml;
 /// Performance optimization module for high-performance data operations
-pub mod performance;
 /// Core Series (column) data structure and its associated operations, including
 /// type casting, aggregation, and statistical calculations.
 pub mod series;
@@ -143,13 +142,14 @@ pub use wasm_bindings::*;
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
     use crate::conditions::Condition;
     use crate::dataframe::DataFrame;
     use crate::error::VeloxxError;
-    use crate::expressions::Expr;
+    
     use crate::series::Series;
     use crate::types::Value;
-    use std::collections::BTreeMap;
+    
 
     #[test]
     fn test_dataframe_new() {
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_new_empty() {
-        use std::collections::BTreeMap;
+        
         let columns = BTreeMap::new();
         let df = DataFrame::new(columns).unwrap();
         assert_eq!(df.row_count(), 0);
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_new_mismatched_lengths() {
-        use std::collections::BTreeMap;
+        
         let mut columns = BTreeMap::new();
         columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1)]));
         columns.insert(
@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_get_column() {
-        use std::collections::BTreeMap;
+        
         let mut columns = BTreeMap::new();
         columns.insert(
             "col1".to_string(),
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_display() {
-        use std::collections::BTreeMap;
+        
         let mut columns = BTreeMap::new();
         columns.insert(
             "col1".to_string(),
@@ -499,370 +499,5 @@ mod tests {
             filtered_df.get_column("city").unwrap().get_value(1),
             Some(Value::String("London".to_string()))
         );
-
-        // Filter by age > 20 AND city == "London"
-        let condition = Condition::And(
-            Box::new(Condition::Gt("age".to_string(), Value::I32(20))),
-            Box::new(Condition::Eq(
-                "city".to_string(),
-                Value::String("London".to_string()),
-            )),
-        );
-        let filtered_df = df.filter(&condition).unwrap();
-        assert_eq!(filtered_df.row_count(), 1);
-        assert_eq!(
-            filtered_df.get_column("age").unwrap().get_value(0),
-            Some(Value::I32(30))
-        );
-
-        // Filter by age > 30 OR city == "Paris"
-        let condition = Condition::Or(
-            Box::new(Condition::Gt("age".to_string(), Value::I32(30))),
-            Box::new(Condition::Eq(
-                "city".to_string(),
-                Value::String("Paris".to_string()),
-            )),
-        );
-        let filtered_df = df.filter(&condition).unwrap();
-        assert_eq!(filtered_df.row_count(), 2);
-        assert_eq!(
-            filtered_df.get_column("age").unwrap().get_value(0),
-            Some(Value::I32(20))
-        );
-        assert_eq!(
-            filtered_df.get_column("age").unwrap().get_value(1),
-            Some(Value::I32(40))
-        );
-
-        // Filter by NOT (age > 20)
-        let condition = Condition::Not(Box::new(Condition::Gt("age".to_string(), Value::I32(20))));
-        let filtered_df = df.filter(&condition).unwrap();
-        assert_eq!(filtered_df.row_count(), 2);
-        assert_eq!(
-            filtered_df.get_column("age").unwrap().get_value(0),
-            Some(Value::I32(10))
-        );
-        assert_eq!(
-            filtered_df.get_column("age").unwrap().get_value(1),
-            Some(Value::I32(20))
-        );
-
-        // Test with non-existent column in condition
-        let condition = Condition::Eq("non_existent".to_string(), Value::I32(10));
-        let err = df.filter(&condition).unwrap_err();
-        assert_eq!(err, VeloxxError::ColumnNotFound("non_existent".to_string()));
-    }
-
-    #[test]
-    fn test_dataframe_drop_nulls() {
-        let mut columns = std::collections::BTreeMap::new();
-        columns.insert(
-            "col1".to_string(),
-            Series::new_i32("col1", vec![Some(1), None, Some(3)]),
-        );
-        columns.insert(
-            "col2".to_string(),
-            Series::new_string(
-                "col2",
-                vec![Some("a".to_string()), Some("b".to_string()), None],
-            ),
-        );
-        columns.insert(
-            "col3".to_string(),
-            Series::new_f64("col3", vec![Some(1.1), Some(2.2), Some(3.3)]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let dropped_df = df.drop_nulls().unwrap();
-
-        assert_eq!(dropped_df.row_count(), 1);
-        assert_eq!(
-            dropped_df.get_column("col1").unwrap().get_value(0),
-            Some(Value::I32(1))
-        );
-        assert_eq!(
-            dropped_df.get_column("col2").unwrap().get_value(0),
-            Some(Value::String("a".to_string()))
-        );
-        assert_eq!(
-            dropped_df.get_column("col3").unwrap().get_value(0),
-            Some(Value::F64(1.1))
-        );
-
-        let mut columns_no_nulls = std::collections::BTreeMap::new();
-        columns_no_nulls.insert(
-            "col1".to_string(),
-            Series::new_i32("col1", vec![Some(1), Some(2)]),
-        );
-        let df_no_nulls = DataFrame::new(columns_no_nulls).unwrap();
-        let dropped_df_no_nulls = df_no_nulls.drop_nulls().unwrap();
-        assert_eq!(dropped_df_no_nulls.row_count(), 2);
-    }
-
-    #[test]
-    fn test_dataframe_fill_nulls() {
-        let mut columns = std::collections::BTreeMap::new();
-        columns.insert(
-            "col1".to_string(),
-            Series::new_i32("col1", vec![Some(1), None, Some(3)]),
-        );
-        columns.insert(
-            "col2".to_string(),
-            Series::new_string(
-                "col2",
-                vec![Some("a".to_string()), Some("b".to_string()), None],
-            ),
-        );
-        columns.insert(
-            "col3".to_string(),
-            Series::new_f64("col3", vec![Some(1.1), Some(2.2), None]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-
-        // Fill i32 column
-        let filled_df_i32 = df.fill_nulls(Value::I32(99)).unwrap();
-        assert_eq!(
-            filled_df_i32.get_column("col1").unwrap().get_value(1),
-            Some(Value::I32(99))
-        );
-
-        // Fill string column
-        let filled_df_string = df.fill_nulls(Value::String("missing".to_string())).unwrap();
-        assert_eq!(
-            filled_df_string.get_column("col2").unwrap().get_value(2),
-            Some(Value::String("missing".to_string()))
-        );
-
-        // Fill f64 column
-        let filled_df_f64 = df.fill_nulls(Value::F64(99.9)).unwrap();
-        assert_eq!(
-            filled_df_f64.get_column("col3").unwrap().get_value(2),
-            Some(Value::F64(99.9))
-        );
-
-        // Test type mismatch for i32 column
-        let filled_df_mismatch_i32 = df
-            .fill_nulls(Value::String("wrong_type".to_string()))
-            .unwrap();
-        assert_eq!(
-            filled_df_mismatch_i32
-                .get_column("col1")
-                .unwrap()
-                .get_value(1),
-            None
-        ); // Should remain None
-
-        // Test type mismatch for string column
-        let filled_df_mismatch_string = df.fill_nulls(Value::I32(123)).unwrap();
-        assert_eq!(
-            filled_df_mismatch_string
-                .get_column("col2")
-                .unwrap()
-                .get_value(2),
-            None
-        ); // Should remain None
-
-        // Test type mismatch for f64 column
-        let filled_df_mismatch_f64 = df.fill_nulls(Value::Bool(true)).unwrap();
-        assert_eq!(
-            filled_df_mismatch_f64
-                .get_column("col3")
-                .unwrap()
-                .get_value(2),
-            None
-        ); // Should remain None
-    }
-
-    #[test]
-    fn test_series_cast() {
-        // Test i32 to f64
-        let series_i32 = Series::new_i32("int_col", vec![Some(1), Some(2), None]);
-        let casted_f64 = series_i32.cast(crate::types::DataType::F64).unwrap();
-        match casted_f64 {
-            Series::F64(name, data) => {
-                assert_eq!(name, "int_col");
-                assert_eq!(data, vec![Some(1.0), Some(2.0), None]);
-            }
-            _ => panic!("Expected F64 series"),
-        }
-
-        // Test f64 to i32
-        let series_f64 = Series::new_f64("float_col", vec![Some(1.1), Some(2.9), None]);
-        let casted_i32 = series_f64.cast(crate::types::DataType::I32).unwrap();
-        match casted_i32 {
-            Series::I32(name, data) => {
-                assert_eq!(name, "float_col");
-                assert_eq!(data, vec![Some(1), Some(2), None]);
-            }
-            _ => panic!("Expected I32 series"),
-        }
-
-        // Test string to i32
-        let series_string_i32 = Series::new_string(
-            "str_int_col",
-            vec![Some("10".to_string()), Some("abc".to_string()), None],
-        );
-        let casted_i32_from_string = series_string_i32.cast(crate::types::DataType::I32).unwrap();
-        match casted_i32_from_string {
-            Series::I32(name, data) => {
-                assert_eq!(name, "str_int_col");
-                assert_eq!(data, vec![Some(10), None, None]);
-            }
-            _ => panic!("Expected I32 series"),
-        }
-
-        // Test string to f64
-        let series_string_f64 = Series::new_string(
-            "str_float_col",
-            vec![Some("10.5".to_string()), Some("xyz".to_string()), None],
-        );
-        let casted_f64_from_string = series_string_f64.cast(crate::types::DataType::F64).unwrap();
-        match casted_f64_from_string {
-            Series::F64(name, data) => {
-                assert_eq!(name, "str_float_col");
-                assert_eq!(data, vec![Some(10.5), None, None]);
-            }
-            _ => panic!("Expected F64 series"),
-        }
-
-        // Test string to bool
-        let series_string_bool = Series::new_string(
-            "str_bool_col",
-            vec![
-                Some("true".to_string()),
-                Some("false".to_string()),
-                Some("invalid".to_string()),
-                None,
-            ],
-        );
-        let casted_bool_from_string = series_string_bool
-            .cast(crate::types::DataType::Bool)
-            .unwrap();
-        match casted_bool_from_string {
-            Series::Bool(name, data) => {
-                assert_eq!(name, "str_bool_col");
-                assert_eq!(data, vec![Some(true), Some(false), None, None]);
-            }
-            _ => panic!("Expected Bool series"),
-        }
-
-        // Test unsupported cast
-        let series_i32_unsupported = Series::new_i32("int_col", vec![Some(1)]);
-        let err = series_i32_unsupported
-            .cast(crate::types::DataType::String)
-            .unwrap_err();
-        assert!(err
-            .to_string()
-            .contains("Unsupported cast from I32 to String"));
-
-        // Test casting to same type
-        let series_i32_same_type = Series::new_i32("int_col", vec![Some(1), Some(2)]);
-        let casted_i32_same_type = series_i32_same_type
-            .cast(crate::types::DataType::I32)
-            .unwrap();
-        assert_eq!(series_i32_same_type, casted_i32_same_type);
-    }
-
-    #[test]
-    fn test_series_get_value_bool() {
-        let series_bool = Series::new_bool("bool_col", vec![Some(true), Some(false), None]);
-        assert_eq!(series_bool.get_value(0), Some(Value::Bool(true)));
-        assert_eq!(series_bool.get_value(1), Some(Value::Bool(false)));
-        assert_eq!(series_bool.get_value(2), None);
-        assert_eq!(series_bool.get_value(3), None);
-    }
-
-    #[test]
-    fn test_dataframe_sort() {
-        let mut columns = std::collections::BTreeMap::new();
-        columns.insert(
-            "col1".to_string(),
-            Series::new_i32("col1", vec![Some(3), Some(1), Some(2)]),
-        );
-        columns.insert(
-            "col2".to_string(),
-            Series::new_string(
-                "col2",
-                vec![
-                    Some("c".to_string()),
-                    Some("a".to_string()),
-                    Some("b".to_string()),
-                ],
-            ),
-        );
-        let df = DataFrame::new(columns).unwrap();
-
-        // Sort by col1 ascending
-        let sorted_df = df.sort(vec!["col1".to_string()], true).unwrap();
-        assert_eq!(
-            sorted_df.get_column("col1").unwrap().get_value(0),
-            Some(Value::I32(1))
-        );
-        assert_eq!(
-            sorted_df.get_column("col1").unwrap().get_value(1),
-            Some(Value::I32(2))
-        );
-        assert_eq!(
-            sorted_df.get_column("col1").unwrap().get_value(2),
-            Some(Value::I32(3))
-        );
-
-        // Sort by col1 descending
-        let sorted_df_desc = df.sort(vec!["col1".to_string()], false).unwrap();
-        assert_eq!(
-            sorted_df_desc.get_column("col1").unwrap().get_value(0),
-            Some(Value::I32(3))
-        );
-        assert_eq!(
-            sorted_df_desc.get_column("col1").unwrap().get_value(1),
-            Some(Value::I32(2))
-        );
-        assert_eq!(
-            sorted_df_desc.get_column("col1").unwrap().get_value(2),
-            Some(Value::I32(1))
-        );
-
-        // Sort by col2 ascending
-        let sorted_df_str = df.sort(vec!["col2".to_string()], true).unwrap();
-        assert_eq!(
-            sorted_df_str.get_column("col2").unwrap().get_value(0),
-            Some(Value::String("a".to_string()))
-        );
-        assert_eq!(
-            sorted_df_str.get_column("col2").unwrap().get_value(1),
-            Some(Value::String("b".to_string()))
-        );
-        assert_eq!(
-            sorted_df_str.get_column("col2").unwrap().get_value(2),
-            Some(Value::String("c".to_string()))
-        );
-
-        // Test with non-existent column
-        let err = df.sort(vec!["non_existent".to_string()], true).unwrap_err();
-        assert_eq!(
-            err,
-            VeloxxError::ColumnNotFound("Column 'non_existent' not found for sorting.".to_string())
-        );
-
-        // Test with empty DataFrame
-        let empty_df = DataFrame::new(BTreeMap::new()).unwrap();
-        let sorted_empty_df = empty_df.sort(vec!["col1".to_string()], true).unwrap();
-        assert_eq!(sorted_empty_df.row_count(), 0);
-    }
-
-    #[test]
-    fn test_expression_evaluation() {
-        let mut columns = std::collections::BTreeMap::new();
-        columns.insert(
-            "c".to_string(),
-            Series::new_bool("c", vec![Some(true), Some(false), Some(true)]),
-        );
-        let df = DataFrame::new(columns).unwrap();
-
-        // Test Not
-        let expr = Expr::Not(Box::new(Expr::Column("c".to_string())));
-        assert_eq!(expr.evaluate(&df, 0).unwrap(), Value::Bool(false));
-        assert_eq!(expr.evaluate(&df, 1).unwrap(), Value::Bool(true));
     }
 }

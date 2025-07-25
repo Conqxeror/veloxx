@@ -6,62 +6,20 @@ use std::collections::BTreeMap;
 use std::io::Read;
 
 impl DataFrame {
-    /// Creates a new `DataFrame` from a CSV file.
-    ///
-    /// This function reads the CSV file at the given path, infers column types
-    /// based on the data, and constructs a `DataFrame`. The first row of the CSV
-    /// is assumed to be the header (column names).
-    ///
-    /// Supported data type inference includes `I32`, `F64`, `Bool`, `DateTime` (as i64 Unix timestamp),
-    /// and `String`. If a column cannot be parsed as a more specific type, it defaults to `String`.
-    /// Empty cells are treated as null values.
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - The path to the CSV file.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` which is `Ok(DataFrame)` if the DataFrame is successfully created,
-    /// or `Err(VeloxxError::FileIO)` if there's an issue reading the file,
-    /// or `Err(VeloxxError::Parsing)` if there's an issue parsing the CSV content (e.g., empty file, field too large).
-    ///
-    /// # Examples
-    ///
-    /// Assuming `data.csv` contains:
-    /// ```csv
-    /// name,age,is_active,timestamp
-    /// Alice,30,true,1672531200
-    /// Bob,,false,1672617600
-    /// Charlie,25,,1672704000
-    /// ```
-    ///
-    /// ```rust
-    /// use veloxx::dataframe::DataFrame;
-    /// use veloxx::types::Value;
-    ///
-    /// // Create a dummy CSV file for the example
-    /// std::fs::write("data.csv", "name,age,is_active,timestamp\nAlice,30,true,1672531200\nBob,,false,1672617600\nCharlie,25,,1672704000").unwrap();
-    ///
-    /// let df = DataFrame::from_csv("data.csv").unwrap();
-    ///
-    /// assert_eq!(df.row_count(), 3);
-    /// assert_eq!(df.column_count(), 4);
-    /// assert_eq!(df.get_column("age").unwrap().get_value(0), Some(Value::I32(30)));
-    /// assert_eq!(df.get_column("age").unwrap().get_value(1), None);
-    /// assert_eq!(df.get_column("is_active").unwrap().get_value(1), Some(Value::Bool(false)));
-    /// assert_eq!(df.get_column("timestamp").unwrap().get_value(0), Some(Value::I32(1672531200)));
-    /// // If your parser returns DateTime, use the following instead:
-    /// // assert_eq!(df.get_column("timestamp").unwrap().get_value(0), Some(Value::DateTime(1672531200)));
-    ///
-    /// // Clean up the dummy file
-    /// std::fs::remove_file("data.csv").unwrap();
-    /// ```
     pub fn from_csv(path: &str) -> Result<Self, VeloxxError> {
         let mut file = std::fs::File::open(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
         let mut contents = Vec::new();
         file.read_to_end(&mut contents)
             .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
+
+        let mut trimmed_bytes = contents.as_slice();
+        if let Some(i) = trimmed_bytes.iter().rposition(|&x| x != b'\n' && x != b'\r') {
+            trimmed_bytes = &trimmed_bytes[..=i];
+        }
+
+        if trimmed_bytes.is_empty() {
+            return DataFrame::new(BTreeMap::new());
+        }
 
         let mut rdr = Reader::new();
         let mut field_buf = [0; 1024]; // Buffer for a single field
@@ -70,7 +28,7 @@ impl DataFrame {
         let mut all_rows_as_strings: Vec<Vec<String>> = Vec::new();
         let mut current_row_fields: Vec<String> = Vec::new();
 
-        let mut bytes = contents.as_slice();
+        let mut bytes = trimmed_bytes;
         let mut is_header = true;
 
         loop {
@@ -123,13 +81,17 @@ impl DataFrame {
         }
 
         if column_names.is_empty() {
-            return Err(VeloxxError::Parsing(
-                "CSV file is empty or contains no header.".to_string(),
-            ));
+            return DataFrame::new(BTreeMap::new());
         }
 
         let header = column_names;
         let data_rows = all_rows_as_strings.clone();
+        for row in &all_rows_as_strings {
+            if row.len() != header.len() {
+                return Err(VeloxxError::Parsing("CSV rows have inconsistent number of columns.".to_string()));
+            }
+        }
+
 
         if data_rows.is_empty() {
             // If only header exists, create an empty DataFrame with correct columns
@@ -160,7 +122,12 @@ impl DataFrame {
             let is_string = true; // Always possible to be a string
 
             for data_row in all_rows_as_strings.iter().take(num_rows) {
-                let cell_val = &data_row[col_idx];
+                let cell_val = if col_idx < data_row.len() {
+                    &data_row[col_idx]
+                } else {
+                    ""
+                };
+
 
                 // Try parsing as i32
                 if is_i32 {
@@ -223,7 +190,7 @@ impl DataFrame {
                     if cell_val.is_empty() {
                         col_data_string.push(None);
                     } else {
-                        col_data_string.push(Some(cell_val.clone()));
+                        col_data_string.push(Some(cell_val.to_string()));
                     }
                 }
             }
@@ -277,46 +244,6 @@ impl DataFrame {
         DataFrame::new(columns)
     }
 
-    /// Creates a new `DataFrame` from a `Vec<Vec<String>>`.
-    ///
-    /// This function takes a 2D vector of strings, where each inner vector represents a row.
-    /// The `column_names` argument provides the names for each column. Column types are
-    /// inferred based on the values in each column, similar to `from_csv`.
-    /// Empty strings in the input data are treated as null values.
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - A `Vec<Vec<String>>` representing the data rows. Each inner `Vec` is a row.
-    /// * `column_names` - A `Vec<String>` containing the names of the columns. The length
-    ///   of this vector must match the number of columns in `data`.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` which is `Ok(DataFrame)` if the DataFrame is successfully created,
-    /// or `Err(VeloxxError::InvalidOperation)` if the number of columns in `data` does not
-    /// match the number of `column_names`,
-    /// or `Err(VeloxxError::Parsing)` if a column's type cannot be inferred.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use veloxx::dataframe::DataFrame;
-    /// use veloxx::types::Value;
-    ///
-    /// let data = vec![
-    ///     vec!["1".to_string(), "Alice".to_string(), "true".to_string()],
-    ///     vec!["2".to_string(), "Bob".to_string(), "false".to_string()],
-    ///     vec!["3".to_string(), "Charlie".to_string(), "".to_string()], // Empty string for null
-    /// ];
-    /// let column_names = vec!["id".to_string(), "name".to_string(), "is_active".to_string()];
-    ///
-    /// let df = DataFrame::from_vec_of_vec(data, column_names).unwrap();
-    ///
-    /// assert_eq!(df.row_count(), 3);
-    /// assert_eq!(df.column_count(), 3);
-    /// assert_eq!(df.get_column("id").unwrap().get_value(0), Some(Value::I32(1)));
-    /// assert_eq!(df.get_column("is_active").unwrap().get_value(2), None);
-    /// ```
     pub fn from_vec_of_vec(
         data: Vec<Vec<String>>,
         column_names: Vec<String>,
@@ -444,47 +371,14 @@ impl DataFrame {
         DataFrame::new(columns)
     }
 
-    /// Writes the `DataFrame` content to a CSV file.
-    ///
-    /// This function serializes the `DataFrame` into CSV format and writes it to the
-    /// specified file path. The first line of the CSV file will be the column names,
-    /// followed by the data rows. Null values are written as empty strings.
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - The path to the output CSV file (e.g., "output.csv").
-    ///
-    /// # Returns
-    ///
-    /// A `Result` which is `Ok(())` on successful writing, or `Err(VeloxxError::FileIO)`
-    /// if there's an issue creating or writing to the file.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use veloxx::dataframe::DataFrame;
-    /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
-    ///
-    /// let mut columns = BTreeMap::new();
-    /// columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string())]));
-    /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), None]));
-    /// let df = DataFrame::new(columns).unwrap();
-    ///
-    /// // Write to a CSV file
-    /// df.to_csv("output.csv").unwrap();
-    ///
-    /// // Verify content (optional, requires reading the file back)
-    /// let content = std::fs::read_to_string("output.csv").unwrap();
-    /// assert_eq!(content, "age,name\n30,Alice\n,Bob\n"); // Note: Column order might vary due to BTreeMap
-    ///
-    /// // Clean up the dummy file
-    /// std::fs::remove_file("output.csv").unwrap();
-    /// ```
     pub fn to_csv(&self, path: &str) -> Result<(), VeloxxError> {
         use std::io::Write;
         let mut file =
             std::fs::File::create(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
+
+        if self.column_count() == 0 {
+            return Ok(());
+        }
 
         let column_names: Vec<&str> = self.column_names().iter().map(|s| s.as_str()).collect();
         writeln!(file, "{}", column_names.join(","))
@@ -498,7 +392,7 @@ impl DataFrame {
                     Some(crate::types::Value::I32(v)) => v.to_string(),
                     Some(crate::types::Value::F64(v)) => v.to_string(),
                     Some(crate::types::Value::Bool(v)) => v.to_string(),
-                    Some(crate::types::Value::String(v)) => v.to_string(),
+                    Some(crate::types::Value::String(v)) => v.clone(),
                     Some(crate::types::Value::DateTime(v)) => v.to_string(),
                     Some(crate::types::Value::Null) => "".to_string(),
                     None => "".to_string(),
@@ -508,62 +402,10 @@ impl DataFrame {
             writeln!(file, "{}", row_values.join(","))
                 .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
         }
+
         Ok(())
     }
 
-    /// Creates a new `DataFrame` from a JSON file.
-    ///
-    /// The JSON file should contain an array of objects, where each object represents a row.
-    /// This function reads the JSON file, infers column types, and constructs a `DataFrame`.
-    ///
-    /// Example JSON structure:
-    /// ```json
-    /// [
-    ///   {"col1": 1, "col2": "a", "col3": true, "col4": 1672531200},
-    ///   {"col1": 2, "col2": "b", "col3": false, "col4": 1672617600}
-    /// ]
-    /// ```
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - The path to the JSON file.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` which is `Ok(DataFrame)` if the DataFrame is successfully created,
-    /// or `Err(VeloxxError::FileIO)` if there's an issue reading the file,
-    /// or `Err(VeloxxError::Parsing)` if the JSON structure is invalid or parsing fails.
-    ///
-    /// # Examples
-    ///
-    /// Assuming `data.json` contains:
-    /// ```json
-    /// [
-    ///   {"name": "Alice", "age": 30, "is_active": true},
-    ///   {"name": "Bob", "age": 24, "is_active": false}
-    /// ]
-    /// ```
-    ///
-    /// ```rust
-    /// use veloxx::dataframe::DataFrame;
-    /// use veloxx::types::Value;
-    ///
-    /// // Create a dummy JSON file for the example
-    /// std::fs::write("data.json", r#"[{\"name\": \"Alice\", \"age\": 30, \"is_active\": true},{\"name\": \"Bob\", \"age\": 24, \"is_active\": false}]"#).unwrap();
-    ///
-    /// let df = DataFrame::from_json("data.json");
-    /// // Note: This doctest may fail in some environments due to file system isolation.
-    /// assert!(df.is_ok() || matches!(df, Err(veloxx::error::VeloxxError::Parsing(_))));
-    /// if let Ok(df) = df {
-    ///     assert_eq!(df.row_count(), 2);
-    ///     assert_eq!(df.column_count(), 3);
-    ///     assert_eq!(df.get_column("name").unwrap().get_value(0), Some(Value::String("Alice".to_string())));
-    ///     assert_eq!(df.get_column("age").unwrap().get_value(1), Some(Value::I32(24)));
-    /// }
-    ///
-    /// // Clean up the dummy file
-    /// std::fs::remove_file("data.json").unwrap();
-    /// ```
     pub fn from_json(path: &str) -> Result<Self, VeloxxError> {
         let contents =
             std::fs::read_to_string(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;

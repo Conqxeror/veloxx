@@ -1,6 +1,6 @@
-# Velox API Guide
+# Veloxx API Guide
 
-This comprehensive guide covers all Velox features and their APIs, organized by functionality.
+This comprehensive guide covers all Veloxx features and their APIs, organized by functionality.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This comprehensive guide covers all Velox features and their APIs, organized by 
 
 ### DataFrame
 
-The `DataFrame` is the primary data structure in Velox, representing a columnar data table with heterogeneous data types.
+The `DataFrame` is the primary data structure in Veloxx, representing a columnar data table with heterogeneous data types.
 
 #### Creation
 
@@ -416,7 +416,7 @@ let simd_mean = SimdOps::simd_mean(&numeric_series)?;
 
 ## Error Handling
 
-All Velox operations return `Result<T, VeloxxError>`. Common error types:
+All Veloxx operations return `Result<T, VeloxxError>`. Common error types:
 
 ```rust
 use veloxx::error::VeloxxError;

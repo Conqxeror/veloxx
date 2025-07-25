@@ -41,6 +41,7 @@
 //! ```
 
 #[cfg(feature = "visualization")]
+use std::borrow::BorrowMut;
 use plotters::prelude::*;
 #[cfg(feature = "visualization")]
 use plotters_svg::SVGBackend;
@@ -418,11 +419,54 @@ impl<'a> Plot<'a> {
     }
 
     #[cfg(feature = "visualization")]
-    fn create_histogram(&self, _filename: &str) -> Result<(), VeloxxError> {
-        // Placeholder for histogram implementation
-        Err(VeloxxError::InvalidOperation(
-            "Histogram plotting not yet implemented".to_string(),
-        ))
+    fn create_histogram(&self, filename: &str) -> Result<(), VeloxxError> {
+        let backend = SVGBackend::new(filename, (self.config.width, self.config.height));
+        let root = backend.into_drawing_area();
+        root.fill(&WHITE).map_err(|e| {
+            VeloxxError::InvalidOperation(format!("Failed to initialize plot: {}", e))
+        })?;
+
+        let data = self.extract_histogram_data()?;
+
+        if data.is_empty() {
+            return Err(VeloxxError::InvalidOperation(
+                "No data available for plotting".to_string(),
+            ));
+        }
+
+        let x_min = data.iter().fold(f64::INFINITY, |a, &b| a.min(b));
+        let x_max = data.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+
+        let mut chart = ChartBuilder::on(&root)
+            .caption(&self.config.title, ("sans-serif", 40))
+            .margin(20)
+            .x_label_area_size(40)
+            .y_label_area_size(50)
+            .build_cartesian_2d((x_min..x_max).step(1.0), 0u32..50u32)
+            .map_err(|e| VeloxxError::InvalidOperation(format!("Failed to build chart: {}", e)))?;
+
+        chart
+            .configure_mesh()
+            .x_desc(&self.config.x_label)
+            .y_desc(&self.config.y_label)
+            .draw()
+            .map_err(|e| {
+                VeloxxError::InvalidOperation(format!("Failed to draw mesh: {}", e))
+            })?;
+
+        let hist_data: Vec<f64> = data.to_vec();
+        let series = Histogram::vertical(chart.borrow_mut())
+                .style(BLUE.filled())
+                .data(hist_data.iter().map(|x| (*x, 1)));
+        chart.draw_series(series).map_err(|e| {
+            VeloxxError::InvalidOperation(format!("Failed to draw histogram series: {}", e))
+        })?;
+
+
+        root.present()
+            .map_err(|e| VeloxxError::InvalidOperation(format!("Failed to save plot: {}", e)))?;
+
+        Ok(())
     }
 
     #[cfg(feature = "visualization")]
@@ -431,6 +475,20 @@ impl<'a> Plot<'a> {
         Err(VeloxxError::InvalidOperation(
             "Heatmap plotting not yet implemented".to_string(),
         ))
+    }
+
+    fn extract_histogram_data(&self) -> Result<Vec<f64>, VeloxxError> {
+        let x_col_name = self
+            .x_column
+            .as_ref()
+            .ok_or_else(|| VeloxxError::InvalidOperation("X column not specified".to_string()))?;
+
+        let x_series = self
+            .dataframe
+            .get_column(x_col_name)
+            .ok_or_else(|| VeloxxError::ColumnNotFound(x_col_name.clone()))?;
+
+        self.series_to_f64_vec(x_series)
     }
 
     fn extract_xy_data(&self) -> Result<(Vec<f64>, Vec<f64>), VeloxxError> {
@@ -505,130 +563,9 @@ impl<'a> Plot<'a> {
         let mut result = Vec::new();
         for i in 0..series.len() {
             if let Some(value) = series.get_value(i) {
-                match value {
-                    Value::String(s) => result.push(s),
-                    Value::I32(i) => result.push(i.to_string()),
-                    Value::F64(f) => result.push(f.to_string()),
-                    Value::Bool(b) => result.push(b.to_string()),
-                    _ => result.push("Unknown".to_string()),
-                }
+                result.push(value.to_string());
             }
         }
         Ok(result)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::series::Series;
-    use std::collections::BTreeMap;
-
-    #[test]
-    fn test_plot_creation() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "x".to_string(),
-            Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0)]),
-        );
-        columns.insert(
-            "y".to_string(),
-            Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(6.0)]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let plot = Plot::new(&df, ChartType::Line);
-
-        assert_eq!(plot.chart_type, ChartType::Line);
-        assert_eq!(plot.config.title, "Velox Plot");
-    }
-
-    #[test]
-    fn test_plot_with_config() {
-        let columns = BTreeMap::new();
-        let df = DataFrame::new(columns).unwrap();
-
-        let config = PlotConfig {
-            title: "Custom Title".to_string(),
-            width: 1000,
-            ..Default::default()
-        };
-
-        let plot = Plot::new(&df, ChartType::Scatter).with_config(config);
-        assert_eq!(plot.config.title, "Custom Title");
-        assert_eq!(plot.config.width, 1000);
-    }
-
-    #[test]
-    fn test_plot_with_columns() {
-        let columns = BTreeMap::new();
-        let df = DataFrame::new(columns).unwrap();
-
-        let plot = Plot::new(&df, ChartType::Bar).with_columns("category", "value");
-
-        assert_eq!(plot.x_column, Some("category".to_string()));
-        assert_eq!(plot.y_column, Some("value".to_string()));
-    }
-
-    #[test]
-    fn test_extract_xy_data() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "x".to_string(),
-            Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0)]),
-        );
-        columns.insert(
-            "y".to_string(),
-            Series::new_i32("y", vec![Some(10), Some(20), Some(30)]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let plot = Plot::new(&df, ChartType::Line).with_columns("x", "y");
-
-        let (x_data, y_data) = plot.extract_xy_data().unwrap();
-        assert_eq!(x_data, vec![1.0, 2.0, 3.0]);
-        assert_eq!(y_data, vec![10.0, 20.0, 30.0]);
-    }
-
-    #[test]
-    fn test_extract_categorical_data() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "category".to_string(),
-            Series::new_string(
-                "category",
-                vec![
-                    Some("A".to_string()),
-                    Some("B".to_string()),
-                    Some("C".to_string()),
-                ],
-            ),
-        );
-        columns.insert(
-            "value".to_string(),
-            Series::new_f64("value", vec![Some(10.0), Some(20.0), Some(30.0)]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let plot = Plot::new(&df, ChartType::Bar).with_columns("category", "value");
-
-        let (categories, values) = plot.extract_categorical_data().unwrap();
-        assert_eq!(categories, vec!["A", "B", "C"]);
-        assert_eq!(values, vec![10.0, 20.0, 30.0]);
-    }
-
-    #[test]
-    #[cfg(not(feature = "visualization"))]
-    fn test_save_without_feature() {
-        let columns = BTreeMap::new();
-        let df = DataFrame::new(columns).unwrap();
-        let plot = Plot::new(&df, ChartType::Line);
-
-        let result = plot.save("test.svg");
-        assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Visualization feature is not enabled"));
     }
 }

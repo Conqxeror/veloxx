@@ -31,16 +31,25 @@ impl DataFrame {
     /// // Row 2 (index 1): [None, 2.2] - will be dropped
     /// // Row 3 (index 2): [3, 3.3]
     ///
-    /// let cleaned_df = df.drop_nulls().unwrap();
+    /// let cleaned_df = df.drop_nulls(None).unwrap();
     /// assert_eq!(cleaned_df.row_count(), 2);
     /// assert_eq!(cleaned_df.get_column("A").unwrap().get_value(0), Some(Value::I32(1)));
     /// assert_eq!(cleaned_df.get_column("A").unwrap().get_value(1), Some(Value::I32(3)));
     /// ```
-    pub fn drop_nulls(&self) -> Result<Self, VeloxxError> {
+    pub fn drop_nulls(&self, subset: Option<&[String]>) -> Result<Self, VeloxxError> {
+        let columns_to_check: Vec<&Series> = if let Some(subset) = subset {
+            subset
+                .iter()
+                .filter_map(|name| self.columns.get(name))
+                .collect()
+        } else {
+            self.columns.values().collect()
+        };
+
         let row_indices_to_keep: Vec<usize> = (0..self.row_count)
             .filter(|&i| {
-                self.columns
-                    .values()
+                columns_to_check
+                    .iter()
                     .all(|series| series.get_value(i).is_some())
             })
             .collect();
@@ -105,6 +114,44 @@ impl DataFrame {
             new_columns.insert(col_name.clone(), new_series);
         }
 
+        DataFrame::new(new_columns)
+    }
+
+    /// Interpolates null values in a specific column using linear interpolation.
+    ///
+    /// This method performs linear interpolation on null values in the specified column.
+    /// It only works on numeric columns (I32 and F64). Null values at the beginning or end
+    /// of the series remain as null.
+    ///
+    /// # Arguments
+    ///
+    /// * `column_name` - The name of the column to interpolate
+    ///
+    /// # Returns
+    ///
+    /// A `Result` which is `Ok(DataFrame)` containing a new `DataFrame` with interpolated values,
+    /// or `Err(VeloxxError)` if the column doesn't exist or interpolation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::BTreeMap;
+    /// use veloxx::types::Value;
+    ///
+    /// let mut columns = BTreeMap::new();
+    /// columns.insert("A".to_string(), Series::new_f64("A", vec![Some(1.0), None, Some(3.0)]));
+    /// let df = DataFrame::new(columns).unwrap();
+    ///
+    /// let interpolated_df = df.interpolate_nulls("A").unwrap();
+    /// assert_eq!(interpolated_df.get_column("A").unwrap().get_value(1), Some(Value::F64(2.0)));
+    /// ```
+    pub fn interpolate_nulls(&self, column_name: &str) -> Result<Self, VeloxxError> {
+        let series = self.get_column(column_name).ok_or(VeloxxError::ColumnNotFound(column_name.to_string()))?;
+        let interpolated = series.interpolate_nulls()?;
+        let mut new_columns = self.columns.clone();
+        new_columns.insert(column_name.to_string(), interpolated);
         DataFrame::new(new_columns)
     }
 }

@@ -1,6 +1,6 @@
-# Getting Started with Velox
+# Getting Started with Veloxx
 
-Welcome to Velox! This guide will help you get up and running with the Velox data processing library quickly.
+Welcome to Veloxx! This guide will help you get up and running with the Veloxx data processing library quickly.
 
 ## Table of Contents
 
@@ -17,14 +17,14 @@ Add Velox to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-veloxx = "0.2.4"
+veloxx = "0.3.0"
 ```
 
 For specific features, use:
 
 ```toml
 [dependencies]
-veloxx = { version = "0.2.4", features = ["advanced_io", "data_quality", "window_functions"] }
+veloxx = { version = "0.3.0", features = ["advanced_io", "data_quality", "window_functions"] }
 ```
 
 ## Your First DataFrame
@@ -325,4 +325,4 @@ For comprehensive API coverage, see [`docs/API_GUIDE.md`](./API_GUIDE.md).
 - Look at the test files for usage patterns
 - Open an issue on GitHub for bugs or feature requests
 
-Happy data processing with Velox! 🚀
+Happy data processing with Veloxx! 🚀

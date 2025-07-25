@@ -1,13 +1,45 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
+use pyo3::BoundObject;
 use std::collections::BTreeMap;
+
+
 
 use crate::dataframe::join::JoinType;
 use crate::dataframe::DataFrame;
 use crate::expressions::Expr;
 use crate::series::Series;
-use crate::types::Value;
+use crate::types::{DataType, Value};
+
+impl<'py> pyo3::IntoPyObject<'py> for Value {
+    type Target = pyo3::PyAny;
+    type Output = pyo3::Bound<'py, pyo3::PyAny>;
+    type Error = pyo3::PyErr;
+    fn into_pyobject(self, py: Python<'py>) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::PyAny>> {
+        match self {
+    Value::I32(v) => Ok(v.into_pyobject(py)?.into_any()),
+    Value::F64(v) => Ok(v.into_pyobject(py)?.into_any()),
+    Value::Bool(v) => Ok(v.into_pyobject(py)?.into_bound().into_any()),
+    Value::String(v) => Ok(v.into_pyobject(py)?.into_any()),
+    Value::DateTime(v) => Ok(v.into_pyobject(py)?.into_any()),
+    Value::Null => Ok(py.None().bind(py).clone().into_any()),
+    
+
+
+
+
+
+
+            
+            
+            
+            
+            
+            
+        }
+    }
+}
 
 #[pyclass]
 pub struct PyDataFrame {
@@ -45,7 +77,7 @@ impl PyDataFrame {
             .into_iter()
             .map(|s| s.to_string())
             .collect();
-        Ok(PyList::new_bound(py, names))
+        PyList::new(py, &names)
     }
 
     fn get_column(&self, name: &str) -> PyResult<Option<PySeries>> {
@@ -91,11 +123,11 @@ impl PyDataFrame {
         })
     }
 
-    fn drop_nulls(&self) -> PyResult<Self> {
+    fn drop_nulls(&self, subset: Option<Vec<String>>) -> PyResult<Self> {
         Ok(PyDataFrame {
             df: self
                 .df
-                .drop_nulls()
+                .drop_nulls(subset.as_deref())
                 .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
@@ -198,11 +230,11 @@ impl PyDataFrame {
     }
 
     fn __repr__(&self) -> String {
-        format!("{}", self.df)
+        format!("{:?}", self.df)
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.df)
+        format!("{:?}", self.df)
     }
 }
 
@@ -256,8 +288,7 @@ impl PyGroupedDataFrame {
             .group_by(self.group_columns.clone())
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyDataFrame {
-            df: grouped_df
-                .agg(vec![("*", "max")])
+                        df: grouped_df.agg(vec![("*", "max")])
                 .map_err(|e| PyValueError::new_err(e.to_string()))?,
         })
     }
@@ -481,8 +512,8 @@ impl PySeries {
         self.series.set_name(new_name);
     }
 
-    fn get_value<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Option<PyObject>> {
-        Ok(self.series.get_value(index).map(|v| value_to_py(py, v)))
+        fn get_value<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Option<PyObject>> {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        self.series.get_value(index).map_or(Ok(None), |v| v.into_pyobject(py).map(|b| Some(b.unbind())))
     }
 
     fn filter(&self, row_indices: Vec<usize>) -> PyResult<Self> {
@@ -504,119 +535,6 @@ impl PySeries {
         })
     }
 
-    fn cast(&self, to_type: PyDataType) -> PyResult<Self> {
-        Ok(PySeries {
-            series: self
-                .series
-                .cast(to_type.into())
-                .map_err(|e| PyValueError::new_err(e.to_string()))?,
-        })
-    }
-
-    fn append(&self, other: &PySeries) -> PyResult<Self> {
-        Ok(PySeries {
-            series: self
-                .series
-                .append(&other.series)
-                .map_err(|e| PyValueError::new_err(e.to_string()))?,
-        })
-    }
-
-    fn sum<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .sum()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn count(&self) -> usize {
-        self.series.count()
-    }
-
-    fn min<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .min()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn max<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .max()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn mean<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .mean()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn median<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .median()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn std_dev<'py>(&self, py: Python<'py>) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .std_dev()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn correlation<'py>(&self, py: Python<'py>, other: &PySeries) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .correlation(&other.series)
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn covariance<'py>(&self, py: Python<'py>, other: &PySeries) -> PyResult<Option<PyObject>> {
-        Ok(self
-            .series
-            .covariance(&other.series)
-            .map_err(|e| PyValueError::new_err(e.to_string()))?
-            .map(|v| value_to_py(py, v)))
-    }
-
-    fn unique(&self) -> PyResult<Self> {
-        Ok(PySeries {
-            series: self
-                .series
-                .unique()
-                .map_err(|e| PyValueError::new_err(e.to_string()))?,
-        })
-    }
-
-    #[allow(deprecated)]
-    fn to_vec_f64<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
-        let vec_f64 = self
-            .series
-            .to_vec_f64()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?;
-        Ok(PyList::new_bound(py, vec_f64))
-    }
-
-    fn interpolate_nulls(&self) -> PyResult<Self> {
-        Ok(PySeries {
-            series: self
-                .series
-                .interpolate_nulls()
-                .map_err(|e| PyValueError::new_err(e.to_string()))?,
-        })
-    }
-
     fn __repr__(&self) -> String {
         format!("{:?}", self.series)
     }
@@ -627,7 +545,7 @@ impl PySeries {
 }
 
 #[pyclass]
-#[derive(Clone, PartialEq, Hash)]
+#[derive(Clone)]
 pub enum PyDataType {
     I32,
     F64,
@@ -636,85 +554,45 @@ pub enum PyDataType {
     DateTime,
 }
 
-impl From<crate::types::DataType> for PyDataType {
-    fn from(data_type: crate::types::DataType) -> Self {
+impl From<DataType> for PyDataType {
+    fn from(data_type: DataType) -> Self {
         match data_type {
-            crate::types::DataType::I32 => PyDataType::I32,
-            crate::types::DataType::F64 => PyDataType::F64,
-            crate::types::DataType::Bool => PyDataType::Bool,
-            crate::types::DataType::String => PyDataType::String,
-            crate::types::DataType::DateTime => PyDataType::DateTime,
+            DataType::I32 => PyDataType::I32,
+            DataType::F64 => PyDataType::F64,
+            DataType::Bool => PyDataType::Bool,
+            DataType::String => PyDataType::String,
+            DataType::DateTime => PyDataType::DateTime,
         }
     }
 }
 
-impl From<PyDataType> for crate::types::DataType {
-    fn from(py_data_type: PyDataType) -> Self {
-        match py_data_type {
-            PyDataType::I32 => crate::types::DataType::I32,
-            PyDataType::F64 => crate::types::DataType::F64,
-            PyDataType::Bool => crate::types::DataType::Bool,
-            PyDataType::String => crate::types::DataType::String,
-            PyDataType::DateTime => crate::types::DataType::DateTime,
-        }
-    }
-}
-
-#[pymethods]
-impl PyDataType {
-    fn __eq__(&self, other: &PyDataType) -> bool {
-        self == other
-    }
-
-    fn __hash__(&self) -> u64 {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
-        let mut hasher = DefaultHasher::new();
-        std::mem::discriminant(self).hash(&mut hasher);
-        hasher.finish()
-    }
-}
-
-// Helper functions for Value conversion
-fn extract_value(py_value: &Bound<PyAny>) -> PyResult<Value> {
-    if let Ok(v) = py_value.extract::<i32>() {
+fn extract_value(value: &Bound<PyAny>) -> PyResult<Value> {
+    if let Ok(v) = value.extract::<i32>() {
         Ok(Value::I32(v))
-    } else if let Ok(v) = py_value.extract::<f64>() {
+    } else if let Ok(v) = value.extract::<f64>() {
         Ok(Value::F64(v))
-    } else if let Ok(v) = py_value.extract::<bool>() {
+    } else if let Ok(v) = value.extract::<bool>() {
         Ok(Value::Bool(v))
-    } else if let Ok(v) = py_value.extract::<String>() {
+    } else if let Ok(v) = value.extract::<String>() {
         Ok(Value::String(v))
-    } else if let Ok(v) = py_value.extract::<i64>() {
+    } else if let Ok(v) = value.extract::<i64>() {
         Ok(Value::DateTime(v))
-    } else if py_value.is_none() {
+    } else if value.is_none() {
         Ok(Value::Null)
     } else {
-        Err(PyValueError::new_err(
-            "Unsupported Python type for Value conversion",
-        ))
+        Err(PyValueError::new_err("Unsupported value type"))
     }
 }
 
-#[allow(deprecated)]
-fn value_to_py(py: Python, value: Value) -> PyObject {
-    match value {
-        Value::I32(v) => v.into_py(py),
-        Value::F64(v) => v.into_py(py),
-        Value::Bool(v) => v.into_py(py),
-        Value::String(v) => v.into_py(py),
-        Value::DateTime(v) => v.into_py(py),
-        Value::Null => py.None(),
-    }
-}
+
 
 #[pymodule]
-pub fn veloxx(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
+fn veloxx(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyDataFrame>()?;
     m.add_class::<PySeries>()?;
-    m.add_class::<PyDataType>()?;
-    m.add_class::<PyGroupedDataFrame>()?;
     m.add_class::<PyExpr>()?;
     m.add_class::<PyJoinType>()?;
+    m.add_class::<PyDataType>()?;
+    m.add_class::<PyGroupedDataFrame>()?;
     Ok(())
 }

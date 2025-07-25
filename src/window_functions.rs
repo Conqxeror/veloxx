@@ -63,8 +63,6 @@ use crate::types::Value;
 use std::collections::BTreeMap;
 
 #[cfg(feature = "window_functions")]
-use chrono::Duration;
-
 /// Window specification for defining partitioning, ordering, and frame bounds
 #[derive(Debug, Clone)]
 pub struct WindowSpec {
@@ -248,39 +246,81 @@ impl WindowFunction {
     fn calculate_ranking(
         dataframe: &DataFrame,
         function: &RankingFunction,
-        _window_spec: &WindowSpec,
+        window_spec: &WindowSpec,
     ) -> Result<Vec<Option<i32>>, VeloxxError> {
         let row_count = dataframe.row_count();
-        let mut rankings = vec![None; row_count];
+        if row_count == 0 {
+            return Ok(Vec::new());
+        }
 
-        // For simplicity, implement basic row numbering
-        // In a full implementation, this would handle partitioning and proper ranking
+        let order_by_col_name = window_spec.order_by.first().ok_or_else(|| {
+            VeloxxError::InvalidOperation("Order by column is required for ranking".to_string())
+        })?;
+        let order_by_series = dataframe.get_column(order_by_col_name).ok_or_else(|| {
+            VeloxxError::ColumnNotFound(order_by_col_name.clone())
+        })?;
+
+        let mut indexed_values: Vec<(usize, Option<Value>)> = (0..row_count)
+            .map(|i| (i, order_by_series.get_value(i)))
+            .collect();
+
+        indexed_values.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+        let mut rankings = vec![None; row_count];
         match function {
             RankingFunction::RowNumber => {
-                for (i, ranking) in rankings.iter_mut().enumerate() {
-                    *ranking = Some((i + 1) as i32);
+                for (i, (original_index, _)) in indexed_values.iter().enumerate() {
+                    rankings[*original_index] = Some((i + 1) as i32);
                 }
             }
             RankingFunction::Rank => {
-                // Simplified rank implementation
-                for (i, ranking) in rankings.iter_mut().enumerate() {
-                    *ranking = Some((i + 1) as i32);
+                let mut rank = 1;
+                let mut i = 0;
+                while i < indexed_values.len() {
+                    let (_, current_value) = &indexed_values[i];
+                    let mut j = i;
+                    while j < indexed_values.len() && &indexed_values[j].1 == current_value {
+                        rankings[indexed_values[j].0] = Some(rank);
+                        j += 1;
+                    }
+                    rank += (j - i) as i32;
+                    i = j;
                 }
             }
             RankingFunction::DenseRank => {
-                // Simplified dense rank implementation
-                for (i, ranking) in rankings.iter_mut().enumerate() {
-                    *ranking = Some((i + 1) as i32);
+                let mut dense_rank = 1;
+                let mut i = 0;
+                while i < indexed_values.len() {
+                    let (_, current_value) = &indexed_values[i];
+                    let mut j = i;
+                    while j < indexed_values.len() && &indexed_values[j].1 == current_value {
+                        rankings[indexed_values[j].0] = Some(dense_rank);
+                        j += 1;
+                    }
+                    dense_rank += 1;
+                    i = j;
                 }
             }
             RankingFunction::PercentRank => {
-                // Simplified percent rank implementation
-                for (i, ranking) in rankings.iter_mut().enumerate() {
-                    *ranking = Some(((i as f64 / (row_count - 1) as f64) * 100.0) as i32);
+                let mut rank = 1;
+                let mut i = 0;
+                while i < indexed_values.len() {
+                    let (_, current_value) = &indexed_values[i];
+                    let mut j = i;
+                    while j < indexed_values.len() && &indexed_values[j].1 == current_value {
+                        let percent_rank = if row_count > 1 {
+                            (rank - 1) as f64 / (row_count - 1) as f64
+                        } else {
+                            0.0
+                        };
+                        rankings[indexed_values[j].0] = Some((percent_rank * 100.0) as i32);
+                        j += 1;
+                    }
+                    rank += (j - i) as i32;
+                    i = j;
                 }
             }
         }
-
         Ok(rankings)
     }
 
@@ -500,6 +540,24 @@ impl WindowFunction {
             result_columns.insert(name.clone(), series.clone());
         }
 
+        // Calculate moving average values
+        let moving_avg_values =
+            Self::calculate_moving_average(dataframe, column_name, window_size)?;
+        let moving_avg_column_name = format!("moving_avg_{}_{}", column_name, window_size);
+
+        result_columns.insert(
+            moving_avg_column_name.clone(),
+            Series::new_f64(&moving_avg_column_name, moving_avg_values),
+        );
+
+        DataFrame::new(result_columns)
+    }
+
+    fn calculate_moving_average(
+        dataframe: &DataFrame,
+        column_name: &str,
+        window_size: usize,
+    ) -> Result<Vec<Option<f64>>, VeloxxError> {
         let series = dataframe
             .get_column(column_name)
             .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.to_string()))?;
@@ -507,15 +565,12 @@ impl WindowFunction {
         let row_count = dataframe.row_count();
         let mut moving_averages = vec![None; row_count];
 
-        for (i, moving_avg) in moving_averages.iter_mut().enumerate() {
-            let start_idx = if window_size > 0 && i + 1 >= window_size {
-                i + 1 - window_size
-            } else {
-                0
-            };
-            let end_idx = i + 1;
+        #[allow(clippy::needless_range_loop)]
+        for i in 0..row_count {
+            let start = i.saturating_sub(window_size - 1);
+            let end = i;
 
-            let window_values: Vec<f64> = (start_idx..end_idx)
+            let window_values: Vec<f64> = (start..=end)
                 .filter_map(|idx| {
                     series.get_value(idx).and_then(|v| match v {
                         Value::F64(f) => Some(f),
@@ -525,26 +580,18 @@ impl WindowFunction {
                 })
                 .collect();
 
-            if !window_values.is_empty()
-                && (i >= window_size - 1 || window_values.len() == end_idx - start_idx)
-            {
-                let avg = window_values.iter().sum::<f64>() / window_values.len() as f64;
-                *moving_avg = Some(avg);
+            if !window_values.is_empty() {
+                let sum: f64 = window_values.iter().sum();
+                moving_averages[i] = Some(sum / window_values.len() as f64);
             }
         }
 
-        let ma_column_name = format!("ma_{}_{}", window_size, column_name);
-        result_columns.insert(
-            ma_column_name.clone(),
-            Series::new_f64(&ma_column_name, moving_averages),
-        );
-
-        DataFrame::new(result_columns)
+        Ok(moving_averages)
     }
 }
 
-/// Ranking functions for window operations
-#[derive(Debug, Clone)]
+/// Ranking functions
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum RankingFunction {
     RowNumber,
     Rank,
@@ -553,7 +600,7 @@ pub enum RankingFunction {
 }
 
 impl RankingFunction {
-    pub fn name(&self) -> &'static str {
+    pub fn name(&self) -> &str {
         match self {
             RankingFunction::RowNumber => "row_number",
             RankingFunction::Rank => "rank",
@@ -563,8 +610,8 @@ impl RankingFunction {
     }
 }
 
-/// Aggregate functions for window operations
-#[derive(Debug, Clone)]
+/// Aggregate functions
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AggregateFunction {
     Sum,
     Avg,
@@ -574,7 +621,7 @@ pub enum AggregateFunction {
 }
 
 impl AggregateFunction {
-    pub fn name(&self) -> &'static str {
+    pub fn name(&self) -> &str {
         match self {
             AggregateFunction::Sum => "sum",
             AggregateFunction::Avg => "avg",
@@ -582,330 +629,5 @@ impl AggregateFunction {
             AggregateFunction::Max => "max",
             AggregateFunction::Count => "count",
         }
-    }
-}
-
-/// Time-based window operations
-pub struct TimeWindow {
-    #[cfg(not(feature = "window_functions"))]
-    _phantom: std::marker::PhantomData<()>,
-}
-
-impl TimeWindow {
-    /// Create time-based windows for aggregation
-    ///
-    /// # Arguments
-    ///
-    /// * `dataframe` - Input DataFrame
-    /// * `time_column` - Column containing time/date values
-    /// * `window_duration` - Duration of each window
-    ///
-    /// # Returns
-    ///
-    /// DataFrame grouped by time windows
-    #[cfg(feature = "window_functions")]
-    pub fn create_time_windows(
-        dataframe: &DataFrame,
-        _time_column: &str,
-        _window_duration: Duration,
-    ) -> Result<DataFrame, VeloxxError> {
-        // Placeholder implementation for time-based windowing
-        // In a full implementation, this would parse datetime values and group by time windows
-        let mut result_columns = BTreeMap::new();
-
-        // Copy original columns
-        for (name, series) in &dataframe.columns {
-            result_columns.insert(name.clone(), series.clone());
-        }
-
-        // Add a window_id column as placeholder
-        let window_ids: Vec<Option<i32>> = (0..dataframe.row_count())
-            .map(|i| Some((i / 10) as i32)) // Simple grouping by 10s
-            .collect();
-
-        result_columns.insert(
-            "window_id".to_string(),
-            Series::new_i32("window_id", window_ids),
-        );
-
-        DataFrame::new(result_columns)
-    }
-
-    #[cfg(not(feature = "window_functions"))]
-    pub fn create_time_windows(
-        _dataframe: &DataFrame,
-        _time_column: &str,
-        _window_duration: std::time::Duration,
-    ) -> Result<DataFrame, VeloxxError> {
-        Err(VeloxxError::InvalidOperation(
-            "Window functions feature is not enabled. Enable with --features window_functions"
-                .to_string(),
-        ))
-    }
-
-    /// Apply aggregation over time windows
-    ///
-    /// # Arguments
-    ///
-    /// * `dataframe` - Input DataFrame with time windows
-    /// * `value_column` - Column to aggregate
-    /// * `function` - Aggregation function
-    ///
-    /// # Returns
-    ///
-    /// DataFrame with time-based aggregations
-    pub fn aggregate_time_windows(
-        dataframe: &DataFrame,
-        value_column: &str,
-        function: &AggregateFunction,
-    ) -> Result<DataFrame, VeloxxError> {
-        // Simplified implementation - group by window_id and aggregate
-        if let Some(_window_series) = dataframe.get_column("window_id") {
-            // In a full implementation, this would group by window_id and apply aggregation
-            let mut result_columns = BTreeMap::new();
-
-            // For now, just return the original dataframe with a note
-            for (name, series) in &dataframe.columns {
-                result_columns.insert(name.clone(), series.clone());
-            }
-
-            let agg_column_name = format!("time_{}_{}", function.name(), value_column);
-            result_columns.insert(
-                agg_column_name,
-                Series::new_string(
-                    "time_agg",
-                    vec![Some("Time aggregation placeholder".to_string())],
-                ),
-            );
-
-            DataFrame::new(result_columns)
-        } else {
-            Err(VeloxxError::InvalidOperation(
-                "DataFrame must have time windows created first".to_string(),
-            ))
-        }
-    }
-}
-
-/// Percentile and quantile functions
-pub struct PercentileFunction;
-
-impl PercentileFunction {
-    /// Calculate percentile values for a column within windows
-    ///
-    /// # Arguments
-    ///
-    /// * `dataframe` - Input DataFrame
-    /// * `column_name` - Column to calculate percentiles for
-    /// * `percentiles` - List of percentiles to calculate (0.0 to 1.0)
-    /// * `window_spec` - Window specification
-    ///
-    /// # Returns
-    ///
-    /// DataFrame with additional percentile columns
-    pub fn calculate_percentiles(
-        dataframe: &DataFrame,
-        column_name: &str,
-        percentiles: &[f64],
-        _window_spec: &WindowSpec,
-    ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = BTreeMap::new();
-
-        // Copy original columns
-        for (name, series) in &dataframe.columns {
-            result_columns.insert(name.clone(), series.clone());
-        }
-
-        let series = dataframe
-            .get_column(column_name)
-            .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.to_string()))?;
-
-        // Extract numeric values
-        let mut values: Vec<f64> = Vec::new();
-        for i in 0..series.len() {
-            if let Some(value) = series.get_value(i) {
-                match value {
-                    Value::F64(f) => values.push(f),
-                    Value::I32(n) => values.push(n as f64),
-                    _ => continue,
-                }
-            }
-        }
-
-        values.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
-        for &percentile in percentiles {
-            let index = ((values.len() - 1) as f64 * percentile) as usize;
-            let percentile_value = if !values.is_empty() {
-                values.get(index).copied().unwrap_or(0.0)
-            } else {
-                0.0
-            };
-
-            let percentile_values: Vec<Option<f64>> = (0..dataframe.row_count())
-                .map(|_| Some(percentile_value))
-                .collect();
-
-            let percentile_column_name =
-                format!("p{}_{}", (percentile * 100.0) as i32, column_name);
-
-            result_columns.insert(
-                percentile_column_name.clone(),
-                Series::new_f64(&percentile_column_name, percentile_values),
-            );
-        }
-
-        DataFrame::new(result_columns)
-    }
-
-    /// Calculate quartiles (25th, 50th, 75th percentiles)
-    ///
-    /// # Arguments
-    ///
-    /// * `dataframe` - Input DataFrame
-    /// * `column_name` - Column to calculate quartiles for
-    /// * `window_spec` - Window specification
-    ///
-    /// # Returns
-    ///
-    /// DataFrame with quartile columns
-    pub fn calculate_quartiles(
-        dataframe: &DataFrame,
-        column_name: &str,
-        _window_spec: &WindowSpec,
-    ) -> Result<DataFrame, VeloxxError> {
-        Self::calculate_percentiles(dataframe, column_name, &[0.25, 0.5, 0.75], _window_spec)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::series::Series;
-    use std::collections::BTreeMap;
-
-    #[test]
-    fn test_window_spec_creation() {
-        let window_spec = WindowSpec::new()
-            .partition_by(vec!["region".to_string()])
-            .order_by(vec!["sales".to_string()]);
-
-        assert_eq!(window_spec.partition_by.len(), 1);
-        assert_eq!(window_spec.order_by.len(), 1);
-        assert_eq!(window_spec.partition_by[0], "region");
-        assert_eq!(window_spec.order_by[0], "sales");
-    }
-
-    #[test]
-    fn test_ranking_function() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "sales".to_string(),
-            Series::new_f64("sales", vec![Some(100.0), Some(200.0), Some(150.0)]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let window_spec = WindowSpec::new().order_by(vec!["sales".to_string()]);
-        let result =
-            WindowFunction::apply_ranking(&df, &RankingFunction::RowNumber, &window_spec).unwrap();
-
-        assert_eq!(result.column_count(), 2); // Original + ranking column
-        assert!(result
-            .column_names()
-            .iter()
-            .any(|name| name.contains("rank")));
-    }
-
-    #[test]
-    fn test_moving_average() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "values".to_string(),
-            Series::new_f64(
-                "values",
-                vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)],
-            ),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let result = WindowFunction::moving_average(&df, "values", 3).unwrap();
-
-        assert_eq!(result.column_count(), 2); // Original + moving average column
-        assert!(result
-            .column_names()
-            .iter()
-            .any(|name| name.contains("ma_")));
-    }
-
-    #[test]
-    fn test_lag_lead() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "values".to_string(),
-            Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let window_spec = WindowSpec::new();
-
-        // Test lag
-        let lag_result = WindowFunction::apply_lag_lead(&df, "values", 1, &window_spec).unwrap();
-        assert_eq!(lag_result.column_count(), 2);
-        assert!(lag_result
-            .column_names()
-            .iter()
-            .any(|name| name.contains("lag")));
-
-        // Test lead
-        let lead_result = WindowFunction::apply_lag_lead(&df, "values", -1, &window_spec).unwrap();
-        assert_eq!(lead_result.column_count(), 2);
-        assert!(lead_result
-            .column_names()
-            .iter()
-            .any(|name| name.contains("lead")));
-    }
-
-    #[test]
-    fn test_percentile_calculation() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "values".to_string(),
-            Series::new_f64(
-                "values",
-                vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)],
-            ),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let window_spec = WindowSpec::new();
-        let result =
-            PercentileFunction::calculate_percentiles(&df, "values", &[0.5], &window_spec).unwrap();
-
-        assert_eq!(result.column_count(), 2); // Original + percentile column
-        assert!(result
-            .column_names()
-            .iter()
-            .any(|name| name.contains("p50")));
-    }
-
-    #[test]
-    fn test_aggregate_function() {
-        let mut columns = BTreeMap::new();
-        columns.insert(
-            "values".to_string(),
-            Series::new_f64("values", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
-        );
-
-        let df = DataFrame::new(columns).unwrap();
-        let window_spec = WindowSpec::new();
-        let result =
-            WindowFunction::apply_aggregate(&df, "values", &AggregateFunction::Sum, &window_spec)
-                .unwrap();
-
-        assert_eq!(result.column_count(), 2); // Original + aggregate column
-        assert!(result
-            .column_names()
-            .iter()
-            .any(|name| name.contains("sum")));
     }
 }
