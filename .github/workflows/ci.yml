@@ -47,7 +47,7 @@ jobs:
           cargo clippy --all-targets --all-features --verbose -- -D warnings -A clippy::uninlined-format-args -A clippy::assertions-on-constants -A clippy::approx-constant -A clippy::empty-line-after-doc-comments -A clippy::clone-on-copy -A clippy::map-clone
 
       - name: Run Tests
-        run: cargo test --no-default-features --features "visualization,ml,advanced_io,data_quality,window_functions,distributed" --verbose
+        run: cargo test --lib --verbose
 
       - name: Test Documentation
         run: cargo test --doc --no-default-features --verbose
