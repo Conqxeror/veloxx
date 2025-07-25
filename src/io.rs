@@ -1,8 +1,8 @@
 use crate::error::VeloxxError;
-use crate::DataFrame;
+use crate::dataframe::DataFrame;
 
-pub struct JsonReader;
-pub struct JsonWriter;
+#[derive(Default)]pub struct JsonReader;
+#[derive(Default)]pub struct JsonWriter;
 
 impl JsonReader {
     pub fn new() -> Self {
@@ -11,17 +11,17 @@ impl JsonReader {
     
     pub fn read_file(&self, _path: &str) -> Result<DataFrame, VeloxxError> {
         use std::collections::BTreeMap;
-        Ok(DataFrame { columns: BTreeMap::new() })
+        Ok(DataFrame::new(BTreeMap::new()).unwrap())
     }
     
     pub fn read_string(&self, _s: &str) -> Option<DataFrame> {
         use std::collections::BTreeMap;
-        Some(DataFrame { columns: BTreeMap::new() })
+        Some(DataFrame::new(BTreeMap::new()).unwrap())
     }
     
     pub fn stream_string(&self, _s: &str, _n: usize) -> Option<DataFrame> {
         use std::collections::BTreeMap;
-        Some(DataFrame { columns: BTreeMap::new() })
+        Some(DataFrame::new(BTreeMap::new()).unwrap())
     }
 }
 

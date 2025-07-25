@@ -26,7 +26,7 @@ export default {
       "classic",
       {
         "docs": {
-          "sidebarPath": "D:\\Projects\\Velox\\velox\\docs-site\\sidebars.js",
+          "sidebarPath": "D:\\Projects\\Veloxx\\veloxx\\docs-site\\sidebars.js",
           "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/"
         },
         "blog": {
@@ -34,7 +34,7 @@ export default {
           "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/"
         },
         "theme": {
-          "customCss": "D:\\Projects\\Velox\\velox\\docs-site\\src\\css\\custom.css"
+          "customCss": "D:\\Projects\\Veloxx\\veloxx\\docs-site\\src\\css\\custom.css"
         }
       }
     ]

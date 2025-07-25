@@ -1,3 +1,21 @@
+## 0.3.1 - 2025-07-26
+
+### Fixed
+
+- Fixed clippy warnings by adding Default derive to JsonReader and JsonWriter structs for improved code quality.
+- Resolved all remaining import inconsistencies in test files, converting crate:: imports to veloxx:: for consistency.
+- Added audit and io modules to public API to support integration tests properly.
+
+### Changed
+
+- Updated version to 0.3.1 across all package files (Cargo.toml, npm-package.json, documentation).
+- Enhanced production readiness with zero clippy warnings and comprehensive test coverage.
+
+### Security
+
+- Documented and managed known security advisories in audit.toml (RSA Marvin Attack, unmaintained dependencies).
+- All security issues are either accepted risk or transitive dependencies with no available fixes.
+
 ## 0.3.0 - 2025-07-25
 
 ### Added

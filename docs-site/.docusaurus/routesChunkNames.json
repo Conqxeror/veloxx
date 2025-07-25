@@ -1,56 +1,99 @@
 {
-  "/veloxx/search-bdd": {
-    "__comp": "1a4e3797",
+  "/veloxx/__docusaurus/debug-93a": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
     "__context": {
-      "plugin": "c141421f"
+      "plugin": "plugin---veloxx-docusaurus-debugb-38-a23"
+    }
+  },
+  "/veloxx/__docusaurus/debug/config-76d": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---veloxx-docusaurus-debugb-38-a23"
+    }
+  },
+  "/veloxx/__docusaurus/debug/content-3dc": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---veloxx-docusaurus-debugb-38-a23"
+    },
+    "__props": "__props---veloxx-docusaurus-debug-content-6-dd-cc5"
+  },
+  "/veloxx/__docusaurus/debug/globalData-860": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---veloxx-docusaurus-debugb-38-a23"
+    }
+  },
+  "/veloxx/__docusaurus/debug/metadata-762": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---veloxx-docusaurus-debugb-38-a23"
+    }
+  },
+  "/veloxx/__docusaurus/debug/registry-322": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---veloxx-docusaurus-debugb-38-a23"
+    }
+  },
+  "/veloxx/__docusaurus/debug/routes-afa": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---veloxx-docusaurus-debugb-38-a23"
+    }
+  },
+  "/veloxx/search-bdd": {
+    "__comp": "__comp---theme-search-page-1-a-4-d6f",
+    "__context": {
+      "plugin": "plugin---veloxx-searchc-14-f76"
     }
   },
   "/veloxx/docs-8ef": {
-    "__comp": "5e95c892",
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
     "__context": {
-      "plugin": "aba21aa0"
+      "plugin": "plugin---veloxx-docsaba-fcf"
     }
   },
   "/veloxx/docs-d9f": {
-    "__comp": "a7bd4aaa",
-    "__props": "70330048"
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---veloxx-docs-703-679"
   },
   "/veloxx/docs-148": {
-    "__comp": "a94703ab"
+    "__comp": "__comp---theme-doc-roota-94-67a"
   },
   "/veloxx/docs/api/javascript-0ca": {
-    "__comp": "17896441",
-    "content": "3b281a57"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---veloxx-docs-api-javascript-3-b-2-ae1"
   },
   "/veloxx/docs/api/python-f3c": {
-    "__comp": "17896441",
-    "content": "db39a754"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---veloxx-docs-api-pythondb-3-927"
   },
   "/veloxx/docs/api/rust-cd0": {
-    "__comp": "17896441",
-    "content": "819b3d2c"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---veloxx-docs-api-rust-819-473"
   },
   "/veloxx/docs/getting-started/installation-9d2": {
-    "__comp": "17896441",
-    "content": "54f44165"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---veloxx-docs-getting-started-installation-54-f-abd"
   },
   "/veloxx/docs/getting-started/quick-start-a00": {
-    "__comp": "17896441",
-    "content": "588bd741"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---veloxx-docs-getting-started-quick-start-588-976"
   },
   "/veloxx/docs/intro-884": {
-    "__comp": "17896441",
-    "content": "0e384e19"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---veloxx-docs-intro-0-e-3-dbb"
   },
   "/veloxx/docs/performance/benchmarks-427": {
-    "__comp": "17896441",
-    "content": "d21108db"
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---veloxx-docs-performance-benchmarksd-21-695"
   },
   "/veloxx/-1dc": {
-    "__comp": "1df93b7f",
+    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
     "__context": {
-      "plugin": "a7456010"
+      "plugin": "plugin---veloxx-a-74-509"
     },
-    "config": "5e9f5e1a"
+    "config": "config---veloxx-5-e-9-7e8"
   }
 }

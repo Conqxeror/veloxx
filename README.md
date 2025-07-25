@@ -12,7 +12,7 @@
 
 ---
 
-> 🚀 **v0.3.0 Released!** See CHANGELOG for details.
+> 🚀 **v0.3.1 Released!** See CHANGELOG for details.
 
 Veloxx is a high-performance, **extremely lightweight** in-memory data processing and analytics library in Rust, with bindings for Python, WebAssembly, and more. Designed for minimal dependencies, optimal memory usage, and blazing speed, it's ideal for data science, analytics, and any environment where every byte and cycle counts.
 
@@ -52,7 +52,7 @@ Veloxx is a high-performance, **extremely lightweight** in-memory data processin
 
 ```toml
 [dependencies]
-veloxx = "0.3.0"
+veloxx = "0.3.1"
 ```
 
 ```rust

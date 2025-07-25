@@ -3,9 +3,39 @@
   align-items: center;
   padding: 2rem 0;
   width: 100%;
+  background-color: var(--ifm-background-surface-color);
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.featureIcon {
+  height: 64px;
+  width: 64px;
+  color: var(--gh-accent-fg);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.featureIcon:hover {
+  color: var(--gh-accent-emphasis);
+  transform: scale(1.1);
+}
+
+/* Dark theme adjustments */
+[data-theme='dark'] .featureIcon {
+  color: var(--gh-accent-fg);
+}
+
+[data-theme='dark'] .featureIcon:hover {
+  color: var(--gh-accent-emphasis);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .features {
+    padding: 1.5rem 0;
+  }
+  
+  .featureIcon {
+    height: 48px;
+    width: 48px;
+  }
 }

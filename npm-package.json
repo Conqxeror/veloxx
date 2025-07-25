@@ -1,6 +1,6 @@
 {
   "name": "veloxx",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Veloxx: High-performance, lightweight JavaScript/WebAssembly library for in-memory data processing and analytics. Built on Rust for blazing speed and memory efficiency. Features DataFrames, Series, advanced I/O (CSV, JSON), machine learning (linear regression, K-means, logistic regression), time-series analysis, data visualization, and parallel processing. Perfect for web applications, Node.js, and performance-critical JavaScript environments.",
   "main": "pkg/veloxx.js",
   "types": "pkg/veloxx.d.ts",

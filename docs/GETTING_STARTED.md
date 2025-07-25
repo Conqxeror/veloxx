@@ -17,14 +17,14 @@ Add Velox to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-veloxx = "0.3.0"
+veloxx = "0.3.1"
 ```
 
 For specific features, use:
 
 ```toml
 [dependencies]
-veloxx = { version = "0.3.0", features = ["advanced_io", "data_quality", "window_functions"] }
+veloxx = { version = "0.3.1", features = ["advanced_io", "data_quality", "window_functions"] }
 ```
 
 ## Your First DataFrame

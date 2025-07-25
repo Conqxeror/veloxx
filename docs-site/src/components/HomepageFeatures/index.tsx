@@ -1,17 +1,25 @@
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
+import { 
+  Zap, 
+  Code, 
+  Feather, 
+  MemoryStick, 
+  Shield, 
+  BarChart3 
+} from 'lucide-react';
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  Icon: React.ComponentType<React.ComponentProps<'svg'>>;
   description: JSX.Element;
 };
 
 const FeatureList: FeatureItem[] = [
   {
     title: 'Lightning Fast Performance',
-    Svg: require('@site/static/img/undraw_speed.svg').default,
+    Icon: Zap,
     description: (
       <>
         Built in Rust for maximum performance. Outperforms pandas by 10x and 
@@ -21,7 +29,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Multi-Language Support',
-    Svg: require('@site/static/img/undraw_programming.svg').default,
+    Icon: Code,
     description: (
       <>
         Native Rust library with seamless Python and JavaScript bindings. 
@@ -31,7 +39,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Zero Dependencies',
-    Svg: require('@site/static/img/undraw_lightweight.svg').default,
+    Icon: Feather,
     description: (
       <>
         Extremely lightweight with minimal external dependencies. 
@@ -41,7 +49,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Memory Efficient',
-    Svg: require('@site/static/img/undraw_memory.svg').default,
+    Icon: MemoryStick,
     description: (
       <>
         Optimized memory usage with efficient data structures and 
@@ -51,7 +59,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Type Safe',
-    Svg: require('@site/static/img/undraw_safety.svg').default,
+    Icon: Shield,
     description: (
       <>
         Leverages Rust's type system for compile-time guarantees and 
@@ -61,7 +69,7 @@ const FeatureList: FeatureItem[] = [
   },
   {
     title: 'Rich Analytics',
-    Svg: require('@site/static/img/undraw_analytics.svg').default,
+    Icon: BarChart3,
     description: (
       <>
         Comprehensive data processing capabilities including filtering, 
@@ -71,11 +79,11 @@ const FeatureList: FeatureItem[] = [
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, Icon, description}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
+        <Icon className={clsx(styles.featureIcon, 'feature-icon')} size={64} />
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>

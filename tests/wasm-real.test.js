@@ -112,7 +112,7 @@ describe('WASM Build Verification', () => {
     const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
     
     expect(pkgJson.name).toBe('veloxx');
-    expect(pkgJson.version).toBe('0.2.4');
+    expect(pkgJson.version).toBe('0.3.1');
     expect(pkgJson.main).toBe('veloxx.js');
     expect(pkgJson.types).toBe('veloxx.d.ts');
     

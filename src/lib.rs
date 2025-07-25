@@ -97,6 +97,8 @@
 /// Advanced I/O operations module
 #[cfg(feature = "advanced_io")]
 pub mod advanced_io;
+/// Audit trail generation for data quality checks
+pub mod audit;
 /// Defines conditions used for filtering DataFrames, supporting various comparison
 /// and logical operations.
 pub mod conditions;
@@ -117,6 +119,8 @@ pub mod expressions;
 /// Machine learning integration module
 #[cfg(feature = "ml")]
 pub mod ml;
+/// I/O operations for reading and writing data
+pub mod io;
 /// Performance optimization module for high-performance data operations
 /// Core Series (column) data structure and its associated operations, including
 /// type casting, aggregation, and statistical calculations.
