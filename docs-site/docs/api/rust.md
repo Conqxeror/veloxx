@@ -10,6 +10,8 @@ Complete API reference for the Veloxx Rust library. This guide covers all availa
 4. [Data Quality & Validation](#data-quality--validation)
 5. [Window Functions & Analytics](#window-functions--analytics)
 6. [Performance Optimization](#performance-optimization)
+7. [Visualization](#visualization)
+8. [Machine Learning](#machine-learning)
 
 ## Core Data Structures
 
@@ -107,8 +109,8 @@ let name = series.name();
 
 // Access values
 let value = series.get_value(0)?;  // Get value at index
-let is_null = series.is_null(0);   // Check if null
-let null_count = series.null_count(); // Count nulls
+let is_null = series.get_value(0).is_none();   // Check if null
+let null_count = series.len() - series.count(); // Count nulls
 
 // Statistics (for numeric series)
 let mean = series.mean()?;
@@ -258,26 +260,33 @@ let multi_sorted = df.sort(vec!["department".to_string(), "salary".to_string()],
 
 ```rust
 // Inner join
-let joined_df = df1.join(&df2, &["id".to_string()], "inner")?;
+let joined_df = df1.join(&df2, "id", JoinType::Inner)?;
 
 // Left join
-let left_joined_df = df1.join(&df2, &["user_id".to_string()], "left")?;
+let left_joined_df = df1.join(&df2, "user_id", JoinType::Left)?;
 
 // Join on multiple columns
-let multi_join = df1.join(&df2, &["dept_id".to_string(), "year".to_string()], "inner")?;
+let multi_join = df1.join(&df2, "dept_id", JoinType::Inner)?;
 ```
 
 ## Advanced I/O Operations
 
+*Available with `advanced_io` feature flag*
+
 ### File Format Support
 
 ```rust
+#[cfg(feature = "advanced_io")]
+use veloxx::advanced_io::{AsyncFileOps, ParquetReader, ParquetWriter, JsonStreamer, DatabaseConnector, CompressionType};
+
 // CSV with options
 let df = DataFrame::from_csv("data.csv")?;
 df.to_csv("output.csv")?;
 
 // JSON support
+#[cfg(feature = "advanced_io")]
 let df = DataFrame::from_json("data.json")?;
+#[cfg(feature = "advanced_io")]
 df.to_json("output.json")?;
 
 // Custom data loading
@@ -293,6 +302,7 @@ let df = DataFrame::from_vec_of_vec(data, columns)?;
 
 ```rust
 // For large datasets, process in chunks
+#[cfg(feature = "advanced_io")]
 fn process_large_csv(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let chunk_size = 10000;
     let mut total_rows = 0;
@@ -338,21 +348,30 @@ for column_name in df.column_names() {
 ### Data Validation
 
 ```rust
+#[cfg(feature = "data_quality")]
+use veloxx::data_quality::{Schema, ColumnSchema, Constraint, SchemaValidator};
+#[cfg(feature = "data_quality")]
+use veloxx::types::DataType;
+
 // Validate data ranges
+#[cfg(feature = "data_quality")]
 fn validate_age_range(df: &DataFrame) -> Result<bool, Box<dyn std::error::Error>> {
     if let Some(age_column) = df.get_column("age") {
         let min_age = age_column.min()?;
         let max_age = age_column.max()?;
         
-        if min_age < 0.0 || max_age > 150.0 {
-            println!("Warning: Age values outside expected range (0-150)");
-            return Ok(false);
+        if let (Some(Value::F64(min_val)), Some(Value::F64(max_val))) = (min_age, max_age) {
+            if min_val < 0.0 || max_val > 150.0 {
+                println!("Warning: Age values outside expected range (0-150)");
+                return Ok(false);
+            }
         }
     }
     Ok(true)
 }
 
 // Check for duplicates (conceptual - would be in data_quality feature)
+#[cfg(feature = "data_quality")]
 fn check_duplicates(df: &DataFrame, key_columns: Vec<String>) -> Result<usize, Box<dyn std::error::Error>> {
     // Implementation would group by key columns and count
     // This is a placeholder for the actual feature
@@ -363,7 +382,11 @@ fn check_duplicates(df: &DataFrame, key_columns: Vec<String>) -> Result<usize, B
 ### Data Profiling
 
 ```rust
+#[cfg(feature = "data_quality")]
+use veloxx::data_quality::DataProfiler;
+
 // Generate data profile
+#[cfg(feature = "data_quality")]
 fn profile_dataframe(df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
     println!("DataFrame Profile:");
     println!("================");
@@ -382,7 +405,7 @@ fn profile_dataframe(df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
             // For numeric columns, show statistics
             match column.data_type() {
                 veloxx::types::DataType::I32 | veloxx::types::DataType::F64 => {
-                    if let (Ok(mean), Ok(std)) = (column.mean(), column.std()) {
+                    if let (Some(mean), Some(std)) = (column.mean()?, column.std_dev()?) {
                         println!("  Mean: {:.2}", mean);
                         println!("  Std Dev: {:.2}", std);
                         println!("  Min: {:.2}", column.min()?);
@@ -401,11 +424,15 @@ fn profile_dataframe(df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
 
 ## Window Functions & Analytics
 
+*Available with `window_functions` feature flag*
+
 ### Window Operations
 
 ```rust
-// Window functions (available with window_functions feature)
-use veloxx::window::WindowSpec;
+#[cfg(feature = "window_functions")]
+use veloxx::window_functions::{WindowSpec, WindowFunction, RankingFunction, AggregateFunction, OffsetFunction, TimeWindow};
+#[cfg(feature = "window_functions")]
+use chrono::Duration;
 
 // Running totals
 let window_spec = WindowSpec::new()
@@ -413,13 +440,11 @@ let window_spec = WindowSpec::new()
     .order_by(vec!["date".to_string()]);
 
 // This would be the API for window functions
-// let df_with_running_total = df.with_column(
-//     "running_total",
-//     &Expr::WindowFunction {
-//         func: "sum".to_string(),
-//         args: vec![Expr::Column("sales".to_string())],
-//         window: window_spec,
-//     }
+// let df_with_running_total = WindowFunction::apply_aggregate(
+//     &df, 
+//     "sales", 
+//     &AggregateFunction::Sum, 
+//     &window_spec
 // )?;
 ```
 
@@ -427,6 +452,7 @@ let window_spec = WindowSpec::new()
 
 ```rust
 // Time-based operations (conceptual for window_functions feature)
+#[cfg(feature = "window_functions")]
 fn analyze_time_series(df: &DataFrame) -> Result<DataFrame, Box<dyn std::error::Error>> {
     // Sort by timestamp
     let sorted_df = df.sort(vec!["timestamp".to_string()], true)?;
@@ -439,6 +465,8 @@ fn analyze_time_series(df: &DataFrame) -> Result<DataFrame, Box<dyn std::error::
 ```
 
 ## Performance Optimization
+
+*Available with `performance` feature flag*
 
 ### Best Practices
 
@@ -467,10 +495,22 @@ let view = df.select_columns(vec!["needed_col".to_string()])?;
 ### Memory Management
 
 ```rust
+#[cfg(feature = "performance")]
+use veloxx::performance::memory::{MemoryAnalyzer, CompressedColumn};
+
 // Monitor memory usage
+#[cfg(feature = "performance")]
 fn process_with_memory_awareness(df: DataFrame) -> Result<DataFrame, Box<dyn std::error::Error>> {
     println!("Processing DataFrame with {} rows", df.row_count());
     
+    // Example: Estimate memory usage
+    let series_memory = MemoryAnalyzer::estimate_series_memory(df.get_column("some_column").unwrap());
+    println!("Estimated memory for 'some_column': {} bytes", series_memory);
+
+    // Example: Suggest compression
+    let suggestions = MemoryAnalyzer::suggest_compression(df.get_column("another_column").unwrap());
+    println!("Compression suggestions for 'another_column': {:?}", suggestions);
+
     // Process in stages to manage memory
     let stage1 = df.filter(&Condition::Ne("status".to_string(), Value::String("deleted".to_string())))?;
     
@@ -490,61 +530,40 @@ fn process_with_memory_awareness(df: DataFrame) -> Result<DataFrame, Box<dyn std
 ### Parallel Processing
 
 ```rust
+#[cfg(feature = "performance")]
+use veloxx::performance::parallel::ParallelAggregations;
+#[cfg(feature = "performance")]
+use rayon::prelude::*;
+
 // Veloxx automatically uses parallel processing for many operations
 // No special configuration needed - operations are optimized internally
 
 // For custom parallel processing:
-use rayon::prelude::*;
-
+#[cfg(feature = "performance")]
 fn parallel_series_processing(series_list: Vec<Series>) -> Vec<f64> {
     series_list
         .par_iter()
-        .map(|series| series.mean().unwrap_or(0.0))
+        .map(|series| series.mean().unwrap_or(Value::F64(0.0)).as_f64().unwrap_or(0.0))
         .collect()
 }
 ```
 
 ## Error Handling
 
-### Robust Error Management
+Veloxx operations return `Result<T, VeloxxError>`. Common error types:
 
 ```rust
-use veloxx::error::VeloxxxError;
+use veloxx::error::VeloxxError;
 
-fn robust_data_processing(file_path: &str) -> Result<DataFrame, VeloxxxError> {
-    // Load data with error handling
-    let df = match DataFrame::from_csv(file_path) {
-        Ok(df) => df,
-        Err(e) => {
-            eprintln!("Failed to load CSV: {}", e);
-            return Err(e);
-        }
-    };
-    
-    // Validate data
-    if df.row_count() == 0 {
-        return Err(VeloxxxError::EmptyDataFrame);
-    }
-    
-    // Process with error handling
-    let result = df
-        .filter(&Condition::Ne("status".to_string(), Value::String("invalid".to_string())))?
-        .group_by(vec!["category".to_string()])?
-        .agg(vec![("value", "mean")])?;
-    
-    Ok(result)
-}
-
-// Usage with proper error handling
-match robust_data_processing("data.csv") {
-    Ok(result) => {
-        println!("Processing successful: {} rows", result.row_count());
-        result.to_csv("output.csv")?;
-    }
-    Err(e) => {
-        eprintln!("Processing failed: {}", e);
-        // Handle error appropriately
-    }
+match result {
+    Ok(dataframe) => println!("Success: {}", dataframe),
+    Err(VeloxxError::ColumnNotFound(name)) => println!("Column '{}' not found", name),
+    Err(VeloxxError::DataTypeMismatch(msg)) => println!("Type mismatch: {}", msg),
+    Err(VeloxxError::InvalidOperation(msg)) => println!("Invalid operation: {}", msg),
+    Err(VeloxxError::FileIO(err)) => println!("I/O error: {}", err),
+    Err(VeloxxError::Parsing(msg)) => println!("Parse error: {}", msg),
+    Err(VeloxxError::Unsupported(msg)) => println!("Unsupported feature: {}", msg),
+    Err(e) => println!("Other error: {}", e),
 }
 ```
 
@@ -566,7 +585,7 @@ fn comprehensive_analysis() -> Result<(), Box<dyn std::error::Error>> {
     
     // 2. Data cleaning
     let clean_df = df
-        .filter(&Condition::Ne("status".to_string(), Value::String("cancelled".to_string())))?
+        .filter(&Condition::Ne("status".to_string(), Value::String("cancelled".to_string())))?;
         .drop_nulls()?;
     
     // 3. Feature engineering
@@ -578,7 +597,7 @@ fn comprehensive_analysis() -> Result<(), Box<dyn std::error::Error>> {
     
     // 4. Analysis
     let regional_analysis = enriched_df
-        .group_by(vec!["region".to_string()])?
+        .group_by(vec!["region".to_string()])?;
         .agg(vec![
             ("profit", "sum"),
             ("revenue", "mean"),
@@ -587,7 +606,7 @@ fn comprehensive_analysis() -> Result<(), Box<dyn std::error::Error>> {
     
     // 5. Filter for high-performing regions
     let top_regions = regional_analysis
-        .filter(&Condition::Gt("profit_sum".to_string(), Value::F64(100000.0)))?
+        .filter(&Condition::Gt("profit_sum".to_string(), Value::F64(100000.0)))?;
         .sort(vec!["profit_sum".to_string()], false)?;
     
     // 6. Export results
@@ -607,13 +626,94 @@ fn comprehensive_analysis() -> Result<(), Box<dyn std::error::Error>> {
 
 This comprehensive API reference covers all major Veloxx functionality. For more examples and advanced usage patterns, check out the [examples repository](https://github.com/Conqxeror/veloxx/tree/main/examples) and [performance benchmarks](/docs/performance/benchmarks).
 
-:::tip Performance Note
-Veloxx is optimized for columnar operations and automatically parallelizes many computations. For best performance, chain operations together and filter data early in your pipeline.
-:::
+## Visualization
 
-:::info Feature Flags
-Some advanced features require enabling specific feature flags in your `Cargo.toml`:
-- `advanced_io`: Enhanced I/O operations and format support
-- `data_quality`: Data validation and profiling tools  
-- `window_functions`: Window functions and time series analysis
-:::
+*Available with `visualization` feature flag*
+
+Veloxx provides charting and plotting capabilities to visualize your data.
+
+### Plotting DataFrames
+
+```rust
+#[cfg(feature = "visualization")]
+use veloxx::visualization::{Plot, ChartType, PlotConfig};
+
+#[cfg(feature = "visualization")]
+fn create_plots(df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
+    // Scatter Plot
+    let scatter_plot = Plot::new(df, ChartType::Scatter)
+        .with_columns("feature1", "feature2")
+        .with_config(PlotConfig { 
+            title: "Feature Correlation".to_string(), 
+            x_label: "Feature 1".to_string(), 
+            y_label: "Feature 2".to_string(), 
+            ..Default::default() 
+        });
+    scatter_plot.save("scatter_plot.svg")?;
+
+    // Bar Chart
+    let bar_chart = Plot::new(df, ChartType::Bar)
+        .with_columns("category", "value")
+        .with_config(PlotConfig { 
+            title: "Sales by Category".to_string(), 
+            x_label: "Category".to_string(), 
+            y_label: "Sales".to_string(), 
+            ..Default::default() 
+        });
+    bar_chart.save("bar_chart.svg")?;
+
+    // Histogram
+    let histogram = Plot::new(df, ChartType::Histogram)
+        .with_columns("age", "") // Y-column is not used for histograms
+        .with_config(PlotConfig { 
+            title: "Age Distribution".to_string(), 
+            x_label: "Age".to_string(), 
+            y_label: "Frequency".to_string(), 
+            ..Default::default() 
+        });
+    histogram.save("age_histogram.svg")?;
+
+    Ok(())
+}
+```
+
+## Machine Learning
+
+*Available with `ml` feature flag*
+
+Veloxx integrates with machine learning algorithms for predictive modeling and data preprocessing.
+
+### Linear Regression
+
+```rust
+#[cfg(feature = "ml")]
+use veloxx::ml::LinearRegression;
+
+#[cfg(feature = "ml")]
+fn run_linear_regression(df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
+    let mut model = LinearRegression::new();
+    let fitted_model = model.fit(df, "target_column", &["feature1", "feature2"])?;
+    let predictions = fitted_model.predict(df, &["feature1", "feature2"])?;
+    println!("Predictions: {:?}", predictions);
+    Ok(())
+}
+```
+
+### Data Preprocessing
+
+```rust
+#[cfg(feature = "ml")]
+use veloxx::ml::Preprocessing;
+
+#[cfg(feature = "ml")]
+fn preprocess_data(df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {
+    // Standardize features (mean=0, std=1)
+    let standardized_df = Preprocessing::standardize(df, &["numeric_feature"])?;
+    println!("Standardized DataFrame:\n{}", standardized_df);
+
+    // Normalize features (scale to 0-1 range)
+    let normalized_df = Preprocessing::normalize(df, &["another_numeric_feature"])?;
+    println!("Normalized DataFrame:\n{}", normalized_df);
+    Ok(())
+}
+```

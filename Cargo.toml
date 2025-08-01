@@ -65,6 +65,7 @@ chrono = { version = "0.4.31", features = ["serde"], optional = true }
 arrow = { version = "53.0", optional = true }
 arrow-flight = { version = "53.0", optional = true }
 linfa-trees = { version = "0.7", optional = true }
+getrandom = { version = "0.2", features = ["js"] }
 
 
 [lints]

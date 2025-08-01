@@ -60,96 +60,138 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Current Features
 
-### ✅ **Implemented**
-- **DataFrame & Series**: Core data structures with type safety
-- **CSV I/O**: Fast CSV reading and writing with automatic type inference
-- **Filtering**: Complex conditions with logical operators (And, Or, Not)
-- **Aggregations**: Group by operations with multiple aggregation functions
-- **Column Operations**: Select, drop, rename, and computed columns
-- **Sorting**: Single and multi-column sorting
-- **Joins**: Inner and left joins on single or multiple columns
-- **Statistics**: Mean, sum, min, max, standard deviation
-- **Data Cleaning**: Handle null values with drop and fill operations
+Veloxx offers a rich set of features for high-performance data processing and analytics:
 
-### 🚧 **In Development**
-- **Advanced I/O**: JSON, Parquet, and database connectivity
-- **Data Quality**: Validation, profiling, and duplicate detection  
-- **Window Functions**: Moving averages, ranking, and time series analysis
-- **Python Bindings**: Full Python API with pandas compatibility
-- **JavaScript/WASM**: Browser and Node.js support
+- **DataFrame & Series**: Core data structures with type safety and columnar storage.
+- **CSV & JSON I/O**: Fast reading and writing of CSV and JSON files with automatic type inference.
+- **Filtering**: Powerful filtering capabilities using complex conditions with logical operators (AND, OR, NOT).
+- **Aggregations & Grouping**: Flexible group-by operations with various aggregation functions (sum, mean, count, min, max, median, std_dev).
+- **Column Operations**: Easy selection, dropping, renaming, and creation of computed columns using expressions.
+- **Sorting**: Efficient single and multi-column sorting in ascending or descending order.
+- **Joins**: Support for inner, left, and right joins to combine DataFrames.
+- **Statistics**: Comprehensive descriptive statistics for numeric data.
+- **Data Cleaning**: Robust handling of null values with drop, fill, and interpolation operations.
+- **Advanced I/O**: Parquet file support and database connectivity.
+- **Data Quality**: Validation, profiling, anomaly detection, and duplicate detection.
+- **Window Functions**: SQL-style window functions for advanced analytics (e.g., moving averages, ranking, lag/lead).
+- **Python Bindings**: Seamless Python API with a familiar pandas-like interface.
+- **JavaScript/WASM**: High-performance WebAssembly bindings for browser and Node.js environments.
+- **Machine Learning**: Basic machine learning models (e.g., linear regression, K-means, logistic regression) and preprocessing utilities.
+- **Visualization**: Charting and plotting capabilities for data exploration (e.g., line, scatter, bar, histogram).
 
 ## Core Data Structures
 
+Veloxx is built around two fundamental data structures: `DataFrame` and `Series`. These are designed for high performance and memory efficiency through columnar storage.
+
 ### DataFrame
-A columnar data table with heterogeneous data types:
+
+A `DataFrame` is a tabular data structure with named columns, where each column can hold data of a different type. It's analogous to a table in a relational database or a spreadsheet. DataFrames in Veloxx are optimized for analytical workloads, allowing for fast filtering, grouping, and transformations.
 
 ```rust
 use std::collections::BTreeMap;
-use veloxx::{DataFrame, Series};
+use veloxx::{dataframe::DataFrame, series::Series};
 
+// Example: Creating a DataFrame from individual Series
 let mut columns = BTreeMap::new();
 columns.insert("name".to_string(), Series::new_string("name", vec![
-    Some("Alice".to_string()), Some("Bob".to_string())
+    Some("Alice".to_string()), 
+    Some("Bob".to_string())
 ]));
 columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), Some(25)]));
 
-let df = DataFrame::new(columns)?;
+let df = DataFrame::new(columns).unwrap();
+// df.row_count() -> 2
+// df.column_count() -> 2
 ```
 
 ### Series
-Single-typed columns with rich operations:
+
+A `Series` represents a single column of data within a `DataFrame`. All data within a `Series` is of a single, homogeneous type. This columnar design is crucial for performance, enabling efficient operations and better cache utilization.
 
 ```rust
-use veloxx::Series;
+use veloxx::series::Series;
+use veloxx::types::Value;
 
+// Example: Creating a Series
 let ages = Series::new_i32("age", vec![Some(25), Some(30), None, Some(35)]);
-let mean_age = ages.mean()?;
-let null_count = ages.null_count();
+
+// Basic Series operations
+let mean_age = ages.mean().unwrap(); // Some(Value::F64(30.0))
+let null_count = ages.null_count(); // 1
+```
+
+### Value and DataType
+
+At the lowest level, individual data points are represented by the `Value` enum, which can hold different primitive types (integers, floats, booleans, strings, and DateTime). The `DataType` enum explicitly defines the type of data a `Series` holds, ensuring type safety throughout the library.
+
+```rust
+use veloxx::types::{DataType, Value};
+
+let int_value = Value::I32(42);
+let float_type = DataType::F64;
+
+assert_eq!(int_value.data_type(), DataType::I32);
+assert_eq!(float_type, DataType::F64);
 ```
 
 ## Data Operations
 
+Veloxx provides a rich set of operations for manipulating and analyzing your data. These operations are designed to be intuitive and chainable, allowing you to build complex data pipelines.
+
 ### Filtering with Conditions
 
+Filter rows based on specific criteria using the `Condition` enum. Conditions can be simple comparisons or complex logical combinations.
+
 ```rust
-use veloxx::{Condition, Value};
+use veloxx::{conditions::Condition, types::Value};
 
-// Simple condition
+// Filter where age is greater than 25
 let condition = Condition::Gt("age".to_string(), Value::I32(25));
-let filtered = df.filter(&condition)?;
+let filtered_df = df.filter(&condition).unwrap();
 
-// Complex condition
-let complex = Condition::And(
+// Filter where age > 25 AND salary < 100000.0
+let complex_condition = Condition::And(
     Box::new(Condition::Gt("age".to_string(), Value::I32(25))),
     Box::new(Condition::Lt("salary".to_string(), Value::F64(100000.0)))
 );
-let result = df.filter(&complex)?;
+let result_df = df.filter(&complex_condition).unwrap();
 ```
 
 ### Aggregation and Grouping
 
+Perform powerful aggregations by grouping your data based on one or more columns. You can calculate sums, means, counts, and more.
+
 ```rust
-// Group by department and calculate statistics
-let summary = df
-    .group_by(vec!["department".to_string()])?
-    .agg(vec![
-        ("salary", "mean"),
-        ("salary", "count"),
-        ("age", "max")
-    ])?;
+// Group by department and calculate mean salary, total employees, and max age
+let grouped_df = df.group_by(vec!["department".to_string()]).unwrap();
+let summary_df = grouped_df.agg(vec![
+    ("salary", "mean"),
+    ("salary", "count"),
+    ("age", "max")
+]).unwrap();
 ```
 
-### Computed Columns
+### Computed Columns with Expressions
+
+Create new columns or transform existing ones using the `Expr` system. Expressions allow you to define calculations based on other columns or literal values. They support arithmetic, comparison, and logical operations.
 
 ```rust
 use veloxx::expressions::Expr;
+use veloxx::types::Value;
 
-// Add a bonus column (10% of salary)
-let bonus_expr = Expr::Multiply(
+// Add a new column 'total_compensation' as salary + bonus
+let total_comp_expr = Expr::Add(
     Box::new(Expr::Column("salary".to_string())),
-    Box::new(Expr::Literal(Value::F64(0.1)))
+    Box::new(Expr::Column("bonus".to_string()))
 );
-let with_bonus = df.with_column("bonus", &bonus_expr)?;
+let df_with_total_comp = df.with_column("total_compensation", &total_comp_expr).unwrap();
+
+// Create a boolean column 'is_senior' based on age and experience
+let is_senior_expr = Expr::And(
+    Box::new(Expr::GreaterThanOrEqual(Box::new(Expr::Column("age".to_string())), Box::new(Expr::Literal(Value::I32(30))))),
+    Box::new(Expr::GreaterThanOrEqual(Box::new(Expr::Column("experience".to_string())), Box::new(Expr::Literal(Value::I32(5)))))
+);
+let df_with_seniority = df.with_column("is_senior", &is_senior_expr).unwrap();
 ```
 
 ## What's Next?
@@ -211,31 +253,6 @@ let with_bonus = df.with_column("bonus", &bonus_expr)?;
     </div>
   </div>
 </div>
-
-## Feature Roadmap
-
-### Phase 1: Core Foundation ✅
-- [x] DataFrame and Series data structures
-- [x] Basic I/O (CSV)
-- [x] Filtering and basic operations
-- [x] Aggregations and grouping
-- [x] Comprehensive documentation
-
-### Phase 2: Advanced Features 🚧
-- [ ] Advanced I/O (JSON, Parquet, databases)
-- [ ] Data quality and validation tools
-- [ ] Window functions and time series analysis
-- [ ] Performance optimizations
-
-### Phase 3: Multi-Language Support 📋
-- [ ] Python bindings with pandas compatibility
-- [ ] JavaScript/WebAssembly support
-- [ ] Language-specific documentation and examples
-
-### Phase 4: Ecosystem 🔮
-- [ ] Visualization integrations
-- [ ] Machine learning pipeline support
-- [ ] Cloud and distributed computing features
 
 ## Community & Support
 

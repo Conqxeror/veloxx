@@ -13,12 +13,22 @@ pip install veloxx
 ```python
 import veloxx as vx
 
-# Load data
-df = vx.read_csv("data.csv")
+# Create a DataFrame
+df = vx.PyDataFrame({
+    "name": vx.PySeries("name", ["Alice", "Bob", "Charlie"]),
+    "age": vx.PySeries("age", [25, 30, 35]),
+    "salary": vx.PySeries("salary", [50000.0, 75000.0, 60000.0])
+})
 
 # Basic operations
-filtered = df.filter(df["age"] > 25)
-grouped = df.groupby("department").mean()
+# Filter rows where age > 25
+age_series = df.get_column("age")
+filtered_indices = [i for i, age in enumerate(age_series.to_list()) if age is not None and age > 25]
+filtered = df.filter(filtered_indices)
+
+# Group by age and calculate mean salary
+grouped = df.group_by(["age"])
+mean_salary = grouped.agg([("salary", "mean")])
 ```
 
 ## Core Classes
@@ -401,20 +411,29 @@ sorted_df = df.sort(["age", "name"], ascending=True)
 #### Data Cleaning
 
 <div className="api-section">
-<div className="api-method">drop_nulls() -&gt; PyDataFrame</div>
+<div className="api-method">drop_nulls(subset: Optional[List[str]] = None) -&gt; PyDataFrame</div>
 
-Removes rows containing any null values.
+Removes rows containing any null values. If `subset` is provided, only nulls in those columns are considered.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">subset</span>: <span className="parameter-type">Optional[List[str]]</span> - List of column names to consider for dropping nulls. If `None`, all columns are considered.
+</div>
+</div>
 
 **Example:**
 ```python
 clean_df = df.drop_nulls()
+# Drop rows with nulls only in 'age' or 'salary'
+clean_df_subset = df.drop_nulls(subset=['age', 'salary'])
 ```
 </div>
 
 <div className="api-section">
 <div className="api-method">fill_nulls(value: Any) -&gt; PyDataFrame</div>
 
-Fills null values with a specified value.
+Fills null values with a specified value. The filling only occurs if the `value`'s type matches the `DataType` of the column being processed.
 
 <div className="api-parameters">
 **Parameters:**
@@ -737,13 +756,13 @@ print(f"Maximum: {maximum}")
 </div>
 
 <div className="api-section">
-<div className="api-method">std() -&gt; float</div>
+<div className="api-method">std_dev() -&gt; float</div>
 
 Calculates the standard deviation.
 
 **Example:**
 ```python
-std_dev = series.std()
+std_dev = series.std_dev()
 print(f"Standard deviation: {std_dev}")
 ```
 </div>
@@ -769,6 +788,78 @@ Returns a Series with unique values.
 ```python
 unique_values = series.unique()
 print(f"Unique values: {unique_values.len()}")
+```
+</div>
+
+<div className="api-section">
+<div className="api-method">correlation(other: PySeries) -&gt; float</div>
+
+Calculates the Pearson correlation between two numeric Series.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">other</span>: <span className="parameter-type">PySeries</span> - Other series to correlate with
+</div>
+</div>
+
+**Example:**
+```python
+corr = age_series.correlation(salary_series)
+print(f"Correlation: {corr}")
+```
+</div>
+
+<div className="api-section">
+<div className="api-method">covariance(other: PySeries) -&gt; float</div>
+
+Calculates the covariance between two numeric Series.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">other</span>: <span className="parameter-type">PySeries</span> - Other series to calculate covariance with
+</div>
+</div>
+
+**Example:**
+```python
+cov = age_series.covariance(salary_series)
+print(f"Covariance: {cov}")
+```
+</div>
+
+<div className="api-section">
+<div className="api-method">interpolate_nulls() -&gt; PySeries</div>
+
+Interpolates null values using linear interpolation for numeric Series.
+
+**Example:**
+```python
+s = vx.PySeries("data", [1, None, 3, None, 5])
+interpolated_s = s.interpolate_nulls()
+print(f"Interpolated: {interpolated_s.to_list()}")
+```
+</div>
+
+<div className="api-section">
+<div className="api-method">append(other: PySeries) -&gt; PySeries</div>
+
+Appends another Series to this one.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">other</span>: <span className="parameter-type">PySeries</span> - Series to append
+</div>
+</div>
+
+**Example:**
+```python
+s1 = vx.PySeries("data", [1, 2])
+s2 = vx.PySeries("data", [3, 4])
+combined = s1.append(s2)
+print(f"Combined: {combined.to_list()}")
 ```
 </div>
 
@@ -852,62 +943,166 @@ expr = vx.PyExpr.literal(1000.0)
 ```
 </div>
 
-#### Arithmetic Operations
+#### Comparison Operations
 
 <div className="api-section">
-<div className="api-method">@staticmethod add(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+<div className="api-method">@staticmethod equals(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
 
-Creates an addition expression.
+Creates an equality comparison expression.
 
 **Example:**
 ```python
-expr = vx.PyExpr.add(
-    vx.PyExpr.column("base_salary"),
-    vx.PyExpr.column("bonus")
+expr = vx.PyExpr.equals(
+    vx.PyExpr.column("status"),
+    vx.PyExpr.literal("active")
 )
 ```
 </div>
 
 <div className="api-section">
-<div className="api-method">@staticmethod subtract(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+<div className="api-method">@staticmethod not_equals(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
 
-Creates a subtraction expression.
+Creates a not-equals comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod greater_than(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a greater-than comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod less_than(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a less-than comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod greater_than_or_equal(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a greater-than-or-equal comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod less_than_or_equal(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a less-than-or-equal comparison expression.
+</div>
+
+#### Logical Operations
+
+<div className="api-section">
+<div className="api-method">@staticmethod and_(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a logical AND expression.
 
 **Example:**
 ```python
-expr = vx.PyExpr.subtract(
-    vx.PyExpr.column("revenue"),
-    vx.PyExpr.column("costs")
+expr = vx.PyExpr.and_(
+    vx.PyExpr.greater_than(vx.PyExpr.column("age"), vx.PyExpr.literal(18)),
+    vx.PyExpr.equals(vx.PyExpr.column("status"), vx.PyExpr.literal("active"))
 )
 ```
 </div>
 
 <div className="api-section">
-<div className="api-method">@staticmethod multiply(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+<div className="api-method">@staticmethod or_(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
 
-Creates a multiplication expression.
+Creates a logical OR expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod not_(expr: PyExpr) -&gt; PyExpr</div>
+
+Creates a logical NOT expression.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">expr</span>: <span className="parameter-type">PyExpr</span> - The expression to negate
+</div>
+</div>
+</div>
+
+#### Comparison Operations
+
+<div className="api-section">
+<div className="api-method">@staticmethod equals(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates an equality comparison expression.
 
 **Example:**
 ```python
-expr = vx.PyExpr.multiply(
-    vx.PyExpr.column("quantity"),
-    vx.PyExpr.column("price")
+expr = vx.PyExpr.equals(
+    vx.PyExpr.column("status"),
+    vx.PyExpr.literal("active")
 )
 ```
 </div>
 
 <div className="api-section">
-<div className="api-method">@staticmethod divide(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+<div className="api-method">@staticmethod not_equals(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
 
-Creates a division expression.
+Creates a not-equals comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod greater_than(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a greater-than comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod less_than(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a less-than comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod greater_than_or_equal(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a greater-than-or-equal comparison expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod less_than_or_equal(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a less-than-or-equal comparison expression.
+</div>
+
+#### Logical Operations
+
+<div className="api-section">
+<div className="api-method">@staticmethod and_(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a logical AND expression.
 
 **Example:**
 ```python
-expr = vx.PyExpr.divide(
-    vx.PyExpr.column("total_sales"),
-    vx.PyExpr.column("num_customers")
+expr = vx.PyExpr.and_(
+    vx.PyExpr.greater_than(vx.PyExpr.column("age"), vx.PyExpr.literal(18)),
+    vx.PyExpr.equals(vx.PyExpr.column("status"), vx.PyExpr.literal("active"))
 )
 ```
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod or_(left: PyExpr, right: PyExpr) -&gt; PyExpr</div>
+
+Creates a logical OR expression.
+</div>
+
+<div className="api-section">
+<div className="api-method">@staticmethod not_(expr: PyExpr) -&gt; PyExpr</div>
+
+Creates a logical NOT expression.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">expr</span>: <span className="parameter-type">PyExpr</span> - The expression to negate
+</div>
+</div>
 </div>
 
 ### `PyJoinType`
@@ -926,33 +1121,7 @@ class PyJoinType:
 joined = df1.join(df2, "user_id", vx.PyJoinType.Left)
 ```
 
-## Convenience Functions
 
-### Data Loading
-
-<div className="api-section">
-<div className="api-method">read_csv(path: str) -&gt; PyDataFrame</div>
-
-Convenience function to load CSV files.
-
-**Example:**
-```python
-import veloxx as vx
-
-df = vx.read_csv("data.csv")
-```
-</div>
-
-<div className="api-section">
-<div className="api-method">read_json(path: str) -&gt; PyDataFrame</div>
-
-Convenience function to load JSON files.
-
-**Example:**
-```python
-df = vx.read_json("data.json")
-```
-</div>
 
 ## Usage Patterns
 
@@ -961,29 +1130,37 @@ df = vx.read_json("data.json")
 ```python
 import veloxx as vx
 
-# Load data
-df = vx.read_csv("sales_data.csv")
+# Create sample data
+df = vx.PyDataFrame({
+    "product": vx.PySeries("product", ["Laptop", "Mouse", "Keyboard", "Monitor"]),
+    "region": vx.PySeries("region", ["North", "South", "North", "East"]),
+    "sales": vx.PySeries("sales", [1200.0, 25.0, 75.0, 300.0]),
+    "quantity": vx.PySeries("quantity", [2, 5, 3, 1]),
+    "customer_id": vx.PySeries("customer_id", [101, 102, 101, 103]),
+})
 
 # Basic info
 print(f"Dataset: {df.row_count()} rows, {df.column_count()} columns")
 print(f"Columns: {df.column_names()}")
 
-# Filter high-value sales
+# Filter high-value sales (sales > 100)
 high_value_indices = []
-amount_series = df.get_column("amount")
+amount_series = df.get_column("sales")
 for i, amount in enumerate(amount_series.to_list()):
-    if amount and amount > 1000:
+    if amount is not None and amount > 100:
         high_value_indices.append(i)
 
 high_value_sales = df.filter(high_value_indices)
+print("\nHigh-Value Sales:")
+print(high_value_sales)
 
-# Group by and aggregate
+# Group by region and aggregate
 summary = high_value_sales.group_by(["region"]).agg([
-    ("amount", "sum"),
-    ("amount", "mean"),
+    ("sales", "sum"),
+    ("sales", "mean"),
     ("customer_id", "count")
 ])
-
+print("\nRegional Sales Summary:")
 print(summary)
 ```
 
@@ -993,12 +1170,21 @@ print(summary)
 import veloxx as vx
 
 def analyze_customer_data():
-    # Load customer data
-    customers = vx.read_csv("customers.csv")
-    orders = vx.read_csv("orders.csv")
+    # Create sample data for customers and orders
+    customers_df = vx.PyDataFrame({
+        "customer_id": vx.PySeries("customer_id", [1, 2, 3]),
+        "name": vx.PySeries("name", ["Alice", "Bob", "Charlie"]),
+        "segment": vx.PySeries("segment", ["Premium", "Standard", "Premium"]),
+    })
+    orders_df = vx.PyDataFrame({
+        "order_id": vx.PySeries("order_id", [101, 102, 103, 104]),
+        "customer_id": vx.PySeries("customer_id", [1, 2, 1, 3]),
+        "order_value": vx.PySeries("order_value", [100.0, 50.0, 150.0, 75.0]),
+        "order_frequency": vx.PySeries("order_frequency", [10, 5, 15, 8]),
+    })
     
     # Join datasets
-    customer_orders = customers.join(orders, "customer_id", vx.PyJoinType.Inner)
+    customer_orders = customers_df.join(orders_df, "customer_id", vx.PyJoinType.Inner)
     
     # Calculate customer lifetime value
     clv_expr = vx.PyExpr.multiply(
@@ -1008,17 +1194,17 @@ def analyze_customer_data():
     
     with_clv = customer_orders.with_column("lifetime_value", clv_expr)
     
-    # Segment customers
+    # Segment customers (lifetime_value > 1000)
     high_value_indices = []
     clv_series = with_clv.get_column("lifetime_value")
     for i, clv in enumerate(clv_series.to_list()):
-        if clv and clv > 5000:
+        if clv is not None and clv > 1000:
             high_value_indices.append(i)
     
     high_value_customers = with_clv.filter(high_value_indices)
     
     # Analyze by segment
-    segment_analysis = high_value_customers.group_by(["customer_segment"]).agg([
+    segment_analysis = high_value_customers.group_by(["segment"]).agg([
         ("lifetime_value", "mean"),
         ("order_frequency", "mean"),
         ("customer_id", "count")
@@ -1028,6 +1214,7 @@ def analyze_customer_data():
 
 # Run analysis
 results = analyze_customer_data()
+print("\nAdvanced Analytics Results:")
 print(results)
 ```
 
@@ -1049,7 +1236,7 @@ def clean_dataset(df):
     age_series = filled_df.get_column("age")
     valid_indices = []
     for i, age in enumerate(age_series.to_list()):
-        if age and 0 <= age <= 100:
+        if age is not None and 0 <= age <= 100:
             valid_indices.append(i)
     
     filtered_df = filled_df.filter(valid_indices)
@@ -1061,67 +1248,94 @@ def clean_dataset(df):
     return standardized
 
 # Usage
-raw_data = vx.read_csv("raw_customer_data.csv")
+raw_data = vx.PyDataFrame({
+    "customer_name": vx.PySeries("customer_name", ["Alice", None, "Charlie"]),
+    "customer_age": vx.PySeries("customer_age", [30, 150, 25]),
+    "product": vx.PySeries("product", ["A", "B", "C"]),
+})
 clean_data = clean_dataset(raw_data)
-clean_data.to_csv("clean_customer_data.csv")
+print("\nCleaned Data:")
+print(clean_data)
 ```
+
 
 ## Performance Tips
 
 1. **Use appropriate data types**: Let Veloxx infer types automatically for best performance
 2. **Filter early**: Apply filters before expensive operations like joins
-3. **Use vectorized operations**: Leverage expressions instead of loops
-4. **Process in chunks**: For very large datasets, process in smaller chunks
-5. **Minimize data copying**: Chain operations when possible
+3. **Use expressions for vectorized operations**: Leverage the `PyExpr` system for efficient column-wise computations instead of Python loops.
+4. **Process in chunks**: For very large datasets, process in smaller chunks to manage memory.
+5. **Minimize data copying**: Chain operations when possible to avoid unnecessary data duplication.
 
 ## Error Handling
 
+Veloxx operations can raise `VeloxxError` exceptions. It's recommended to catch specific error types for robust error management.
+
 ```python
 import veloxx as vx
+from veloxx import VeloxxError
 
 try:
-    df = vx.read_csv("data.csv")
-    result = df.group_by(["category"]).mean()
-    result.to_csv("output.csv")
-except FileNotFoundError:
-    print("Input file not found")
+    # Example: Attempt to load a non-existent file
+    df = vx.PyDataFrame.from_csv("non_existent_file.csv")
+    print(df)
+except VeloxxError as e:
+    print(f"Veloxx Error: {e}")
+    # You can check the error type for more specific handling
+    if "file not found" in str(e).lower():
+        print("Please ensure the CSV file exists.")
 except Exception as e:
-    print(f"Error processing data: {e}")
+    print(f"An unexpected error occurred: {e}")
 ```
 
 ## Integration with Pandas
 
-Convert between Veloxx and Pandas for interoperability:
+Veloxx provides seamless integration with Pandas DataFrames, allowing you to convert data between the two libraries.
 
 ```python
 import veloxx as vx
 import pandas as pd
 
-# Pandas to Veloxx
-def pandas_to_veloxx(pandas_df):
+# Convert Pandas DataFrame to Veloxx PyDataFrame
+def pandas_to_veloxx(pandas_df: pd.DataFrame) -> vx.PyDataFrame:
     columns = {}
-    for col in pandas_df.columns:
-        data = pandas_df[col].tolist()
-        # Convert NaN to None
-        data = [None if pd.isna(x) else x for x in data]
-        columns[col] = vx.PySeries(col, data)
+    for col_name in pandas_df.columns:
+        # Convert Pandas Series to Python list, handling NaN values
+        data = pandas_df[col_name].replace({pd.NA: None, pd.NA: None}).tolist()
+        columns[col_name] = vx.PySeries(col_name, data)
     return vx.PyDataFrame(columns)
 
-# Veloxx to Pandas
-def veloxx_to_pandas(veloxx_df):
+# Convert Veloxx PyDataFrame to Pandas DataFrame
+def veloxx_to_pandas(veloxx_df: vx.PyDataFrame) -> pd.DataFrame:
     data = {}
     for col_name in veloxx_df.column_names():
         series = veloxx_df.get_column(col_name)
-        data[col_name] = series.to_list()
+        if series:
+            data[col_name] = series.to_list()
     return pd.DataFrame(data)
 
-# Usage
-pandas_df = pd.read_csv("data.csv")
-veloxx_df = pandas_to_veloxx(pandas_df)
+# Usage Example
+# Create a sample Pandas DataFrame
+pandas_df_original = pd.DataFrame({
+    "id": [1, 2, 3],
+    "value": [10.5, pd.NA, 30.0],
+    "category": ["A", "B", "A"]
+})
+print("\nOriginal Pandas DataFrame:")
+print(pandas_df_original)
 
-# Process with Veloxx (faster)
-result = veloxx_df.group_by(["category"]).mean()
+# Convert Pandas to Veloxx
+veloxx_df_converted = pandas_to_veloxx(pandas_df_original)
+print("\nConverted Veloxx DataFrame:")
+print(veloxx_df_converted)
 
-# Convert back to Pandas if needed
-result_pandas = veloxx_to_pandas(result)
+# Perform some Veloxx operations (e.g., fill nulls)
+veloxx_df_processed = veloxx_df_converted.fill_nulls(0.0)
+print("\nProcessed Veloxx DataFrame (nulls filled):")
+print(veloxx_df_processed)
+
+# Convert Veloxx back to Pandas
+pandas_df_final = veloxx_to_pandas(veloxx_df_processed)
+print("\nFinal Pandas DataFrame:")
+print(pandas_df_final)
 ```

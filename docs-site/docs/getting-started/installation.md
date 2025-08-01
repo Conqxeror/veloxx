@@ -23,7 +23,7 @@ Add Veloxx to your `Cargo.toml`:
 
 ```toml title="Cargo.toml"
 [dependencies]
-veloxx = "0.2.4"
+veloxx = "0.3.1"
 ```
 
 For the latest development version:
@@ -51,20 +51,28 @@ Available features:
 Create a simple test file:
 
 ```rust title="src/main.rs"
-use veloxx::prelude::*;
+use veloxx::dataframe::DataFrame;
+use veloxx::series::Series;
 use std::collections::BTreeMap;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut columns = BTreeMap::new();
-    columns.insert("name".to_string(), Series::new_string("name", vec![
-        Some("Alice".to_string()), 
-        Some("Bob".to_string())
-    ]));
-    columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), Some(25)]));
-    
+    columns.insert(
+        "name".to_string(),
+        Series::new_string(
+            "name",
+            vec![Some("Alice".to_string()), Some("Bob".to_string())],
+        ),
+    );
+    columns.insert(
+        "age".to_string(),
+        Series::new_i32("age", vec![Some(30), Some(25)]),
+    );
+
     let df = DataFrame::new(columns)?;
-    println!("Veloxx is working! DataFrame:\n{}", df);
-    
+    println!("Veloxx is working! DataFrame:
+{}", df);
+
     Ok(())
 }
 ```
@@ -109,7 +117,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 git clone https://github.com/Conqxeror/veloxx.git
 cd veloxx
 pip install maturin
-maturin develop --features python
+maturin build --release
+pip install target/wheels/veloxx-*-py3-none-any.whl
 ```
 
 ### Virtual Environment (Recommended)
@@ -191,17 +200,18 @@ wasm-pack build --target nodejs --features wasm
 Test your JavaScript installation:
 
 ```javascript title="test_veloxx.js"
-const veloxx = require('veloxx');
+import init, { WasmDataFrame, WasmSeries } from 'veloxx';
 
 async function test() {
+    await init();
     // Create a simple DataFrame
-    const df = new veloxx.WasmDataFrame({
+    const df = new WasmDataFrame({
         name: ["Alice", "Bob", "Charlie"],
         age: [25, 30, 35]
     });
     
     console.log("Veloxx JavaScript bindings are working!");
-    console.log(`DataFrame: ${df.rowCount} rows`);
+    console.log(`DataFrame: ${df.rowCount()} rows`);
 }
 
 test().catch(console.error);
@@ -250,7 +260,7 @@ node test_veloxx.js
 For Webpack, Vite, or other bundlers:
 
 ```javascript title="src/main.js"
-import init, { WasmDataFrame } from 'veloxx';
+import init, { WasmDataFrame, WasmSeries } from 'veloxx';
 
 async function main() {
     await init();
@@ -268,7 +278,9 @@ main();
 
 ## Docker Installation
 
-### Official Docker Image
+### Building from Source
+
+If you want to build Veloxx within a Docker container:
 
 ```dockerfile title="Dockerfile"
 FROM rust:1.75 as builder
@@ -278,16 +290,18 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
+RUN apt-get update && apt-get install -y 
+    ca-certificates 
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/target/release/your-app /usr/local/bin/your-app
+COPY --from=builder /app/target/release/veloxx /usr/local/bin/veloxx
 
-CMD ["your-app"]
+CMD ["/usr/local/bin/veloxx"]
 ```
 
 ### Using Docker Compose
+
+For multi-service applications or local development environments:
 
 ```yaml title="docker-compose.yml"
 version: '3.8'
@@ -327,9 +341,7 @@ pip install maturin pytest black isort mypy
 npm install -g wasm-pack
 
 # Run tests
-cargo test
-cargo test --features python
-cargo test --features wasm
+cargo test --all-features
 ```
 
 ### IDE Setup
@@ -392,12 +404,13 @@ pip list | grep veloxx
 python -c "import sys; print(sys.path)"
 ```
 
-**Issue**: `ModuleNotFoundError: No module named '_veloxx'`
+**Issue**: `ModuleNotFoundError: No module named 'veloxx._veloxx'`
 
-**Solution**: Reinstall with correct architecture:
+**Solution**: Reinstall with correct architecture or ensure `maturin develop` was run correctly:
 ```bash
 pip uninstall veloxx
 pip install --force-reinstall veloxx
+# Or if developing, ensure you ran: maturin develop --features python
 ```
 
 #### WebAssembly Issues
@@ -459,6 +472,7 @@ If you encounter issues not covered here:
 
 | Veloxx Version | Rust Version | Python Version | Node.js Version |
 |----------------|--------------|----------------|-----------------|
+| 0.3.1 | 1.70+ | 3.8+ | 18+ |
 | 0.2.4 | 1.70+ | 3.8+ | 16+ |
 | 0.2.3 | 1.70+ | 3.8+ | 16+ |
 | 0.2.2 | 1.65+ | 3.7+ | 14+ |

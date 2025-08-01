@@ -18,7 +18,7 @@
     "permalink": "/veloxx/docs/api/python"
   },
   "next": {
-    "title": "Performance Benchmarks",
-    "permalink": "/veloxx/docs/performance/benchmarks"
+    "title": "Async JSON I/O Guide",
+    "permalink": "/veloxx/docs/tutorials/async_json"
   }
 }

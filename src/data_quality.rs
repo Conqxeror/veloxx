@@ -32,13 +32,8 @@
 //!     Series::new_i32("age", vec![Some(25), Some(30), Some(35), Some(1000)]), // 1000 is an outlier
 //! );
 //! columns.insert(
-//!     "email".to_string(),
-//!     Series::new_string("email", vec![
-//!         Some("user@example.com".to_string()),
-//!         Some("invalid-email".to_string()),
-//!         Some("test@test.com".to_string()),
-//!         Some("another@domain.org".to_string()),
-//!     ]),
+//!     "score".to_string(),
+//!     Series::new_f64("score", vec![Some(80.5), Some(90.0), Some(75.0), Some(95.5)]),
 //! );
 //!
 //! let df = DataFrame::new(columns).unwrap();

@@ -153,6 +153,45 @@ This phase focuses on high-performance computing and scalability improvements.
 
 This phase focuses on improving developer experience and ecosystem integration.
 
+- **[ ] Documentation Overhaul:**
+  - [ ] **Phase 1: Content Audit & Restructuring**
+    - [ ] **Audit Existing Content:** Review all `.md` files in `docs/` and `docs-site/docs/` for accuracy, completeness, and relevance. Identify outdated information, broken links, and areas needing expansion.
+    - [ ] **Define New Structure:** Propose a clear, intuitive navigation hierarchy. This will likely involve:
+      - **Getting Started:** Installation, Quick Start, Core Concepts.
+      - **API Reference:** Detailed documentation for Rust, Python, and WebAssembly APIs.
+      - **Tutorials/Guides:** Step-by-step guides for common use cases (e.g., data cleaning, advanced I/O, ML workflows).
+      - **Performance:** Benchmarks, optimization tips.
+      - **Contributing:** Guidelines for new contributors.
+      - **Community:** Links to discussions, issues.
+    - [ ] **Content Migration Plan:** Decide which existing `.md` files will be updated in place, moved, or deprecated.
+  - [ ] **Phase 2: Content Creation & Refinement**
+    - [ ] **Update Core Concepts (`docs-site/docs/intro.md`):** Expand on DataFrame and Series, core principles, and design goals.
+    - [ ] **Revamp Getting Started (`docs-site/docs/getting-started/`):**
+      - [ ] **Installation (`installation.md`):** Ensure all installation methods (Cargo, pip, npm, source, Docker) are accurate and comprehensive.
+      - [ ] **Quick Start (`quick-start.md`):** Provide a concise, engaging 5-minute tutorial for each language (Rust, Python, JS/WASM).
+    - [ ] **Comprehensive API Reference (`docs-site/docs/api/`):**
+      - [ ] **Rust API (`rust.md`):** Generate/write detailed documentation for all public Rust functions, structs, and enums. Include code examples for every method.
+      - [ ] **Python API (`python.md`):** Generate/write detailed documentation for all Python bindings, ensuring consistency with Python's idiomatic style. Include examples.
+      - [ ] **JavaScript/WASM API (`javascript.md`):** Generate/write detailed documentation for all WebAssembly bindings, including TypeScript definitions and browser/Node.js examples.
+    - [ ] **New Tutorials/Guides (`docs-site/docs/tutorials/` - new directory):**
+      - [ ] Create guides for advanced I/O (Parquet, DB), data quality, window functions, and ML integration.
+      - [ ] Convert existing `docs/TUTORIAL.md` and `docs/TUTORIAL_CUSTOMER_PURCHASE_ANALYSIS.md` into new, modern tutorials.
+    - [ ] **Enhance Performance Section (`docs-site/docs/performance/benchmarks.md`):** Update benchmarks with latest data, add more detailed analysis, and include optimization best practices.
+    - [ ] **Contributing Guidelines (`CONTRIBUTING.md`):** Ensure it's up-to-date and clear.
+  - [ ] **Phase 3: Technical Implementation & Polish**
+    - [ ] **Update Docusaurus Configuration (`docusaurus.config.js`, `sidebars.js`):** Implement the new navigation structure, update links, and configure search (if applicable).
+    - [ ] **Improve UI/UX:**
+      - [ ] Review and refine `docs-site/src/css/custom.css` for a modern, clean aesthetic consistent with GitHub's design principles.
+      - [ ] Ensure responsiveness across devices.
+      - [ ] Improve code block styling and syntax highlighting.
+    - [ ] **Automate Documentation Generation:** Where possible (e.g., Rustdoc, Typedoc), integrate automated generation into the CI/CD pipeline.
+    - [ ] **Internal Linking Strategy:** Ensure consistent and correct internal linking across all documentation pages.
+    - [ ] **Review and Proofread:** Thoroughly review all content for typos, grammatical errors, and clarity.
+  - [ ] **Phase 4: Verification & Deployment**
+    - [ ] **Local Testing:** Build and test the entire documentation site locally to catch any issues.
+    - [ ] **CI/CD Integration:** Ensure the documentation build and deployment workflows (`.github/workflows/docs.yml`, `docs-deploy.yml`) are robust and correctly configured.
+    - [ ] **User Feedback:** (Optional, but recommended) Gather feedback from early users.
+
 - **[ ] Enhanced Error Handling:**
   - [ ] **TODO:** More descriptive error messages with suggestions.
   - [ ] **TODO:** Error context and stack traces.

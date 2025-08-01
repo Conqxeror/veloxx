@@ -9,15 +9,15 @@ export default [
   },
   {
     path: '/veloxx/docs',
-    component: ComponentCreator('/veloxx/docs', '8ef'),
+    component: ComponentCreator('/veloxx/docs', '54d'),
     routes: [
       {
         path: '/veloxx/docs',
-        component: ComponentCreator('/veloxx/docs', 'd9f'),
+        component: ComponentCreator('/veloxx/docs', 'b41'),
         routes: [
           {
             path: '/veloxx/docs',
-            component: ComponentCreator('/veloxx/docs', '148'),
+            component: ComponentCreator('/veloxx/docs', '05e'),
             routes: [
               {
                 path: '/veloxx/docs/api/javascript',
@@ -58,6 +58,24 @@ export default [
               {
                 path: '/veloxx/docs/performance/benchmarks',
                 component: ComponentCreator('/veloxx/docs/performance/benchmarks', '427'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/veloxx/docs/tutorials/async_json',
+                component: ComponentCreator('/veloxx/docs/tutorials/async_json', '53c'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/veloxx/docs/tutorials/customer_purchase_analysis',
+                component: ComponentCreator('/veloxx/docs/tutorials/customer_purchase_analysis', 'd6c'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/veloxx/docs/tutorials/general_tutorial',
+                component: ComponentCreator('/veloxx/docs/tutorials/general_tutorial', '32e'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               }

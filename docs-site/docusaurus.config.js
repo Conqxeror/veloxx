@@ -106,7 +106,7 @@ const config = {
             label: 'Benchmarks',
             position: 'left',
           },
-          {to: '/docs/intro', label: 'Blog', position: 'left'},
+          
           {
             href: 'https://github.com/Conqxeror/veloxx',
             label: 'GitHub',

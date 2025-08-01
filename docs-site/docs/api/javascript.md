@@ -32,8 +32,12 @@ const df = new veloxx.WasmDataFrame({
 });
 
 // Basic operations
-const filtered = df.filter([0, 2]); // Filter rows by indices
+// Filter rows where age > 25 using an expression
+const filtered = df.filter(veloxx.WasmExpr.greaterThan(veloxx.WasmExpr.column("age"), veloxx.WasmExpr.literal(new veloxx.WasmValue(25))));
+
+// Select columns
 const selected = df.selectColumns(["name", "salary"]);
+
 console.log(`DataFrame has ${df.row_count} rows and ${df.column_count} columns`);
 ```
 
@@ -130,21 +134,24 @@ if (ageColumn) {
 #### Data Manipulation
 
 <div className="api-section">
-<div className="api-method">filter(rowIndices: number[]): WasmDataFrame</div>
+<div className="api-method">filter(expression: WasmExpr): WasmDataFrame</div>
 
-Filters rows by index positions.
+Filters rows based on a boolean expression.
 
 <div className="api-parameters">
 **Parameters:**
 <div className="api-parameter">
-<span className="parameter-name">rowIndices</span>: <span className="parameter-type">number[]</span> - Array of row indices to keep
+<span className="parameter-name">expression</span>: <span className="parameter-type">WasmExpr</span> - A boolean expression to filter rows
 </div>
 </div>
 
 **Example:**
 ```javascript
-// Keep only rows 0 and 2
-const filtered = df.filter([0, 2]);
+// Filter rows where age > 25
+const filtered = df.filter(veloxx.WasmExpr.greaterThan(
+    veloxx.WasmExpr.column("age"),
+    veloxx.WasmExpr.literal(new veloxx.WasmValue(25))
+));
 ```
 </div>
 
@@ -312,32 +319,44 @@ console.log(`Age-Salary covariance: ${cov.toFixed(2)}`);
 #### Data Cleaning
 
 <div className="api-section">
-<div className="api-method">dropNulls(): WasmDataFrame</div>
+<div className="api-method">dropNulls(subset?: string[]): WasmDataFrame</div>
 
-Removes rows containing any null values.
+Removes rows containing any null values. If `subset` is provided, only nulls in those columns are considered.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">subset</span>: <span className="parameter-type">string[]</span> - Optional: List of column names to consider for dropping nulls. If omitted, all columns are considered.
+</div>
+</div>
 
 **Example:**
 ```javascript
 const cleanDf = df.dropNulls();
+// Drop rows with nulls only in 'age' or 'salary'
+const cleanDfSubset = df.dropNulls(['age', 'salary']);
 ```
 </div>
 
 <div className="api-section">
-<div className="api-method">fillNulls(value: WasmValue): WasmDataFrame</div>
+<div className="api-method">fillNulls(value: WasmValue, subset?: string[]): WasmDataFrame</div>
 
-Fills null values with a specified value.
+Fills null values with a specified value. The filling only occurs if the `value`'s type matches the `DataType` of the column being processed. If `subset` is provided, only nulls in those columns are filled.
 
 <div className="api-parameters">
 **Parameters:**
 <div className="api-parameter">
 <span className="parameter-name">value</span>: <span className="parameter-type">WasmValue</span> - Value to use for filling nulls
 </div>
+<div className="api-parameter">
+<span className="parameter-name">subset</span>: <span className="parameter-type">string[]</span> - Optional: List of column names to consider for filling nulls. If omitted, all columns are considered.
+</div>
 </div>
 
 **Example:**
 ```javascript
-const filled = df.fillNulls(new veloxx.WasmValue(0)); // Fill with 0
-const filledStr = df.fillNulls(new veloxx.WasmValue("Unknown")); // Fill with string
+const filled = df.fillNulls(new veloxx.WasmValue(0)); // Fill numeric nulls with 0 in all columns
+const filledStr = df.fillNulls(new veloxx.WasmValue("Unknown"), ["category"]); // Fill string nulls in 'category' column
 ```
 </div>
 
@@ -595,7 +614,7 @@ console.log(`Standard Deviation: ${stdDev}`);
 <div className="api-section">
 <div className="api-method">correlation(other: WasmSeries): number | null</div>
 
-Calculates the correlation with another numeric Series.
+Calculates the Pearson correlation between two numeric Series.
 
 <div className="api-parameters">
 **Parameters:**
@@ -614,7 +633,7 @@ console.log(`Correlation: ${corr}`);
 <div className="api-section">
 <div className="api-method">covariance(other: WasmSeries): number | null</div>
 
-Calculates the covariance with another numeric Series.
+Calculates the covariance between two numeric Series.
 
 <div className="api-parameters">
 **Parameters:**
@@ -627,6 +646,40 @@ Calculates the covariance with another numeric Series.
 ```javascript
 const cov = ageSeries.covariance(salarySeries);
 console.log(`Covariance: ${cov}`);
+```
+</div>
+
+<div className="api-section">
+<div className="api-method">interpolateNulls(): WasmSeries</div>
+
+Interpolates null values using linear interpolation for numeric Series.
+
+**Example:**
+```javascript
+const s = new veloxx.WasmSeries("data", [1, null, 3, null, 5]);
+const interpolatedS = s.interpolateNulls();
+console.log(`Interpolated: ${interpolatedS.toArray()}`);
+```
+</div>
+
+<div className="api-section">
+<div className="api-method">append(other: WasmSeries): WasmSeries</div>
+
+Appends another Series to this one.
+
+<div className="api-parameters">
+**Parameters:**
+<div className="api-parameter">
+<span className="parameter-name">other</span>: <span className="parameter-type">WasmSeries</span> - Series to append
+</div>
+</div>
+
+**Example:**
+```javascript
+const s1 = new veloxx.WasmSeries("data", [1, 2]);
+const s2 = new veloxx.WasmSeries("data", [3, 4]);
+const combined = s1.append(s2);
+console.log(`Combined: ${combined.toArray()}`);
 ```
 </div>
 
@@ -942,8 +995,10 @@ const enriched = df.withColumn("salary_per_year", salaryPerYear);
 
 // Filter high performers (score > 4.0)
 const highPerformers = enriched.filter(
-    enriched.getColumn("performance_score")
-        .filter([0, 2, 4]) // Indices where score > 4.0
+    veloxx.WasmExpr.greaterThan(
+        veloxx.WasmExpr.column("performance_score"),
+        veloxx.WasmExpr.literal(new veloxx.WasmValue(4.0))
+    )
 );
 
 // Group by department and calculate statistics
@@ -971,15 +1026,19 @@ const dfWithNulls = new veloxx.WasmDataFrame({
 
 // Option 1: Drop rows with any null values
 const cleanDf = dfWithNulls.dropNulls();
+console.log("\nDataFrame after dropping nulls:");
+console.log(cleanDf);
 
 // Option 2: Fill nulls with specific values
-const filledDf = dfWithNulls
-    .fillNulls(new veloxx.WasmValue(0))  // Fill numeric nulls with 0
-    .fillNulls(new veloxx.WasmValue("Unknown")); // Fill string nulls
+// Fill numeric nulls with 0
+const filledNumeric = dfWithNulls.fillNulls(new veloxx.WasmValue(0));
+console.log("\nDataFrame after filling numeric nulls with 0:");
+console.log(filledNumeric);
 
-// Option 3: Fill nulls per column type
-const valueFilled = dfWithNulls.fillNulls(new veloxx.WasmValue(-1));
-const categoryFilled = valueFilled.fillNulls(new veloxx.WasmValue("Missing"));
+// Fill string nulls with "Unknown" in the 'category' column
+const filledString = dfWithNulls.fillNulls(new veloxx.WasmValue("Unknown"), ["category"]);
+console.log("\nDataFrame after filling string nulls with \"Unknown\":");
+console.log(filledString);
 ```
 
 ### Statistical Analysis
@@ -1001,8 +1060,12 @@ const profit = veloxx.WasmExpr.subtract(
 const withProfit = salesData.withColumn("profit", profit);
 
 // Calculate correlations
-const revenueCustomerCorr = withProfit.correlation("revenue", "customers");
-const profitRevenueCorr = withProfit.correlation("profit", "revenue");
+const revenueSeries = withProfit.getColumn("revenue");
+const customerSeries = withProfit.getColumn("customers");
+const profitSeries = withProfit.getColumn("profit");
+
+const revenueCustomerCorr = revenueSeries.correlation(customerSeries);
+const profitRevenueCorr = profitSeries.correlation(revenueSeries);
 
 console.log(`Revenue-Customer correlation: ${revenueCustomerCorr.toFixed(3)}`);
 console.log(`Profit-Revenue correlation: ${profitRevenueCorr.toFixed(3)}`);
@@ -1015,41 +1078,105 @@ console.log(stats);
 
 ## Error Handling
 
-All methods that can fail return JavaScript promises or throw exceptions. Always wrap operations in try-catch blocks:
+Veloxx WebAssembly methods can throw exceptions for invalid operations or data. It's crucial to handle these errors using `try-catch` blocks.
 
 ```javascript
-try {
-    const df = new veloxx.WasmDataFrame({
-        invalid_data: [1, "string", true] // Mixed types
-    });
-    
-    const result = df.selectColumns(["nonexistent_column"]);
-} catch (error) {
-    console.error("Operation failed:", error.message);
+import * as veloxx from 'veloxx-wasm';
+
+async function runWithErrorHandling() {
+    await veloxx.default(); // Initialize WASM
+
+    try {
+        // Example 1: Invalid DataFrame creation (mixed types in a column)
+        const dfInvalid = new veloxx.WasmDataFrame({
+            data: [1, "string", 3] // This will throw an error
+        });
+        console.log(dfInvalid); // This line won't be reached
+    } catch (error) {
+        console.error("Error creating DataFrame:", error.message);
+    }
+
+    try {
+        const df = new veloxx.WasmDataFrame({
+            id: [1, 2, 3],
+            value: [10, 20, 30]
+        });
+        // Example 2: Accessing a non-existent column
+        const nonExistentColumn = df.getColumn("nonexistent");
+        if (nonExistentColumn) {
+            console.log(nonExistentColumn.toArray());
+        }
+    } catch (error) {
+        console.error("Error accessing column:", error.message);
+    }
+
+    try {
+        const df = new veloxx.WasmDataFrame({
+            a: [1, 2],
+            b: [3, 4]
+        });
+        // Example 3: Performing an operation on incompatible types
+        const invalidExpr = veloxx.WasmExpr.add(
+            veloxx.WasmExpr.column("a"),
+            veloxx.WasmExpr.literal(new veloxx.WasmValue("text"))
+        );
+        const result = df.withColumn("new_col", invalidExpr);
+        console.log(result);
+    } catch (error) {
+        console.error("Error with expression:", error.message);
+    }
 }
+
+runWithErrorHandling();
 ```
 
 ## Performance Tips
 
-1. **Batch Operations**: Combine multiple operations into a single chain when possible
-2. **Avoid Frequent Type Conversions**: Keep data in consistent types
-3. **Use Appropriate Data Types**: Choose the most specific type for your data
-4. **Filter Early**: Apply filters before expensive operations like grouping
-5. **Reuse Expressions**: Store complex expressions in variables for reuse
+To maximize performance when using Veloxx WebAssembly bindings, consider the following best practices:
 
-```javascript
-// Good: Chain operations
-const result = df
-    .filter([0, 1, 2])
-    .selectColumns(["name", "salary"])
-    .groupBy(["department"])
-    .agg([["salary", "mean"]]);
+1.  **Minimize Data Transfers**: Transferring data between JavaScript and WebAssembly can incur overhead. Perform as many operations as possible within the WebAssembly context before transferring results back to JavaScript.
 
-// Good: Reuse expressions
-const salaryExpr = veloxx.WasmExpr.column("salary");
-const bonusExpr = veloxx.WasmExpr.literal(new veloxx.WasmValue(1000));
-const totalComp = veloxx.WasmExpr.add(salaryExpr, bonusExpr);
-```
+2.  **Chain Operations**: Veloxx operations are optimized when chained together. This allows the underlying Rust engine to apply optimizations like lazy evaluation and query plan optimization.
+
+    ```javascript
+    // Good: Chained operations
+    const result = df
+        .filter(veloxx.WasmExpr.greaterThan(veloxx.WasmExpr.column("age"), veloxx.WasmExpr.literal(new veloxx.WasmValue(18))))
+        .selectColumns(["name", "salary"])
+        .groupBy(["department"])
+        .agg([["salary", "mean"]]);
+    ```
+
+3.  **Use Expressions for Complex Logic**: For column-wise computations and complex filtering, leverage `WasmExpr` instead of native JavaScript loops. `WasmExpr` operations are executed efficiently in WebAssembly.
+
+    ```javascript
+    // Good: Using WasmExpr for calculations
+    const totalCompExpr = veloxx.WasmExpr.add(
+        veloxx.WasmExpr.column("base_salary"),
+        veloxx.WasmExpr.column("bonus")
+    );
+    const dfWithTotalComp = df.withColumn("total_compensation", totalCompExpr);
+
+    // Bad: Performing calculations in JavaScript loop
+    // const salaries = df.getColumn("salary").toArray();
+    // const bonuses = df.getColumn("bonus").toArray();
+    // const totalComps = salaries.map((s, i) => s + bonuses[i]);
+    // This involves data transfer and less optimized computation.
+    ```
+
+4.  **Filter Early**: Apply filtering operations as early as possible in your data processing pipeline to reduce the amount of data processed by subsequent, more expensive operations.
+
+5.  **Reuse `WasmValue` and `WasmExpr` Objects**: For frequently used literal values or expressions, create them once and reuse them to avoid redundant object creation.
+
+    ```javascript
+    // Good: Reusing WasmValue and WasmExpr
+    const threshold = new veloxx.WasmValue(1000);
+    const salesColumn = veloxx.WasmExpr.column("sales");
+    const highSalesFilter = veloxx.WasmExpr.greaterThan(salesColumn, veloxx.WasmExpr.literal(threshold));
+
+    const filteredDf1 = df.filter(highSalesFilter);
+    const filteredDf2 = anotherDf.filter(highSalesFilter);
+    ```
 
 ## Browser Compatibility
 

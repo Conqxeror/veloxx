@@ -44,6 +44,21 @@
               "id": "performance/benchmarks",
               "path": "/veloxx/docs/performance/benchmarks",
               "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tutorials/async_json",
+              "path": "/veloxx/docs/tutorials/async_json",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tutorials/customer_purchase_analysis",
+              "path": "/veloxx/docs/tutorials/customer_purchase_analysis",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "tutorials/general_tutorial",
+              "path": "/veloxx/docs/tutorials/general_tutorial",
+              "sidebar": "tutorialSidebar"
             }
           ],
           "draftIds": [],

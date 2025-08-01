@@ -35,17 +35,21 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Examples & Guides',
+      label: 'Tutorials & Guides',
+      items: [
+        'tutorials/async_json',
+        'tutorials/customer_purchase_analysis',
+        'tutorials/general_tutorial',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Examples',
       items: [
         {
           type: 'link',
-          label: 'Data Processing Examples',
+          label: 'Data Processing Examples (GitHub)',
           href: 'https://github.com/Conqxeror/veloxx/tree/main/examples',
-        },
-        {
-          type: 'link',
-          label: 'Advanced Tutorials',
-          href: 'https://github.com/Conqxeror/veloxx/tree/main/docs',
         },
       ],
     },
