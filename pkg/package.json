@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Conqxeror/veloxx"
+    "url": "git+https://github.com/Conqxeror/veloxx.git"
   },
   "files": [
     "veloxx_bg.wasm",
