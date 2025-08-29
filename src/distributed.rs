@@ -20,13 +20,13 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
+//! use std::collections::HashMap;
 //!
 //! # #[cfg(feature = "distributed")]
 //! # {
 //! use veloxx::distributed::{ParallelProcessor, DistributedDataFrame, ArrowInterop};
 //!
-//! let mut columns = BTreeMap::new();
+//! let mut columns = HashMap::new();
 //! columns.insert(
 //!     "values".to_string(),
 //!     Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]),
@@ -48,13 +48,12 @@
 
 use crate::dataframe::join::JoinType;
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
 use crate::series::Series;
+use crate::VeloxxError;
 
-#[cfg(feature = "distributed")]
 use crate::types::Value;
 use rayon::prelude::*;
-use std::collections::BTreeMap;
+// ...existing code...
 use std::sync::Arc;
 
 #[cfg(feature = "distributed")]
@@ -89,9 +88,9 @@ impl DistributedDataFrame {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::distributed::DistributedDataFrame;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -145,7 +144,7 @@ impl DistributedDataFrame {
         start_row: usize,
         end_row: usize,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut partition_columns = BTreeMap::new();
+        let mut partition_columns = std::collections::HashMap::new();
 
         for (column_name, series) in &dataframe.columns {
             let sliced_series = Self::slice_series(series, start_row, end_row)?;
@@ -160,53 +159,33 @@ impl DistributedDataFrame {
         start_row: usize,
         end_row: usize,
     ) -> Result<Series, VeloxxError> {
-        let slice_length = end_row - start_row;
+        let _slice_length = end_row - start_row;
 
         match series {
-            Series::I32(name, values) => {
-                let sliced_values: Vec<Option<i32>> = values
-                    .iter()
-                    .skip(start_row)
-                    .take(slice_length)
-                    .copied()
-                    .collect();
-                Ok(Series::new_i32(name, sliced_values))
+            Series::I32(name, values, bitmap) => {
+                let sliced_values: Vec<i32> = values[start_row..end_row].to_vec();
+                let sliced_bitmap: Vec<bool> = bitmap[start_row..end_row].to_vec();
+                Ok(Series::I32(name.clone(), sliced_values, sliced_bitmap))
             }
-            Series::F64(name, values) => {
-                let sliced_values: Vec<Option<f64>> = values
-                    .iter()
-                    .skip(start_row)
-                    .take(slice_length)
-                    .copied()
-                    .collect();
-                Ok(Series::new_f64(name, sliced_values))
+            Series::F64(name, values, bitmap) => {
+                let sliced_values: Vec<f64> = values[start_row..end_row].to_vec();
+                let sliced_bitmap: Vec<bool> = bitmap[start_row..end_row].to_vec();
+                Ok(Series::F64(name.clone(), sliced_values, sliced_bitmap))
             }
-            Series::String(name, values) => {
-                let sliced_values: Vec<Option<String>> = values
-                    .iter()
-                    .skip(start_row)
-                    .take(slice_length)
-                    .cloned()
-                    .collect();
-                Ok(Series::new_string(name, sliced_values))
+            Series::String(name, values, bitmap) => {
+                let sliced_values: Vec<String> = values[start_row..end_row].to_vec();
+                let sliced_bitmap: Vec<bool> = bitmap[start_row..end_row].to_vec();
+                Ok(Series::String(name.clone(), sliced_values, sliced_bitmap))
             }
-            Series::Bool(name, values) => {
-                let sliced_values: Vec<Option<bool>> = values
-                    .iter()
-                    .skip(start_row)
-                    .take(slice_length)
-                    .copied()
-                    .collect();
-                Ok(Series::new_bool(name, sliced_values))
+            Series::Bool(name, values, bitmap) => {
+                let sliced_values: Vec<bool> = values[start_row..end_row].to_vec();
+                let sliced_bitmap: Vec<bool> = bitmap[start_row..end_row].to_vec();
+                Ok(Series::Bool(name.clone(), sliced_values, sliced_bitmap))
             }
-            Series::DateTime(name, values) => {
-                let sliced_values: Vec<Option<i64>> = values
-                    .iter()
-                    .skip(start_row)
-                    .take(slice_length)
-                    .copied()
-                    .collect();
-                Ok(Series::new_datetime(name, sliced_values))
+            Series::DateTime(name, values, bitmap) => {
+                let sliced_values: Vec<i64> = values[start_row..end_row].to_vec();
+                let sliced_bitmap: Vec<bool> = bitmap[start_row..end_row].to_vec();
+                Ok(Series::DateTime(name.clone(), sliced_values, sliced_bitmap))
             }
         }
     }
@@ -330,9 +309,9 @@ impl ParallelProcessor {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::distributed::{DistributedDataFrame, ParallelProcessor};
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "values".to_string(),
     ///     Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -416,11 +395,11 @@ impl ParallelProcessor {
             .map(|partition| {
                 if let Some(series) = partition.get_column(column_name) {
                     match operation {
-                        AggregationOperation::Sum => series.sum(),
+                        AggregationOperation::Sum => series.sum().map(Some),
                         AggregationOperation::Count => Ok(Some(Value::I32(series.len() as i32))),
-                        AggregationOperation::Min => series.min(),
-                        AggregationOperation::Max => series.max(),
-                        AggregationOperation::Mean => series.mean(),
+                        AggregationOperation::Min => series.min().map(Some),
+                        AggregationOperation::Max => series.max().map(Some),
+                        AggregationOperation::Mean => series.mean().map(Some),
                     }
                 } else {
                     Err(VeloxxError::ColumnNotFound(column_name.to_string()))
@@ -598,9 +577,9 @@ impl ArrowInterop {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::distributed::ArrowInterop;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -614,39 +593,39 @@ impl ArrowInterop {
         let mut fields = Vec::new();
         let mut arrays: Vec<Arc<dyn Array>> = Vec::new();
 
-        for (column_name, series) in &dataframe.columns {
+        for series in dataframe.columns.values() {
             match series {
-                Series::I32(_, values) => {
-                    let field = Field::new(column_name, ArrowDataType::Int32, true);
+                Series::I32(name, values, _bitmap) => {
+                    let field = Field::new(name, ArrowDataType::Int32, true);
                     fields.push(field);
 
                     let arrow_array = Int32Array::from(values.clone());
                     arrays.push(Arc::new(arrow_array));
                 }
-                Series::F64(_, values) => {
-                    let field = Field::new(column_name, ArrowDataType::Float64, true);
+                Series::F64(name, values, _bitmap) => {
+                    let field = Field::new(name, ArrowDataType::Float64, true);
                     fields.push(field);
 
                     let arrow_array = Float64Array::from(values.clone());
                     arrays.push(Arc::new(arrow_array));
                 }
-                Series::String(_, values) => {
-                    let field = Field::new(column_name, ArrowDataType::Utf8, true);
+                Series::String(name, values, _bitmap) => {
+                    let field = Field::new(name, ArrowDataType::Utf8, true);
                     fields.push(field);
 
                     let arrow_array = StringArray::from(values.clone());
                     arrays.push(Arc::new(arrow_array));
                 }
-                Series::Bool(_, values) => {
-                    let field = Field::new(column_name, ArrowDataType::Boolean, true);
+                Series::Bool(name, values, _bitmap) => {
+                    let field = Field::new(name, ArrowDataType::Boolean, true);
                     fields.push(field);
 
                     let arrow_array = BooleanArray::from(values.clone());
                     arrays.push(Arc::new(arrow_array));
                 }
-                Series::DateTime(_, _values) => {
+                Series::DateTime(name, _values, _bitmap) => {
                     // For DateTime, we'll use Int64 to represent timestamps
-                    let field = Field::new(column_name, ArrowDataType::Int64, true);
+                    let field = Field::new(name, ArrowDataType::Int64, true);
                     fields.push(field);
 
                     // Simplified conversion - in reality would handle proper datetime conversion
@@ -679,7 +658,7 @@ impl ArrowInterop {
     /// DataFrame containing the data
     #[cfg(feature = "distributed")]
     pub fn arrow_to_dataframe(record_batch: &RecordBatch) -> Result<DataFrame, VeloxxError> {
-        let mut columns = BTreeMap::new();
+        let mut columns = std::collections::HashMap::new();
         let schema = record_batch.schema();
 
         for (i, field) in schema.fields().iter().enumerate() {
@@ -819,7 +798,7 @@ impl MemoryMappedOps {
         // In a real implementation, this would use memory mapping for efficient large file access
 
         // For now, simulate by creating a distributed DataFrame
-        let mut columns = BTreeMap::new();
+        let mut columns = std::collections::HashMap::new();
         columns.insert(
             "mmap_data".to_string(),
             Series::new_string(
@@ -937,11 +916,11 @@ impl TaskScheduler {
 mod tests {
     use super::*;
     use crate::series::Series;
-    use std::collections::BTreeMap;
+    use std::collections::HashMap;
 
     #[test]
     fn test_distributed_dataframe_creation() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "id".to_string(),
             Series::new_i32(
@@ -959,7 +938,7 @@ mod tests {
 
     #[test]
     fn test_distributed_dataframe_collect() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -975,7 +954,7 @@ mod tests {
 
     #[test]
     fn test_parallel_processor() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -994,7 +973,7 @@ mod tests {
 
     #[test]
     fn test_parallel_aggregation() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),

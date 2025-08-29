@@ -3,9 +3,9 @@
 //! This module provides parallel implementations of data operations
 //! for improved performance on multi-core systems.
 
-use crate::error::VeloxxError;
 use crate::series::Series;
 use crate::types::Value;
+use crate::VeloxxError;
 use rayon::prelude::*;
 
 /// Parallel aggregation functions
@@ -15,12 +15,20 @@ impl ParallelAggregations {
     /// Parallel sum calculation for numeric series
     pub fn par_sum(series: &Series) -> Result<Value, VeloxxError> {
         match series {
-            Series::I32(_, values) => {
-                let sum: i32 = values.par_iter().filter_map(|v| v.as_ref()).sum();
+            Series::I32(_, values, bitmap) => {
+                let sum: i32 = values
+                    .par_iter()
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(*v) } else { None })
+                    .sum();
                 Ok(Value::I32(sum))
             }
-            Series::F64(_, values) => {
-                let sum: f64 = values.par_iter().filter_map(|v| v.as_ref()).sum();
+            Series::F64(_, values, bitmap) => {
+                let sum: f64 = values
+                    .par_iter()
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(*v) } else { None })
+                    .sum();
                 Ok(Value::F64(sum))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -37,12 +45,20 @@ impl ParallelAggregations {
         }
 
         match series {
-            Series::I32(_, values) => {
-                let sum: i32 = values.par_iter().filter_map(|v| v.as_ref()).sum();
+            Series::I32(_, values, bitmap) => {
+                let sum: i32 = values
+                    .par_iter()
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(*v) } else { None })
+                    .sum();
                 Ok(Value::F64(sum as f64 / count as f64))
             }
-            Series::F64(_, values) => {
-                let sum: f64 = values.par_iter().filter_map(|v| v.as_ref()).sum();
+            Series::F64(_, values, bitmap) => {
+                let sum: f64 = values
+                    .par_iter()
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(*v) } else { None })
+                    .sum();
                 Ok(Value::F64(sum / count as f64))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -54,17 +70,23 @@ impl ParallelAggregations {
     /// Parallel min calculation
     pub fn par_min(series: &Series) -> Result<Value, VeloxxError> {
         match series {
-            Series::I32(_, values) => {
-                if let Some(min) = values.par_iter().filter_map(|v| v.as_ref()).min() {
+            Series::I32(_, values, bitmap) => {
+                if let Some(min) = values
+                    .par_iter()
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(v) } else { None })
+                    .min()
+                {
                     Ok(Value::I32(*min))
                 } else {
                     Ok(Value::Null)
                 }
             }
-            Series::F64(_, values) => {
+            Series::F64(_, values, bitmap) => {
                 if let Some(min) = values
                     .par_iter()
-                    .filter_map(|v| v.as_ref())
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(v) } else { None })
                     .min_by(|a, b| a.partial_cmp(b).unwrap())
                 {
                     Ok(Value::F64(*min))
@@ -81,17 +103,23 @@ impl ParallelAggregations {
     /// Parallel max calculation
     pub fn par_max(series: &Series) -> Result<Value, VeloxxError> {
         match series {
-            Series::I32(_, values) => {
-                if let Some(max) = values.par_iter().filter_map(|v| v.as_ref()).max() {
+            Series::I32(_, values, bitmap) => {
+                if let Some(max) = values
+                    .par_iter()
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(v) } else { None })
+                    .max()
+                {
                     Ok(Value::I32(*max))
                 } else {
                     Ok(Value::Null)
                 }
             }
-            Series::F64(_, values) => {
+            Series::F64(_, values, bitmap) => {
                 if let Some(max) = values
                     .par_iter()
-                    .filter_map(|v| v.as_ref())
+                    .zip(bitmap.par_iter())
+                    .filter_map(|(v, b)| if *b { Some(v) } else { None })
                     .max_by(|a, b| a.partial_cmp(b).unwrap())
                 {
                     Ok(Value::F64(*max))

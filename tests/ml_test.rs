@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::ml::LinearRegression;
 use veloxx::series::Series;
 
 #[test]
 fn test_linear_regression() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", vec![Some(1.0), Some(2.0), Some(3.0)]),
@@ -47,7 +47,7 @@ fn test_linear_regression() {
 
 #[test]
 fn test_linear_regression_empty_dataframe() {
-    let columns = BTreeMap::new();
+    let columns = HashMap::new();
     let df = DataFrame::new(columns).unwrap();
 
     let mut model = LinearRegression::new();
@@ -59,7 +59,7 @@ fn test_linear_regression_empty_dataframe() {
 
 #[test]
 fn test_linear_regression_missing_target_column() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", vec![Some(1.0), Some(2.0)]),
@@ -75,7 +75,7 @@ fn test_linear_regression_missing_target_column() {
 
 #[test]
 fn test_linear_regression_missing_feature_column() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "target".to_string(),
         Series::new_f64("target", vec![Some(1.0), Some(2.0)]),
@@ -91,7 +91,7 @@ fn test_linear_regression_missing_feature_column() {
 
 #[test]
 fn test_linear_regression_with_nulls() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", vec![Some(1.0), None, Some(3.0)]),
@@ -122,7 +122,7 @@ fn test_linear_regression_with_nulls() {
 
 #[test]
 fn test_linear_regression_single_feature() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "x".to_string(),
         Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -151,7 +151,7 @@ fn test_linear_regression_single_feature() {
 
 #[test]
 fn test_linear_regression_multiple_features() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "x1".to_string(),
         Series::new_f64("x1", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -184,7 +184,7 @@ fn test_linear_regression_multiple_features() {
 
 #[test]
 fn test_linear_regression_prediction_different_data() {
-    let mut train_columns = BTreeMap::new();
+    let mut train_columns = HashMap::new();
     train_columns.insert(
         "x".to_string(),
         Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0)]),
@@ -195,7 +195,7 @@ fn test_linear_regression_prediction_different_data() {
     );
     let train_df = DataFrame::new(train_columns).unwrap();
 
-    let mut test_columns = BTreeMap::new();
+    let mut test_columns = HashMap::new();
     test_columns.insert(
         "x".to_string(),
         Series::new_f64("x", vec![Some(4.0), Some(5.0)]),

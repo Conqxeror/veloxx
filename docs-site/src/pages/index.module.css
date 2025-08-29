@@ -9,12 +9,154 @@
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+/* Dark mode hero banner */
+[data-theme='dark'] .heroBanner {
+  background: linear-gradient(135deg, #4338ca 0%, #7c3aed 100%);
+}
+
+.heroContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  text-align: left;
+  margin-bottom: 3rem;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.performanceHighlight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.highlightBadge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Dark mode highlight badge */
+[data-theme='dark'] .highlightBadge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #f1f5f9;
+}
+
+.highlightText {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Dark mode highlight text */
+[data-theme='dark'] .highlightText {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.heroVisualization {
+  display: flex;
+  justify-content: center;
+}
+
+.performanceCard {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  max-width: 400px;
+  width: 100%;
+}
+
+/* Dark mode performance card */
+[data-theme='dark'] .performanceCard {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+}
+
+.performanceCard h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.benchmarkGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.benchmarkItem {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode benchmark item */
+[data-theme='dark'] .benchmarkItem {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.benchmarkValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 0.25rem;
+}
+
+/* Dark mode benchmark value */
+[data-theme='dark'] .benchmarkValue {
+  color: #fcd34d;
+}
+
+.benchmarkLabel {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-bottom: 0.25rem;
+}
+
+/* Dark mode benchmark label */
+[data-theme='dark'] .benchmarkLabel {
+  opacity: 0.95;
+  color: #e2e8f0;
+}
+
+.benchmarkImprovement {
+  font-size: 0.75rem;
+  color: #34d399;
+  font-weight: 600;
+}
+
+/* Dark mode benchmark improvement */
+[data-theme='dark'] .benchmarkImprovement {
+  color: #6ee7b7;
 }
 
 .buttons {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   margin: 2rem 0;
   flex-wrap: wrap;
   gap: 1rem;
@@ -31,37 +173,90 @@
 .stat {
   text-align: center;
   color: white;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 120px;
+}
+
+/* Dark mode stats */
+[data-theme='dark'] .stat {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
 }
 
 .statNumber {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 800;
   line-height: 1;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: #fbbf24;
+}
+
+/* Dark mode stat number */
+[data-theme='dark'] .statNumber {
+  color: #fcd34d;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .statLabel {
-  font-size: 1rem;
+  font-size: 0.875rem;
   opacity: 0.9;
   margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* Dark mode stat label */
+[data-theme='dark'] .statLabel {
+  opacity: 0.95;
+  color: #e2e8f0;
 }
 
 @media (max-width: 768px) {
   .heroBanner {
     padding: 2rem 0;
+    min-height: auto;
   }
-  
-  .buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .heroStats {
+
+  .heroContent {
+    grid-template-columns: 1fr;
     gap: 2rem;
-    margin-top: 2rem;
+    text-align: center;
   }
-  
+
+  .heroText {
+    text-align: center;
+  }
+
+  .buttons {
+    justify-content: center;
+  }
+
+  .performanceCard {
+    max-width: 100%;
+    padding: 1.5rem;
+  }
+
+  .heroStats {
+    gap: 1.5rem;
+    margin-top: 2rem;
+    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+  }
+
+  .stat {
+    min-width: auto;
+    padding: 0.75rem;
+  }
+
   .statNumber {
     font-size: 2rem;
+  }
+
+  .benchmarkValue {
+    font-size: 1.25rem;
   }
 }

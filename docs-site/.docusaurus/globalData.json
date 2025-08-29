@@ -41,9 +41,32 @@
               "sidebar": "tutorialSidebar"
             },
             {
+              "id": "performance-analysis",
+              "path": "/veloxx/docs/performance-analysis"
+            },
+            {
+              "id": "performance/benchmark-report",
+              "path": "/veloxx/docs/performance/benchmark-report",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "performance/benchmarks",
               "path": "/veloxx/docs/performance/benchmarks",
               "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "performance/competitive-benchmarks",
+              "path": "/veloxx/docs/performance/competitive-benchmarks",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "performance/cross-language-analysis",
+              "path": "/veloxx/docs/performance/cross-language-analysis",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "performance/features",
+              "path": "/veloxx/docs/performance/features"
             },
             {
               "id": "tutorials/async_json",

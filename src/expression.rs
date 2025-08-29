@@ -1,6 +1,6 @@
 
 use crate::series::Series;
-use crate::error::VeloxxError;
+use crate::VeloxxError;
 
 impl Series {
     pub fn str_contains(&self, pat: &str) -> Result<Series, VeloxxError> {

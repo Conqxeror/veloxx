@@ -1,6 +1,8 @@
-use crate::error::VeloxxError;
+use crate::VeloxxError;
 use crate::{dataframe::DataFrame, series::Series, types::Value};
-use std::collections::BTreeMap;
+use rayon::iter::IntoParallelIterator;
+use rayon::prelude::*;
+use std::collections::HashMap;
 
 #[derive(PartialEq)]
 /// Defines the type of join to be performed between two DataFrames.
@@ -39,17 +41,17 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
     /// // Left DataFrame
-    /// let mut left_cols = BTreeMap::new();
+    /// let mut left_cols = HashMap::new();
     /// left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
     /// left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
     /// let left_df = DataFrame::new(left_cols).unwrap();
     ///
     /// // Right DataFrame
-    /// let mut right_cols = BTreeMap::new();
+    /// let mut right_cols = HashMap::new();
     /// right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
     /// right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
     /// let right_df = DataFrame::new(right_cols).unwrap();
@@ -62,14 +64,14 @@ impl DataFrame {
     /// ```rust
     /// # use veloxx::dataframe::DataFrame;
     /// # use veloxx::series::Series;
-    /// # use std::collections::BTreeMap;
+    /// # use std::collections::HashMap;
     /// # use veloxx::types::Value;
     /// # use veloxx::dataframe::join::JoinType;
-    /// # let mut left_cols = BTreeMap::new();
+    /// # let mut left_cols = HashMap::new();
     /// # left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
     /// # left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
     /// # let left_df = DataFrame::new(left_cols).unwrap();
-    /// # let mut right_cols = BTreeMap::new();
+    /// # let mut right_cols = HashMap::new();
     /// # right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
     /// # right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
     /// # let right_df = DataFrame::new(right_cols).unwrap();
@@ -87,14 +89,14 @@ impl DataFrame {
     /// ```rust
     /// # use veloxx::dataframe::DataFrame;
     /// # use veloxx::series::Series;
-    /// # use std::collections::BTreeMap;
+    /// # use std::collections::HashMap;
     /// # use veloxx::types::Value;
     /// # use veloxx::dataframe::join::JoinType;
-    /// # let mut left_cols = BTreeMap::new();
+    /// # let mut left_cols = HashMap::new();
     /// # left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
     /// # left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
     /// # let left_df = DataFrame::new(left_cols).unwrap();
-    /// # let mut right_cols = BTreeMap::new();
+    /// # let mut right_cols = HashMap::new();
     /// # right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
     /// # right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
     /// # let right_df = DataFrame::new(right_cols).unwrap();
@@ -112,14 +114,14 @@ impl DataFrame {
     /// ```rust
     /// # use veloxx::dataframe::DataFrame;
     /// # use veloxx::series::Series;
-    /// # use std::collections::BTreeMap;
+    /// # use std::collections::HashMap;
     /// # use veloxx::types::Value;
     /// # use veloxx::dataframe::join::JoinType;
-    /// # let mut left_cols = BTreeMap::new();
+    /// # let mut left_cols = HashMap::new();
     /// # left_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2), Some(3)]));
     /// # left_cols.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]));
     /// # let left_df = DataFrame::new(left_cols).unwrap();
-    /// # let mut right_cols = BTreeMap::new();
+    /// # let mut right_cols = HashMap::new();
     /// # right_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(2), Some(3), Some(4)]));
     /// # right_cols.insert("city".to_string(), Series::new_string("city", vec![Some("London".to_string()), Some("Paris".to_string()), Some("Rome".to_string())]));
     /// # let right_df = DataFrame::new(right_cols).unwrap();
@@ -135,7 +137,7 @@ impl DataFrame {
         on_column: &str,
         join_type: JoinType,
     ) -> Result<Self, VeloxxError> {
-        let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
+        let mut new_columns: HashMap<String, Series> = HashMap::new();
 
         let self_col_names: Vec<String> =
             self.column_names().iter().map(|s| (*s).clone()).collect();
@@ -155,19 +157,29 @@ impl DataFrame {
         }
 
         // Determine all unique column names and their types
-        let mut all_column_names: Vec<String> = Vec::new();
-        let mut column_types: BTreeMap<String, crate::types::DataType> = BTreeMap::new();
+        let all_column_names: Vec<String> = {
+            let mut temp_names = Vec::new();
+            for col_name in self_col_names.iter() {
+                temp_names.push(col_name.clone());
+            }
+            for col_name in other_col_names.iter() {
+                if !temp_names.contains(col_name) {
+                    temp_names.push(col_name.clone());
+                }
+            }
+            temp_names
+        };
+
+        let mut column_types: HashMap<String, crate::types::DataType> = HashMap::new();
 
         for col_name in self_col_names.iter() {
-            all_column_names.push(col_name.clone());
             column_types.insert(
                 col_name.clone(),
                 self.get_column(col_name).unwrap().data_type(),
             );
         }
         for col_name in other_col_names.iter() {
-            if !all_column_names.contains(col_name) {
-                all_column_names.push(col_name.clone());
+            if !column_types.contains_key(col_name) {
                 column_types.insert(
                     col_name.clone(),
                     other.get_column(col_name).unwrap().data_type(),
@@ -176,138 +188,245 @@ impl DataFrame {
         }
 
         // Initialize new Series data vectors
-        let mut series_data: BTreeMap<String, Vec<Option<Value>>> = BTreeMap::new();
+        let mut series_data: std::collections::HashMap<String, Vec<Option<Value>>> =
+            std::collections::HashMap::new();
         for col_name in all_column_names.iter() {
             series_data.insert(col_name.clone(), Vec::new());
         }
 
         match join_type {
             JoinType::Inner => {
-                let mut other_join_map: std::collections::HashMap<Value, Vec<usize>> =
-                    std::collections::HashMap::new();
                 let other_on_series = other.get_column(on_column).unwrap();
-                for i in 0..other.row_count() {
-                    if let Some(val) = other_on_series.get_value(i) {
-                        other_join_map.entry(val).or_default().push(i);
-                    }
-                }
+                let other_join_map: std::collections::HashMap<Value, Vec<usize>> = (0..other
+                    .row_count())
+                    .into_par_iter()
+                    .filter_map(|i| other_on_series.get_value(i).map(|val| (val, i)))
+                    .fold(
+                        std::collections::HashMap::new,
+                        |mut map: std::collections::HashMap<Value, Vec<usize>>, (val, i)| {
+                            map.entry(val).or_default().push(i);
+                            map
+                        },
+                    )
+                    .reduce(std::collections::HashMap::new, |mut acc, map| {
+                        for (key, value) in map {
+                            acc.entry(key).or_default().extend(value);
+                        }
+                        acc
+                    });
 
                 let self_on_series = self.get_column(on_column).unwrap();
-                for i in 0..self.row_count() {
-                    if let Some(self_join_val) = self_on_series.get_value(i) {
-                        if let Some(other_indices) = other_join_map.get(&self_join_val) {
-                            for &other_idx in other_indices {
-                                // Populate data for all columns
-                                for col_name in all_column_names.iter() {
-                                    let value = if self_col_names.contains(col_name) {
-                                        self.get_column(col_name).unwrap().get_value(i)
-                                    } else {
-                                        other.get_column(col_name).unwrap().get_value(other_idx)
-                                    };
-                                    series_data.get_mut(col_name).unwrap().push(value);
-                                }
+                let results: Vec<Vec<(String, Option<Value>)>> = (0..self.row_count())
+                    .into_par_iter()
+                    .filter_map(|i| {
+                        if let Some(self_join_val) = self_on_series.get_value(i) {
+                            if let Some(other_indices) = other_join_map.get(&self_join_val) {
+                                let self_col_names_cloned = self_col_names.clone();
+                                let all_column_names_cloned = all_column_names.clone();
+                                Some(
+                                    other_indices
+                                        .par_iter()
+                                        .flat_map(move |&other_idx| {
+                                            let mut row_values = Vec::new();
+                                            for col_name in all_column_names_cloned.iter() {
+                                                let value = if self_col_names_cloned
+                                                    .contains(col_name)
+                                                {
+                                                    self.get_column(col_name).unwrap().get_value(i)
+                                                } else {
+                                                    other
+                                                        .get_column(col_name)
+                                                        .unwrap()
+                                                        .get_value(other_idx)
+                                                };
+                                                row_values.push((col_name.clone(), value));
+                                            }
+                                            vec![row_values]
+                                        })
+                                        .collect::<Vec<_>>(),
+                                )
+                            } else {
+                                None
                             }
+                        } else {
+                            None
                         }
+                    })
+                    .flatten()
+                    .collect();
+
+                for row_values in results {
+                    for (col_name, value) in row_values {
+                        series_data.get_mut(&col_name).unwrap().push(value);
                     }
                 }
             }
             JoinType::Left => {
-                // Left join logic (similar optimization can be applied)
-                let mut other_join_map: std::collections::HashMap<Value, Vec<usize>> =
-                    std::collections::HashMap::new();
                 let other_on_series = other.get_column(on_column).unwrap();
-                for i in 0..other.row_count() {
-                    if let Some(val) = other_on_series.get_value(i) {
-                        other_join_map.entry(val).or_default().push(i);
-                    }
-                }
+                let other_join_map: std::collections::HashMap<Value, Vec<usize>> = (0..other
+                    .row_count())
+                    .into_par_iter()
+                    .filter_map(|i| other_on_series.get_value(i).map(|val| (val, i)))
+                    .fold(
+                        std::collections::HashMap::new,
+                        |mut map: std::collections::HashMap<Value, Vec<usize>>, (val, i)| {
+                            map.entry(val).or_default().push(i);
+                            map
+                        },
+                    )
+                    .reduce(std::collections::HashMap::new, |mut acc, map| {
+                        for (key, value) in map {
+                            acc.entry(key).or_default().extend(value);
+                        }
+                        acc
+                    });
 
                 let self_on_series = self.get_column(on_column).unwrap();
-                for i in 0..self.row_count() {
-                    if let Some(self_join_val) = self_on_series.get_value(i) {
-                        if let Some(other_indices) = other_join_map.get(&self_join_val) {
-                            for &other_idx in other_indices {
-                                // Matched row
-                                for col_name in all_column_names.iter() {
-                                    let value = if self_col_names.contains(col_name) {
+                let collected_rows: Vec<Vec<(String, Option<Value>)>> = (0..self.row_count())
+                    .into_par_iter()
+                    .flat_map(|i| {
+                        if let Some(self_join_val) = self_on_series.get_value(i) {
+                            if let Some(other_indices) = other_join_map.get(&self_join_val) {
+                                let self_col_names_cloned = self_col_names.clone();
+                                let all_column_names_cloned = all_column_names.clone();
+                                let _other_col_names_cloned = other_col_names.clone();
+                                other_indices
+                                    .par_iter()
+                                    .map(move |&other_idx| {
+                                        let mut row_values = Vec::new();
+                                        for col_name in all_column_names_cloned.iter() {
+                                            let value = if self_col_names_cloned.contains(col_name)
+                                            {
+                                                self.get_column(col_name).unwrap().get_value(i)
+                                            } else {
+                                                other
+                                                    .get_column(col_name)
+                                                    .unwrap()
+                                                    .get_value(other_idx)
+                                            };
+                                            row_values.push((col_name.clone(), value));
+                                        }
+                                        row_values
+                                    })
+                                    .collect::<Vec<_>>()
+                            } else {
+                                let all_column_names_cloned = all_column_names.clone();
+                                let self_col_names_cloned = self_col_names.clone();
+                                let mut row_values = Vec::new();
+                                for col_name in all_column_names_cloned.iter() {
+                                    let value = if self_col_names_cloned.contains(col_name) {
                                         self.get_column(col_name).unwrap().get_value(i)
                                     } else {
-                                        other.get_column(col_name).unwrap().get_value(other_idx)
+                                        None
                                     };
-                                    series_data.get_mut(col_name).unwrap().push(value);
+                                    row_values.push((col_name.clone(), value));
                                 }
+                                vec![row_values]
                             }
                         } else {
-                            // Unmatched self_row
-                            for col_name in all_column_names.iter() {
-                                let value = if self_col_names.contains(col_name) {
+                            let all_column_names_cloned = all_column_names.clone();
+                            let self_col_names_cloned = self_col_names.clone();
+                            let mut row_values = Vec::new();
+                            for col_name in all_column_names_cloned.iter() {
+                                let value = if self_col_names_cloned.contains(col_name) {
                                     self.get_column(col_name).unwrap().get_value(i)
                                 } else {
                                     None
                                 };
-                                series_data.get_mut(col_name).unwrap().push(value);
+                                row_values.push((col_name.clone(), value));
                             }
+                            vec![row_values]
                         }
-                    } else {
-                        // self_row has null in on_column, treat as unmatched for now
-                        for col_name in all_column_names.iter() {
-                            let value = if self_col_names.contains(col_name) {
-                                self.get_column(col_name).unwrap().get_value(i)
-                            } else {
-                                None
-                            };
-                            series_data.get_mut(col_name).unwrap().push(value);
-                        }
+                    })
+                    .collect();
+
+                for row_values in collected_rows {
+                    for (col_name, value) in row_values {
+                        series_data.get_mut(&col_name).unwrap().push(value);
                     }
                 }
             }
             JoinType::Right => {
-                // Right join logic (similar optimization can be applied)
-                let mut self_join_map: std::collections::HashMap<Value, Vec<usize>> =
-                    std::collections::HashMap::new();
                 let self_on_series = self.get_column(on_column).unwrap();
-                for i in 0..self.row_count() {
-                    if let Some(val) = self_on_series.get_value(i) {
-                        self_join_map.entry(val).or_default().push(i);
-                    }
-                }
+                let self_join_map: std::collections::HashMap<Value, Vec<usize>> = (0..self
+                    .row_count())
+                    .into_par_iter()
+                    .filter_map(|i| self_on_series.get_value(i).map(|val| (val, i)))
+                    .fold(
+                        std::collections::HashMap::new,
+                        |mut map: std::collections::HashMap<Value, Vec<usize>>, (val, i)| {
+                            map.entry(val).or_default().push(i);
+                            map
+                        },
+                    )
+                    .reduce(std::collections::HashMap::new, |mut acc, map| {
+                        for (key, value) in map {
+                            acc.entry(key).or_default().extend(value);
+                        }
+                        acc
+                    });
 
                 let other_on_series = other.get_column(on_column).unwrap();
-                for i in 0..other.row_count() {
-                    if let Some(other_join_val) = other_on_series.get_value(i) {
-                        if let Some(self_indices) = self_join_map.get(&other_join_val) {
-                            for &self_idx in self_indices {
-                                // Matched row
-                                for col_name in all_column_names.iter() {
-                                    let value = if other_col_names.contains(col_name) {
+                let collected_rows: Vec<Vec<(String, Option<Value>)>> = (0..other.row_count())
+                    .into_par_iter()
+                    .flat_map(|i| {
+                        if let Some(other_join_val) = other_on_series.get_value(i) {
+                            if let Some(self_indices) = self_join_map.get(&other_join_val) {
+                                let other_col_names_cloned = other_col_names.clone();
+                                let all_column_names_cloned = all_column_names.clone();
+                                let _self_col_names_cloned = self_col_names.clone();
+                                self_indices
+                                    .par_iter()
+                                    .map(move |&self_idx| {
+                                        let mut row_values = Vec::new();
+                                        for col_name in all_column_names_cloned.iter() {
+                                            let value = if other_col_names_cloned.contains(col_name)
+                                            {
+                                                other.get_column(col_name).unwrap().get_value(i)
+                                            } else {
+                                                self.get_column(col_name)
+                                                    .unwrap()
+                                                    .get_value(self_idx)
+                                            };
+                                            row_values.push((col_name.clone(), value));
+                                        }
+                                        row_values
+                                    })
+                                    .collect::<Vec<_>>()
+                            } else {
+                                let all_column_names_cloned = all_column_names.clone();
+                                let other_col_names_cloned = other_col_names.clone();
+                                let mut row_values = Vec::new();
+                                for col_name in all_column_names_cloned.iter() {
+                                    let value = if other_col_names_cloned.contains(col_name) {
                                         other.get_column(col_name).unwrap().get_value(i)
                                     } else {
-                                        self.get_column(col_name).unwrap().get_value(self_idx)
+                                        None
                                     };
-                                    series_data.get_mut(col_name).unwrap().push(value);
+                                    row_values.push((col_name.clone(), value));
                                 }
+                                vec![row_values]
                             }
                         } else {
-                            // Unmatched other_row
-                            for col_name in all_column_names.iter() {
-                                let value = if other_col_names.contains(col_name) {
+                            let all_column_names_cloned = all_column_names.clone();
+                            let other_col_names_cloned = other_col_names.clone();
+                            let mut row_values = Vec::new();
+                            for col_name in all_column_names_cloned.iter() {
+                                let value = if other_col_names_cloned.contains(col_name) {
                                     other.get_column(col_name).unwrap().get_value(i)
                                 } else {
                                     None
                                 };
-                                series_data.get_mut(col_name).unwrap().push(value);
+                                row_values.push((col_name.clone(), value));
                             }
+                            vec![row_values]
                         }
-                    } else {
-                        // other_row has null in on_column, treat as unmatched for now
-                        for col_name in all_column_names.iter() {
-                            let value = if other_col_names.contains(col_name) {
-                                other.get_column(col_name).unwrap().get_value(i)
-                            } else {
-                                None
-                            };
-                            series_data.get_mut(col_name).unwrap().push(value);
-                        }
+                    })
+                    .collect();
+
+                for row_values in collected_rows {
+                    for (col_name, value) in row_values {
+                        series_data.get_mut(&col_name).unwrap().push(value);
                     }
                 }
             }

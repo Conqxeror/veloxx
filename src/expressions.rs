@@ -1,5 +1,5 @@
-use crate::error::VeloxxError;
 use crate::types::Value;
+use crate::VeloxxError;
 
 /// Represents an expression that can be evaluated against a DataFrame row.
 ///

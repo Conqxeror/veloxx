@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 use veloxx::window_functions::{RankingFunction, WindowFunction, WindowSpec};
 
 #[test]
 fn test_rank() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -25,7 +25,7 @@ fn test_rank() {
 
 #[test]
 fn test_dense_rank() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -46,7 +46,7 @@ fn test_dense_rank() {
 
 #[test]
 fn test_row_number() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -67,7 +67,7 @@ fn test_row_number() {
 
 #[test]
 fn test_lag() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -93,7 +93,7 @@ fn test_lag() {
 
 #[test]
 fn test_lead() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(

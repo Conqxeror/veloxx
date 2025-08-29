@@ -1,10 +1,12 @@
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
+use crate::VeloxxError;
 
 #[cfg(test)]
 use crate::series::Series;
 #[cfg(test)]
-use std::collections::BTreeMap;
+use crate::types::Value;
+#[cfg(test)]
+use std::collections::HashMap;
 
 impl DataFrame {
     /// Applies rolling mean to specified numeric columns in the DataFrame.
@@ -26,9 +28,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("price".to_string(), Series::new_f64("price", vec![Some(10.0), Some(15.0), Some(12.0), Some(18.0)]));
     /// let df = DataFrame::new(columns).unwrap();
     ///
@@ -199,9 +201,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("price".to_string(), Series::new_f64("price", vec![Some(100.0), Some(110.0), Some(99.0)]));
     /// let df = DataFrame::new(columns).unwrap();
     ///
@@ -256,7 +258,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_rolling_mean() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "price".to_string(),
             Series::new_f64(
@@ -286,19 +288,24 @@ mod tests {
             .contains(&&"volume_rolling_mean_3".to_string()));
 
         let price_rolling = result.get_column("price_rolling_mean_3").unwrap();
-        match price_rolling {
-            Series::F64(_, values) => {
-                assert_eq!(values[0], None);
-                assert_eq!(values[1], None);
-                assert_eq!(values[2], Some(12.333333333333334)); // (10+15+12)/3
+        
+        // Check rolling mean values using get_value method
+        assert_eq!(price_rolling.get_value(0), None);
+        assert_eq!(price_rolling.get_value(1), None);
+        if let Some(val) = price_rolling.get_value(2) {
+            if let Value::F64(v) = val {
+                assert!((v - 12.333333333333334).abs() < 1e-10); // (10+15+12)/3
+            } else {
+                panic!("Expected F64 value");
             }
-            _ => panic!("Expected F64 series"),
+        } else {
+            panic!("Expected Some value");
         }
     }
 
     #[test]
     fn test_dataframe_pct_change() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "price".to_string(),
             Series::new_f64(
@@ -316,19 +323,34 @@ mod tests {
             .contains(&&"price_pct_change".to_string()));
 
         let pct_change = result.get_column("price_pct_change").unwrap();
-        match pct_change {
-            Series::F64(_, values) => {
-                assert_eq!(values[0], None);
-                assert!((values[1].unwrap() - 0.1).abs() < 1e-10); // 10% increase
-                assert!((values[2].unwrap() - (-0.1)).abs() < 1e-10); // 10% decrease
+        
+        // Check pct_change values using get_value method
+        assert_eq!(pct_change.get_value(0), None);
+        
+        if let Some(val) = pct_change.get_value(1) {
+            if let Value::F64(v) = val {
+                assert!((v - 0.1).abs() < 1e-10); // 10% increase
+            } else {
+                panic!("Expected F64 value");
             }
-            _ => panic!("Expected F64 series"),
+        } else {
+            panic!("Expected Some value for index 1");
+        }
+        
+        if let Some(val) = pct_change.get_value(2) {
+            if let Value::F64(v) = val {
+                assert!((v - (-0.1)).abs() < 1e-10); // 10% decrease
+            } else {
+                panic!("Expected F64 value");
+            }
+        } else {
+            panic!("Expected Some value for index 2");
         }
     }
 
     #[test]
     fn test_dataframe_cumsum() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "sales".to_string(),
             Series::new_i32("sales", vec![Some(10), Some(20), Some(15), Some(25)]),
@@ -341,20 +363,52 @@ mod tests {
         assert!(result.column_names().contains(&&"sales_cumsum".to_string()));
 
         let cumsum = result.get_column("sales_cumsum").unwrap();
-        match cumsum {
-            Series::I32(_, values) => {
-                assert_eq!(values[0], Some(10));
-                assert_eq!(values[1], Some(30));
-                assert_eq!(values[2], Some(45));
-                assert_eq!(values[3], Some(70));
+        
+        // Check cumsum values using get_value method
+        if let Some(val) = cumsum.get_value(0) {
+            if let Value::I32(v) = val {
+                assert_eq!(v, 10);
+            } else {
+                panic!("Expected I32 value");
             }
-            _ => panic!("Expected I32 series"),
+        } else {
+            panic!("Expected Some value for index 0");
+        }
+        
+        if let Some(val) = cumsum.get_value(1) {
+            if let Value::I32(v) = val {
+                assert_eq!(v, 30);
+            } else {
+                panic!("Expected I32 value");
+            }
+        } else {
+            panic!("Expected Some value for index 1");
+        }
+        
+        if let Some(val) = cumsum.get_value(2) {
+            if let Value::I32(v) = val {
+                assert_eq!(v, 45);
+            } else {
+                panic!("Expected I32 value");
+            }
+        } else {
+            panic!("Expected Some value for index 2");
+        }
+        
+        if let Some(val) = cumsum.get_value(3) {
+            if let Value::I32(v) = val {
+                assert_eq!(v, 70);
+            } else {
+                panic!("Expected I32 value");
+            }
+        } else {
+            panic!("Expected Some value for index 3");
         }
     }
 
     #[test]
     fn test_dataframe_rolling_operations_error() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "price".to_string(),
             Series::new_f64("price", vec![Some(10.0), Some(15.0)]),

@@ -2,6 +2,9 @@
 resolver = "2"
 members = ["."]
 
+[workspace.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+
 [workspace.lints.clippy]
 uninlined_format_args = "allow"
 # CI environment specific allowances
@@ -11,65 +14,137 @@ manual_map = "allow"
 
 [package]
 name = "veloxx"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
+autotests = true
 authors = ["Conqxeror <conqxeror@gmail.com>"]
 description = "Veloxx: High-performance, lightweight Rust library for in-memory data processing and analytics. Features DataFrames, Series, advanced I/O (CSV, JSON, Parquet), machine learning (linear regression, K-means, logistic regression), time-series analysis, data visualization, parallel processing, and multi-platform bindings (Python, WebAssembly). Designed for minimal dependencies, optimal memory usage, and blazing speed - ideal for data science, analytics, and performance-critical applications."
 repository = "https://github.com/Conqxeror/veloxx"
 license = "MIT"
 keywords = ["dataframe", "analytics", "data-processing", "machine-learning", "rust"]
 categories = ["data-structures", "science"]
-readme = "README.md"
+
+# Limit packaged files on crates.io
+include = [
+	"src/**",
+	"Cargo.toml",
+	"README.md",
+	"LICENSE"
+]
+
+# Force getrandom js feature for all dependencies in WASM
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O4", "--enable-mutable-globals"]
 
 [lib]
 name = "veloxx"
 crate-type = ["cdylib", "rlib"]
-
-[features]
-default = ["full"]
-full = ["python", "wasm", "visualization", "ml", "advanced_io", "data_quality", "window_functions", "distributed"]
-python = ["pyo3"]
-wasm = ["wasm-bindgen", "js-sys"]
-visualization = ["plotters", "plotters-svg"]
-ml = ["ndarray", "linfa", "linfa-linear", "linfa-trees"]
-advanced_io = ["parquet", "tokio", "sqlx"]
-data_quality = ["regex"]
-window_functions = ["chrono"]
-distributed = ["arrow", "arrow-flight"]
+doctest = false
 
 [dependencies]
+aligned = "0.4"
 csv-core = "0.1.12"
+memmap2 = "0.9"
 microjson = "0.1.6"
-wasm-bindgen = { version = "0.2", optional = true }
+wasm-bindgen = { version = "0.2", optional = true, features = ["serde-serialize"] }
 js-sys = { version = "0.3", optional = true }
+serde_json = { version = "1.0", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
 pyo3 = { version = "0.24.1", optional = true, features = ["extension-module"] }
 thiserror = "1.0"
 bincode = "2.0.1"
 serde = { version = "1.0.219", features = ["derive"] }
-rayon = "1.8"
+rayon = "1.10"
 num-traits = "0.2"
 plotters = { version = "0.3", optional = true }
 plotters-svg = { version = "0.3", optional = true }
 ndarray = { version = "0.15", optional = true }
 linfa = { version = "0.7", optional = true }
 linfa-linear = { version = "0.7", optional = true }
-# Advanced I/O dependencies
+# Fast hashing
+fxhash = "0.2"
+# Explicit getrandom with js feature for WASM compatibility - both versions
+getrandom = { version = "=0.2.16", features = ["js"] }
+rand = "0.8.5"
+
+# Force specific version of ahash that uses getrandom 0.2
+ahash = "=0.8.11"
+
+
+
+# Target-specific dependencies for non-WASM targets
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# Advanced I/O dependencies - exclude from WASM targets
 parquet = { version = "53.0", optional = true }
-tokio = { version = "1.0", features = ["full"], optional = true }
 sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "postgres", "mysql"], optional = true }
+tokio = { version = "1.0", features = ["full"], optional = true }
 # Data Quality dependencies
 regex = { version = "1.0", optional = true }
 # Window Functions dependencies
 chrono = { version = "0.4.31", features = ["serde"], optional = true }
 # Distributed Computing dependencies
-arrow = { version = "53.0", optional = true }
-arrow-flight = { version = "53.0", optional = true }
+arrow = { version = "53.4.1", optional = true }
+arrow-csv = { version = "53.4.1", optional = true }
+arrow-flight = { version = "53.4.1", optional = true }
+arrow-array = { version = "53.4.1", optional = true }
+arrow-buffer = { version = "53.4.1", optional = true }
+arrow-cast = { version = "53.4.1", optional = true }
+arrow-data = { version = "53.4.1", optional = true }
+arrow-ipc = { version = "53.4.1", optional = true }
+arrow-json = { version = "53.4.1", optional = true }
+arrow-ord = { version = "53.4.1", optional = true }
+arrow-row = { version = "53.4.1", optional = true }
+arrow-schema = { version = "53.4.1", optional = true }
+arrow-select = { version = "53.4.1", optional = true }
+arrow-string = { version = "53.4.1", optional = true }
+arrow-arith = { version = "53.4.1", optional = true }
 linfa-trees = { version = "0.7", optional = true }
+# SIMD dependencies
+wide = { version = "0.7", optional = true }
+
+# Target-specific override to force getrandom js feature for all dependencies in WASM builds
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+# SIMD dependency - needed for compilation but will be feature-gated
+wide = { version = "0.7", optional = true }
+# Ensure WASM bindings compile without needing explicit feature flags
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+js-sys = { version = "0.3" }
+serde-wasm-bindgen = { version = "0.6" }
+serde_json = { version = "1.0" }
+
+[dev-dependencies]
+criterion = "0.5"
+tokio = { version = "1.0", features = ["full"] }
+serde_json = "1.0"
+tempfile = "3.0"
+polars = { version = "0.40", features = ["lazy"] }
+# Force getrandom js feature in dev dependencies for WASM builds
 getrandom = { version = "0.2", features = ["js"] }
 
+[features]
+default = ["full"]
+full = ["visualization", "ml", "advanced_io", "data_quality", "window_functions", "distributed", "arrow-io", "simd"]
+python = ["pyo3", "full"]
+# Minimal WASM feature without problematic dependencies  
+wasm = ["wasm-bindgen", "js-sys", "serde_json", "serde-wasm-bindgen"]
+# Optional WASM features - disable simd for WASM
+wasm-full = ["wasm", "visualization", "data_quality", "window_functions", "getrandom/js"]
+visualization = ["plotters", "plotters-svg"]
+ml = ["ndarray", "linfa", "linfa-linear", "linfa-trees"]
+advanced_io = ["parquet", "tokio", "sqlx"]
+data_quality = ["regex"]
+window_functions = ["chrono"]
+distributed = ["arrow", "arrow-flight"]
+arrow-io = ["arrow", "arrow-csv"]
+simd = ["wide"]
+arrow = ["dep:arrow", "arrow-array", "arrow-buffer", "arrow-data", "arrow-schema", "arrow-arith", "arrow-select", "arrow-ord", "arrow-string"]
+polars = []
 
-[lints]
-workspace = true
+# Enable portable SIMD feature
+[package.metadata.docs.rs]
+features = ["simd"]
+rustdoc-args = ["--cfg", "docsrs"]
 
 [[example]]
 name = "basic_dataframe_operations"
@@ -85,10 +160,6 @@ path = "examples/dataframe_aggregation_and_stats.rs"
 [[example]]
 name = "time_series_analysis"
 path = "examples/time_series_analysis.rs"
-
-[[example]]
-name = "performance_optimization"
-path = "examples/performance_optimization.rs"
 
 [[example]]
 name = "data_visualization"
@@ -109,15 +180,52 @@ path = "examples/data_quality_validation.rs"
 name = "window_functions_analytics"
 path = "examples/window_functions_analytics.rs"
 
-[dev-dependencies]
-criterion = "0.5"
-tokio = { version = "1.0", features = ["full"] }
-serde_json = "1.0"
-tempfile = "3.0"
+[[bench]]
+name = "performance_benchmarks"
+harness = false
 
 [[bench]]
-name = "my_benchmark"
+name = "comprehensive_benchmarks"
+harness = false
+
+[[bench]]
+name = "simd_benchmarks"
+harness = false
+
+[[bench]]
+name = "arrow_benchmarks"
+harness = false
+
+[[bench]]
+name = "arrow_filter_benchmarks"
+harness = false
+
+[[bench]]
+name = "arrow_aggregate_benchmarks"
+harness = false
+
+[[bench]]
+name = "arrow_string_benchmarks"
+harness = false
+
+[[bench]]
+name = "arrow_math_benchmarks"
+harness = false
+
+[[bench]]
+name = "memory_pool_benchmark"
+harness = false
+
+[[bench]]
+name = "parallel_group_by_benchmark"
+harness = false
+
+[[bench]]
+name = "expression_fusion_benchmark"
 harness = false
 
 [package.metadata.maturin]
 name = "veloxx"
+
+[lints]
+workspace = true

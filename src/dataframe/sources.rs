@@ -1,7 +1,7 @@
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
 use crate::series::Series;
-use std::collections::BTreeMap;
+use crate::VeloxxError;
+use std::collections::HashMap;
 
 /// A trait for types that can be converted into a `DataFrame`.
 ///
@@ -60,7 +60,7 @@ impl DataFrameSource for Vec<Vec<String>> {
     /// ```
     fn to_dataframe(&self) -> Result<DataFrame, VeloxxError> {
         if self.is_empty() {
-            return DataFrame::new(BTreeMap::new());
+            return DataFrame::new(HashMap::new());
         }
 
         let column_names: Vec<String> = self[0].clone(); // Assuming first row is header
@@ -69,7 +69,7 @@ impl DataFrameSource for Vec<Vec<String>> {
         let num_rows = data_rows.len();
         let num_cols = column_names.len();
 
-        let mut columns: BTreeMap<String, Series> = BTreeMap::new();
+        let mut columns: HashMap<String, Series> = HashMap::new();
 
         for (col_idx, _column_name) in column_names.iter().enumerate().take(num_cols) {
             let col_name = &column_names[col_idx];

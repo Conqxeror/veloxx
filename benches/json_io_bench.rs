@@ -1,16 +1,16 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use serde_json::json;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::hint::black_box;
 use tempfile::NamedTempFile;
 use veloxx::dataframe::DataFrame;
-use veloxx::io::{JsonReader, JsonWriter};
+use veloxx::io::{CsvReader, JsonWriter};
 use veloxx::series::Series;
 
 /// Performance benchmarks for JSON I/O operations
 /// Tests various data sizes and scenarios to identify optimization opportunities
 fn create_test_dataframe(rows: usize) -> DataFrame {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
 
     let ids: Vec<Option<i32>> = (0..rows).map(|i| Some(i as i32)).collect();
     let names: Vec<Option<String>> = (0..rows).map(|i| Some(format!("User_{}", i))).collect();
@@ -77,7 +77,7 @@ fn bench_json_read_string(c: &mut Criterion) {
 
     for rows in [100, 1000, 5000, 10000].iter() {
         let json_data = create_json_data(*rows);
-        let reader = JsonReader::new();
+        let reader = CsvReader::new();
 
         group.bench_with_input(BenchmarkId::new("rows", rows), rows, |b, _| {
             b.iter(|| {
@@ -95,7 +95,7 @@ fn bench_json_round_trip(c: &mut Criterion) {
     for rows in [100, 1000, 5000].iter() {
         let original_df = create_test_dataframe(*rows);
         let writer = JsonWriter::new();
-        let reader = JsonReader::new();
+        let reader = CsvReader::new();
 
         group.bench_with_input(BenchmarkId::new("rows", rows), rows, |b, _| {
             b.iter(|| {
@@ -135,7 +135,7 @@ fn bench_json_file_operations(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("read_file_rows", rows), rows, |b, _| {
             b.iter(|| {
                 // Note: read_file method placeholder
-                let reader = JsonReader::new();
+                let reader = CsvReader::new();
                 let _result = reader.read_file(black_box(&file_path));
                 let _ = black_box(_result);
             });
@@ -161,7 +161,7 @@ fn bench_json_streaming(c: &mut Criterion) {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let reader = JsonReader::new();
+        let reader = CsvReader::new();
 
         group.bench_with_input(
             BenchmarkId::new("string_streaming_rows", rows),

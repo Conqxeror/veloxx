@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
@@ -14,7 +14,7 @@ fn test_drop_nulls_with_mixed_data() {
             Some("d".to_string()),
         ],
     );
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert("col1".to_string(), series1);
     columns.insert("col2".to_string(), series2);
     let df = DataFrame::new(columns).unwrap();
@@ -25,7 +25,7 @@ fn test_drop_nulls_with_mixed_data() {
     assert_eq!(cleaned_df.column_count(), 2);
 
     let col1_values: Vec<Option<String>> = match cleaned_df.get_column("col1").unwrap() {
-        Series::I32(_, data) => data.iter().map(|v| v.map(|x| x.to_string())).collect(),
+        Series::I32(_, data, _) => data.iter().map(|&v| Some(v.to_string())).collect(),
         _ => panic!("Wrong type"),
     };
     assert_eq!(
@@ -34,7 +34,7 @@ fn test_drop_nulls_with_mixed_data() {
     );
 
     let col2_values: Vec<Option<String>> = match cleaned_df.get_column("col2").unwrap() {
-        Series::String(_, data) => data.to_vec(),
+        Series::String(_, data, _) => data.iter().map(|s| Some(s.clone())).collect(),
         _ => panic!("Wrong type"),
     };
     assert_eq!(

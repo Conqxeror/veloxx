@@ -9,7 +9,7 @@ export default {
   "favicon": "img/favicon.ico",
   "url": "https://conqxeror.github.io",
   "baseUrl": "/veloxx/",
-  "organizationName": "Conqxeror",
+  "organizationName": "conqxeror",
   "projectName": "veloxx",
   "onBrokenLinks": "throw",
   "onBrokenMarkdownLinks": "warn",
@@ -27,11 +27,11 @@ export default {
       {
         "docs": {
           "sidebarPath": "D:\\Projects\\Veloxx\\veloxx\\docs-site\\sidebars.js",
-          "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/"
+          "editUrl": "https://github.com/conqxeror/veloxx/tree/main/docs-site/"
         },
         "blog": {
           "showReadingTime": true,
-          "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/"
+          "editUrl": "https://github.com/conqxeror/veloxx/tree/main/docs-site/"
         },
         "theme": {
           "customCss": "D:\\Projects\\Veloxx\\veloxx\\docs-site\\src\\css\\custom.css"
@@ -85,7 +85,7 @@ export default {
           "position": "left"
         },
         {
-          "href": "https://github.com/Conqxeror/veloxx",
+          "href": "https://github.com/conqxeror/veloxx",
           "label": "GitHub",
           "position": "right"
         },
@@ -129,11 +129,11 @@ export default {
           "items": [
             {
               "label": "GitHub Discussions",
-              "href": "https://github.com/Conqxeror/veloxx/discussions"
+              "href": "https://github.com/conqxeror/veloxx/discussions"
             },
             {
               "label": "Issues",
-              "href": "https://github.com/Conqxeror/veloxx/issues"
+              "href": "https://github.com/conqxeror/veloxx/issues"
             }
           ]
         },
@@ -146,7 +146,7 @@ export default {
             },
             {
               "label": "GitHub",
-              "href": "https://github.com/Conqxeror/veloxx"
+              "href": "https://github.com/conqxeror/veloxx"
             },
             {
               "label": "Crates.io",

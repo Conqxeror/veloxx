@@ -1,0 +1,137 @@
+//! Comprehensive benchmark suite for Veloxx performance optimizations
+//!
+//! This benchmark compares the performance of traditional operations
+//! with SIMD-optimized and parallel operations.
+
+use criterion::{criterion_group, criterion_main, Criterion};
+use veloxx::dataframe::DataFrame;
+use veloxx::lazy::{col, lit, BinaryOperator, LazyDataFrame};
+use veloxx::performance::series_ext::SeriesPerformanceExt;
+use veloxx::series::Series;
+use veloxx::types::Value;
+
+fn create_test_series(size: usize) -> (Series, Series) {
+    let data1: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
+    let data2: Vec<Option<f64>> = (0..size).map(|i| Some((i as f64) * 2.0)).collect();
+
+    (
+        Series::new_f64("data1", data1),
+        Series::new_f64("data2", data2),
+    )
+}
+
+fn create_test_dataframe(size: usize) -> DataFrame {
+    let data1: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
+    let data2: Vec<Option<i32>> = (0..size).map(|i| Some(i as i32)).collect();
+
+    let mut columns = std::collections::HashMap::new();
+    columns.insert("col1".to_string(), Series::new_f64("col1", data1));
+    columns.insert("col2".to_string(), Series::new_i32("col2", data2));
+
+    DataFrame::new(columns).unwrap()
+}
+
+fn bench_traditional_add(c: &mut Criterion) {
+    let (series1, series2) = create_test_series(100_000);
+
+    c.bench_function("traditional_add_100k", |b| {
+        b.iter(|| match (&series1, &series2) {
+            (Series::F64(_, a, a_bitmap), Series::F64(_, b, b_bitmap)) => {
+                let result: Vec<Option<f64>> = a
+                    .iter()
+                    .zip(a_bitmap.iter())
+                    .zip(b.iter().zip(b_bitmap.iter()))
+                    .map(|((a_val, a_valid), (b_val, b_valid))| {
+                        if *a_valid && *b_valid {
+                            Some(a_val + b_val)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                Series::new_f64("result", result)
+            }
+            _ => panic!("Unexpected series types"),
+        })
+    });
+}
+
+fn bench_simd_add(c: &mut Criterion) {
+    let (series1, series2) = create_test_series(100_000);
+
+    c.bench_function("simd_add_100k", |b| {
+        b.iter(|| series1.simd_add(&series2).unwrap())
+    });
+}
+
+fn bench_traditional_sum(c: &mut Criterion) {
+    let (series, _) = create_test_series(100_000);
+
+    c.bench_function("traditional_sum_100k", |b| b.iter(|| series.sum().unwrap()));
+}
+
+fn bench_parallel_sum(c: &mut Criterion) {
+    let (series, _) = create_test_series(100_000);
+
+    c.bench_function("parallel_sum_100k", |b| {
+        b.iter(|| series.par_sum().unwrap())
+    });
+}
+
+fn bench_dataframe_operations(c: &mut Criterion) {
+    let df = create_test_dataframe(10_000);
+
+    c.bench_function("dataframe_column_access", |b| {
+        b.iter(|| df.get_column("col1").unwrap())
+    });
+}
+
+fn bench_lazy_evaluation_optimized(c: &mut Criterion) {
+    let df = create_test_dataframe(10_000);
+
+    c.bench_function("lazy_evaluation_optimized", |b| {
+        b.iter(|| {
+            let lazy_df = LazyDataFrame::from_dataframe(df.clone())
+                .filter(veloxx::lazy::binary_op(
+                    col("col1"),
+                    BinaryOperator::Gt,
+                    lit(Value::F64(5000.0)),
+                ))
+                .select(vec![col("col1")])
+                .collect()
+                .unwrap();
+            lazy_df
+        })
+    });
+}
+
+fn bench_lazy_evaluation_unoptimized(c: &mut Criterion) {
+    let df = create_test_dataframe(10_000);
+
+    c.bench_function("lazy_evaluation_unoptimized", |b| {
+        b.iter(|| {
+            let lazy_df = LazyDataFrame::from_dataframe(df.clone())
+                .filter(veloxx::lazy::binary_op(
+                    col("col1"),
+                    BinaryOperator::Gt,
+                    lit(Value::F64(5000.0)),
+                ))
+                .select(vec![col("col1")])
+                .collect_unoptimized()
+                .unwrap();
+            lazy_df
+        })
+    });
+}
+
+criterion_group!(
+    benches,
+    bench_traditional_add,
+    bench_simd_add,
+    bench_traditional_sum,
+    bench_parallel_sum,
+    bench_dataframe_operations,
+    bench_lazy_evaluation_optimized,
+    bench_lazy_evaluation_unoptimized
+);
+criterion_main!(benches);

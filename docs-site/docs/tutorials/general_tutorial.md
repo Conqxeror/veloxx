@@ -393,7 +393,7 @@ fn main() {
 ## Next Steps
 
 - Explore the [API Guide](/docs/api/rust) for comprehensive documentation
-- Check out the [examples directory](https://github.com/Conqxeror/veloxx/tree/main/examples) for working code samples
+- Check out the [examples directory](https://github.com/conqxeror/veloxx/tree/main/examples) for working code samples
 - Read the [Getting Started Guide](/docs/getting-started/installation) for installation and setup
 - Visit the [online documentation](https://conqxeror.github.io/veloxx/) for the latest updates
 

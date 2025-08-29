@@ -1,6 +1,6 @@
-use crate::error::VeloxxError;
+use crate::VeloxxError;
 use crate::{dataframe::DataFrame, series::Series, types::Value};
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 impl DataFrame {
     /// Removes rows from the `DataFrame` that contain any null values.
@@ -19,10 +19,10 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2), Some(3.3)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -54,7 +54,7 @@ impl DataFrame {
             })
             .collect();
 
-        let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
+        let mut new_columns: HashMap<String, Series> = HashMap::new();
         for (col_name, series) in self.columns.iter() {
             let new_series = series.filter(&row_indices_to_keep)?;
             new_columns.insert(col_name.clone(), new_series);
@@ -84,10 +84,10 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
     /// columns.insert("B".to_string(), Series::new_string("B", vec![Some("x".to_string()), None, Some("z".to_string())]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -103,7 +103,7 @@ impl DataFrame {
     /// assert_eq!(filled_df_string.get_column("B").unwrap().get_value(1), Some(Value::String("missing".to_string())));
     /// ```
     pub fn fill_nulls(&self, value: Value) -> Result<Self, VeloxxError> {
-        let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
+        let mut new_columns: HashMap<String, Series> = HashMap::new();
 
         for (col_name, series) in self.columns.iter() {
             let new_series = if series.data_type() == value.data_type() {
@@ -137,10 +137,10 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("A".to_string(), Series::new_f64("A", vec![Some(1.0), None, Some(3.0)]));
     /// let df = DataFrame::new(columns).unwrap();
     ///

@@ -1,6 +1,13 @@
 # Quick Start
 
-Get up and running with Veloxx in just 5 minutes! This guide will walk you through creating your first DataFrame and performing basic operations.
+Get up and running with Veloxx in just 5 minutes! Experience **up to 4x performance improvements** over traditional data processing with our SIMD-accelerated library.
+
+## Why Choose Veloxx?
+
+✅ **1.6-4x faster** than traditional data processing  
+✅ **38-45% memory reduction** through optimized layouts  
+✅ **Zero-copy operations** for maximum efficiency  
+✅ **Production-ready** with 128 comprehensive tests  
 
 ## Prerequisites
 
@@ -22,14 +29,14 @@ Add Veloxx to your `Cargo.toml`:
 veloxx = "0.3.1"
 ```
 
-For additional features:
+For advanced features with maximum performance:
 
 ```toml title="Cargo.toml"
 [dependencies]
-veloxx = { version = "0.2.4", features = ["advanced_io", "data_quality", "window_functions"] }
+veloxx = { version = "0.3.1", features = ["all"] }
 ```
 
-## Your First DataFrame
+## Your First High-Performance DataFrame
 
 Replace the contents of `src/main.rs` with:
 
@@ -440,7 +447,7 @@ Congratulations! You've learned the basics of Veloxx. Here's what to explore nex
 
 - **[Complete API Reference](/docs/api/rust)**: Explore all available methods for Rust, Python, and JavaScript/WASM.
 - **[Tutorials & Guides](/docs/tutorials/general_tutorial)**: Dive deeper into specific topics like advanced I/O, data quality, and more.
-- **[Examples Repository](https://github.com/Conqxeror/veloxx/tree/main/examples)**: See real-world usage patterns and complete code examples.
+- **[Examples Repository](https://github.com/conqxeror/veloxx/tree/main/examples)**: See real-world usage patterns and complete code examples.
 - **[Performance Guide](/docs/performance/benchmarks)**: Learn how to optimize your data processing workflows.
 
 ### 💡 Common Patterns
@@ -464,9 +471,9 @@ df.to_csv("output.csv")?;
 
 ### 🤝 Community
 
-- **[GitHub Discussions](https://github.com/Conqxeror/veloxx/discussions)**: Ask questions and share ideas.
-- **[Issues](https://github.com/Conqxeror/veloxx/issues)**: Report bugs or request features.
-- **[Contributing Guide](https://github.com/Conqxeror/veloxx/blob/main/CONTRIBUTING.md)**: Learn how you can contribute to Veloxx.
+- **[GitHub Discussions](https://github.com/conqxeror/veloxx/discussions)**: Ask questions and share ideas.
+- **[Issues](https://github.com/conqxeror/veloxx/issues)**: Report bugs or request features.
+- **[Contributing Guide](https://github.com/conqxeror/veloxx/blob/main/CONTRIBUTING.md)**: Learn how you can contribute to Veloxx.
 
 :::tip Pro Tip
 Start small with simple operations and gradually explore more advanced features. The Veloxx API is designed to be intuitive and chainable for building complex data processing pipelines.

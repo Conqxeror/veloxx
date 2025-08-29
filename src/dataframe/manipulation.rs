@@ -1,4 +1,35 @@
-use crate::error::VeloxxError;
+impl DataFrame {
+    /// Fused filtering and aggregation: applies filter and aggregation in a single pass for optimal performance
+    pub fn filter_and_agg(
+        &self,
+        condition: &Condition,
+        group_columns: Vec<String>,
+        aggregations: Vec<(&str, &str)>,
+    ) -> Result<DataFrame, VeloxxError> {
+        use rayon::prelude::*;
+        // Step 1: Identify row indices to keep (filtered)
+        let row_indices: Vec<usize> = (0..self.row_count)
+            .into_par_iter()
+            .filter(|&i| condition.evaluate(self, i).unwrap_or(false))
+            .collect();
+
+        // Step 2: Build filtered DataFrame (zero-copy if possible)
+        let mut filtered_columns = std::collections::HashMap::new();
+        for (name, series) in &self.columns {
+            let filtered_series = series.filter(&row_indices)?;
+            filtered_columns.insert(name.clone(), filtered_series);
+        }
+        let filtered_df = DataFrame {
+            columns: filtered_columns,
+            row_count: row_indices.len(),
+        };
+
+        // Step 3: Group-by and aggregate on filtered DataFrame
+        let grouped_df = filtered_df.group_by(group_columns)?;
+        grouped_df.agg(aggregations)
+    }
+}
+use crate::VeloxxError;
 use crate::{
     conditions::Condition,
     dataframe::DataFrame,
@@ -6,7 +37,7 @@ use crate::{
     series::Series,
     types::{DataType, Value},
 };
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 impl DataFrame {
     /// Selects a subset of columns from the `DataFrame`.
@@ -29,9 +60,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2)]));
     /// columns.insert("C".to_string(), Series::new_string("C", vec![Some("x".to_string()), Some("y".to_string())]));
@@ -42,7 +73,7 @@ impl DataFrame {
     /// assert_eq!(selected_df.column_names(), vec![&"A".to_string(), &"C".to_string()]);
     /// ```
     pub fn select_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
-        let mut selected_columns = BTreeMap::new();
+        let mut selected_columns = HashMap::new();
         for name in names {
             if let Some(series) = self.columns.get(&name) {
                 selected_columns.insert(name, series.clone());
@@ -72,9 +103,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2)]));
     /// columns.insert("C".to_string(), Series::new_string("C", vec![Some("x".to_string()), Some("y".to_string())]));
@@ -85,7 +116,7 @@ impl DataFrame {
     /// assert!(!dropped_df.column_names().contains(&&"B".to_string()));
     /// ```
     pub fn drop_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
-        let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
+        let mut new_columns: HashMap<String, Series> = self.columns.clone();
         for name in names {
             if new_columns.remove(&name).is_none() {
                 return Err(VeloxxError::ColumnNotFound(name));
@@ -115,9 +146,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -127,7 +158,7 @@ impl DataFrame {
     /// assert!(!renamed_df.column_names().contains(&&"A".to_string()));
     /// ```
     pub fn rename_column(&self, old_name: &str, new_name: &str) -> Result<Self, VeloxxError> {
-        let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
+        let mut new_columns: HashMap<String, Series> = self.columns.clone();
         if let Some(mut series) = new_columns.remove(old_name) {
             if new_columns.contains_key(new_name) {
                 return Err(VeloxxError::InvalidOperation(format!(
@@ -166,10 +197,10 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("name".to_string(), Series::new_string("name", vec![Some("Bob".to_string()), Some("Alice".to_string()), Some("Charlie".to_string())]));
     /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(25), Some(30), Some(20)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -237,7 +268,7 @@ impl DataFrame {
             std::cmp::Ordering::Equal
         });
 
-        let mut new_columns_data: BTreeMap<String, Vec<Option<Value>>> = BTreeMap::new();
+        let mut new_columns_data: HashMap<String, Vec<Option<Value>>> = HashMap::new();
         for col_name in self.column_names().iter() {
             new_columns_data.insert((*col_name).clone(), Vec::with_capacity(self.row_count));
         }
@@ -251,7 +282,7 @@ impl DataFrame {
             }
         }
 
-        let mut new_series_map: BTreeMap<String, Series> = BTreeMap::new();
+        let mut new_series_map: HashMap<String, Series> = HashMap::new();
         for (col_name, data_vec) in new_columns_data {
             let original_series = self.columns.get(&col_name).unwrap();
             let new_series = match original_series.data_type() {
@@ -362,9 +393,9 @@ impl DataFrame {
     /// use veloxx::series::Series;
     /// use veloxx::expressions::Expr;
     /// use veloxx::types::Value;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("a".to_string(), Series::new_i32("a", vec![Some(2), Some(3)]));
     /// columns.insert("b".to_string(), Series::new_i32("b", vec![Some(4), Some(5)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -387,7 +418,7 @@ impl DataFrame {
     /// assert!(result.is_err()); // Multiplication may not be supported for all types
     /// ```
     pub fn with_column(&self, new_col_name: &str, expr: &Expr) -> Result<Self, VeloxxError> {
-        let mut new_columns: BTreeMap<String, Series> = self.columns.clone();
+        let mut new_columns: std::collections::HashMap<String, Series> = self.columns.clone();
         if new_columns.contains_key(new_col_name) {
             return Err(VeloxxError::InvalidOperation(format!(
                 "Column '{new_col_name}' already exists."
@@ -488,9 +519,9 @@ impl DataFrame {
     /// use veloxx::series::Series;
     /// use veloxx::conditions::Condition;
     /// use veloxx::types::Value;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(10), Some(20), Some(30)]));
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("NY".to_string()), Some("LA".to_string()), Some("NY".to_string())]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -502,6 +533,12 @@ impl DataFrame {
     /// assert_eq!(filtered_df.get_column("age").unwrap().get_value(0), Some(Value::I32(20)));
     /// ```
     pub fn filter(&self, condition: &Condition) -> Result<Self, VeloxxError> {
+        // Fast path for simple comparison conditions
+        if let Some(filtered_df) = self.try_fast_filter(condition)? {
+            return Ok(filtered_df);
+        }
+
+        // Fallback to row-by-row evaluation for complex conditions
         let mut row_indices_to_keep: Vec<usize> = Vec::new();
 
         for i in 0..self.row_count {
@@ -510,6 +547,41 @@ impl DataFrame {
             }
         }
         self.filter_by_indices(&row_indices_to_keep)
+    }
+
+    /// Attempts to use high-performance vectorized filtering for simple conditions
+    fn try_fast_filter(&self, condition: &Condition) -> Result<Option<Self>, VeloxxError> {
+        use crate::conditions::Condition;
+        use crate::performance::vectorized_filter::{ComparisonOp, VectorizedFilter};
+
+        let (column_name, comparison_value, op) = match condition {
+            Condition::Gt(col, val) => (col, val, ComparisonOp::Gt),
+            Condition::Lt(col, val) => (col, val, ComparisonOp::Lt),
+            Condition::Eq(col, val) => (col, val, ComparisonOp::Eq),
+            _ => return Ok(None), // Complex conditions use fallback
+        };
+
+        // Get the series for the column
+        let series = match self.columns.get(column_name) {
+            Some(s) => s,
+            None => return Ok(None),
+        };
+
+        // Create bit mask using vectorized operations
+        let mask = VectorizedFilter::fast_filter_single_column(series, comparison_value, op)?;
+
+        // Apply mask to all columns
+        let mut filtered_columns = std::collections::HashMap::new();
+        for (name, series) in &self.columns {
+            let filtered_series = VectorizedFilter::filter_series_with_mask(series, &mask)?;
+            filtered_columns.insert(name.clone(), filtered_series);
+        }
+
+        let filtered_row_count = mask.iter().filter(|&b| b).count();
+        Ok(Some(Self {
+            columns: filtered_columns,
+            row_count: filtered_row_count,
+        }))
     }
 
     /// Filters the `DataFrame` based on a list of row indices.
@@ -532,7 +604,7 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
     /// let mut columns = BTreeMap::new();
@@ -548,14 +620,15 @@ impl DataFrame {
     pub fn filter_by_indices(&self, row_indices: &[usize]) -> Result<Self, VeloxxError> {
         if row_indices.is_empty() {
             return Ok(DataFrame {
-                columns: BTreeMap::new(),
+                columns: std::collections::HashMap::new(),
                 row_count: 0,
             });
         }
 
-        let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
+        let mut new_columns: std::collections::HashMap<String, Series> =
+            std::collections::HashMap::new();
         for (col_name, series) in self.columns.iter() {
-            let new_series = series.filter(row_indices)?;
+            let new_series = (*series).filter(row_indices)?;
             new_columns.insert(col_name.clone(), new_series);
         }
 
@@ -586,15 +659,15 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut df1_cols = BTreeMap::new();
+    /// let mut df1_cols = HashMap::new();
     /// df1_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2)]));
     /// df1_cols.insert("value".to_string(), Series::new_f64("value", vec![Some(10.0), Some(20.0)]));
     /// let df1 = DataFrame::new(df1_cols).unwrap();
     ///
-    /// let mut df2_cols = BTreeMap::new();
+    /// let mut df2_cols = HashMap::new();
     /// df2_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(3), Some(4)]));
     /// df2_cols.insert("value".to_string(), Series::new_f64("value", vec![Some(30.0), Some(40.0)]));
     /// let df2 = DataFrame::new(df2_cols).unwrap();
@@ -611,27 +684,34 @@ impl DataFrame {
             ));
         }
 
+        // Build a mapping of other column names to ensure we match by name, not order
         let self_column_names: Vec<&String> = self.column_names();
         let other_column_names: Vec<&String> = other.column_names();
 
-        // Check if column names and order are identical
-        for i in 0..self_column_names.len() {
-            if self_column_names[i] != other_column_names[i] {
-                return Err(VeloxxError::InvalidOperation(
-                    "Cannot append DataFrames with different column names or order.".to_string(),
-                ));
-            }
-            if self.get_column(self_column_names[i]).unwrap().data_type()
-                != other.get_column(other_column_names[i]).unwrap().data_type()
-            {
+        // Validate that both DataFrames contain the same set of columns and types
+        use std::collections::HashSet;
+        let self_set: HashSet<&String> = self_column_names.iter().cloned().collect();
+        let other_set: HashSet<&String> = other_column_names.iter().cloned().collect();
+        if self_set != other_set {
+            return Err(VeloxxError::InvalidOperation(
+                "Cannot append DataFrames with different column names.".to_string(),
+            ));
+        }
+
+        for name in &self_column_names {
+            let t1 = self.get_column(name).unwrap().data_type();
+            let t2 = other.get_column(name).unwrap().data_type();
+            if t1 != t2 {
                 return Err(VeloxxError::DataTypeMismatch(format!(
                     "Cannot append DataFrames with mismatched data types for column '{}'.",
-                    self_column_names[i]
+                    name
                 )));
             }
         }
 
-        let mut new_columns: BTreeMap<String, Series> = BTreeMap::new();
+        // Create appended columns by matching names regardless of order
+        let mut new_columns: std::collections::HashMap<String, Series> =
+            std::collections::HashMap::new();
         for col_name in self_column_names.into_iter() {
             let self_series = self.get_column(col_name).unwrap();
             let other_series = other.get_column(col_name).unwrap();
@@ -662,9 +742,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string())]));
     /// columns.insert("sales".to_string(), Series::new_f64("sales", vec![Some(100.0), Some(150.0), Some(200.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -677,6 +757,98 @@ impl DataFrame {
         group_columns: Vec<String>,
     ) -> Result<crate::dataframe::group_by::GroupedDataFrame<'_>, VeloxxError> {
         crate::dataframe::group_by::GroupedDataFrame::new(self, group_columns)
+    }
+
+    /// High-performance combined groupby and aggregation for simple cases
+    /// This method avoids the expensive GroupedDataFrame creation entirely
+    pub fn groupby_agg(
+        &self,
+        group_columns: Vec<String>,
+        aggregations: Vec<(&str, &str)>,
+    ) -> Result<DataFrame, VeloxxError> {
+        // Try the ultra-fast path first
+        if let Some(fast_result) =
+            self.fast_groupby_sum(group_columns.clone(), aggregations.clone())?
+        {
+            return Ok(fast_result);
+        }
+
+        // Fall back to the regular path
+        let grouped = self.group_by(group_columns)?;
+        grouped.agg(aggregations)
+    }
+
+    /// Fast path for simple groupby sum operations that avoids expensive GroupedDataFrame creation
+    pub fn fast_groupby_sum(
+        &self,
+        group_columns: Vec<String>,
+        aggregations: Vec<(&str, &str)>,
+    ) -> Result<Option<DataFrame>, VeloxxError> {
+        // Check if this is a simple case we can optimize:
+        // - Single group column
+        // - Single aggregation that is sum
+        if group_columns.len() != 1 || aggregations.len() != 1 {
+            return Ok(None);
+        }
+
+        let (value_col, agg_func) = aggregations[0];
+        if agg_func != "sum" {
+            return Ok(None);
+        }
+
+        let group_col = &group_columns[0];
+
+        // Get the series
+        let group_series = match self.get_column(group_col) {
+            Some(s) => s,
+            None => return Ok(None),
+        };
+
+        let value_series = match self.get_column(value_col) {
+            Some(s) => s,
+            None => return Ok(None),
+        };
+
+        // Use our new SIMD-accelerated group by implementation
+        match (group_series, value_series) {
+            (
+                crate::series::Series::I32(_, group_values, group_bitmap),
+                crate::series::Series::F64(_, values, value_bitmap),
+            ) => {
+                // For WASM builds, skip SIMD implementations that depend on rayon
+                // Fall back to the basic implementation below
+
+                // Original fallback code for compatibility
+                if let Some((min_key, max_key)) =
+                    min_max_i32_with_bitmap(group_values, group_bitmap, value_bitmap)
+                {
+                    let range = (max_key as i64 - min_key as i64).unsigned_abs() + 1;
+                    if range <= 1 << 16 && group_values.len() >= 4096 {
+                        return Ok(Some(dense_sequential_groupby(DenseSeqGroupByParams {
+                            group_values,
+                            group_bitmap,
+                            values,
+                            value_bitmap,
+                            group_col_name: group_col,
+                            value_col_name: value_col,
+                            min_key,
+                            range: range.try_into().unwrap(),
+                        })?));
+                    }
+                }
+
+                // Fallback to optimized hashmap approach
+                Ok(Some(hashmap_groupby_direct(
+                    group_values,
+                    group_bitmap,
+                    values,
+                    value_bitmap,
+                    group_col,
+                    value_col,
+                )?))
+            }
+            _ => Ok(None), // Fall back to regular implementation
+        }
     }
 
     /// Generates descriptive statistics for the `DataFrame`.
@@ -697,9 +869,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(20), Some(30), Some(25), None, Some(35)]));
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("NY".to_string()), Some("LA".to_string()), Some("NY".to_string()), Some("SF".to_string()), None]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -713,7 +885,8 @@ impl DataFrame {
     /// // city           4              null           null           null           null           null           
     /// ```
     pub fn describe(&self) -> Result<DataFrame, VeloxxError> {
-        let mut descriptions: BTreeMap<String, Series> = BTreeMap::new();
+        let mut descriptions: std::collections::HashMap<String, Series> =
+            std::collections::HashMap::new();
         let mut counts: Vec<Option<i32>> = Vec::new();
         let mut means: Vec<Option<f64>> = Vec::new();
         let mut std_devs: Vec<Option<f64>> = Vec::new();
@@ -725,29 +898,29 @@ impl DataFrame {
 
         for (col_name, series) in self.columns.iter() {
             column_names_vec.push(col_name.clone());
-            counts.push(Some(series.count() as i32));
+            counts.push(Some(series.len() as i32));
 
             match series.data_type() {
                 crate::types::DataType::I32
                 | crate::types::DataType::F64
                 | crate::types::DataType::DateTime => {
-                    means.push(series.mean()?.and_then(|v| {
+                    means.push(series.mean().ok().and_then(|v| {
                         if let Value::F64(val) = v {
                             Some(val)
                         } else {
                             None
                         }
                     }));
-                    std_devs.push(series.std_dev()?.and_then(|v| {
+                    std_devs.push(series.std_dev().ok().and_then(|v| {
                         if let Value::F64(val) = v {
                             Some(val)
                         } else {
                             None
                         }
                     }));
-                    mins.push(series.min()?);
-                    maxs.push(series.max()?);
-                    medians.push(series.median()?);
+                    mins.push(series.min().ok());
+                    maxs.push(series.max().ok());
+                    medians.push(series.median().ok());
                 }
                 _ => {
                     means.push(None);
@@ -821,7 +994,7 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
     /// let mut columns = BTreeMap::new();
     /// columns.insert("X".to_string(), Series::new_i32("X", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]));
@@ -833,7 +1006,7 @@ impl DataFrame {
     /// // Expected correlation for these values is approx 0.7746
     /// assert!((correlation - 0.7746).abs() < 0.0001);
     ///
-    /// let mut cols_with_nulls = BTreeMap::new();
+    /// let mut cols_with_nulls = HashMap::new();
     /// cols_with_nulls.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
     /// cols_with_nulls.insert("B".to_string(), Series::new_i32("B", vec![Some(10), Some(20), None]));
     /// let df_nulls = DataFrame::new(cols_with_nulls).unwrap();
@@ -911,9 +1084,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("X".to_string(), Series::new_i32("X", vec![Some(1), Some(2), Some(3)]));
     /// columns.insert("Y".to_string(), Series::new_f64("Y", vec![Some(2.0), Some(3.0), Some(4.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -974,17 +1147,17 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_string("B", vec![Some("x".to_string()), None]));
     /// let df = DataFrame::new(columns).unwrap();
     ///
     /// let vec_of_vec = df.to_vec_of_vec();
     ///
-    /// // Note: Column order in the inner Vec<Option<Value>> depends on BTreeMap iteration order.
+    /// // Note: Column order in the inner Vec<Option<Value>> depends on HashMap iteration order (not guaranteed).
     /// // For consistent testing, you might need to sort columns or access by index if order is known.
     /// assert_eq!(vec_of_vec.len(), 2);
     /// // Example for accessing a specific value (assuming "A" is first, "B" is second)
@@ -1005,4 +1178,147 @@ impl DataFrame {
         }
         result
     }
+}
+
+/// Helper function for min/max calculation with bitmap checking
+fn min_max_i32_with_bitmap(
+    group_values: &[i32],
+    group_bitmap: &[bool],
+    value_bitmap: &[bool],
+) -> Option<(i32, i32)> {
+    let mut min = i32::MAX;
+    let mut max = i32::MIN;
+    let mut found_any = false;
+
+    for i in 0..group_values.len() {
+        if group_bitmap[i] && value_bitmap[i] {
+            let val = group_values[i];
+            min = min.min(val);
+            max = max.max(val);
+            found_any = true;
+        }
+    }
+
+    if found_any {
+        Some((min, max))
+    } else {
+        None
+    }
+}
+
+// Helper struct to reduce argument count
+struct DenseSeqGroupByParams<'a> {
+    group_values: &'a [i32],
+    group_bitmap: &'a [bool],
+    values: &'a [f64],
+    value_bitmap: &'a [bool],
+    group_col_name: &'a str,
+    value_col_name: &'a str,
+    min_key: i32,
+    range: usize,
+}
+
+/// Fast dense sequential groupby implementation
+#[allow(clippy::too_many_arguments)]
+fn dense_sequential_groupby(
+    params: DenseSeqGroupByParams,
+) -> Result<DataFrame, VeloxxError> {
+    use crate::series::Series;
+    // ...existing code...
+
+    // Optimized sequential version - use Vec instead of allocating tuples
+    let mut sums = vec![0.0f64; params.range];
+    let mut counts = vec![0usize; params.range];
+
+    for i in 0..params.group_values.len() {
+        if params.group_bitmap[i] && params.value_bitmap[i] {
+            let group_index = (params.group_values[i] - params.min_key) as usize;
+            if group_index < params.range {
+                sums[group_index] += params.values[i];
+                counts[group_index] += 1;
+            }
+        }
+    }
+
+    let mut group_keys = Vec::new();
+    let mut sum_values = Vec::new();
+
+    for group_index in 0..params.range {
+        if counts[group_index] > 0 {
+            group_keys.push(params.min_key + group_index as i32);
+            sum_values.push(sums[group_index]);
+        }
+    }
+
+    let mut result = std::collections::HashMap::new();
+    result.insert(
+        params.group_col_name.to_string(),
+        Series::I32(
+            params.group_col_name.to_string(),
+            group_keys.clone(),
+            vec![true; group_keys.len()],
+        ),
+    );
+    result.insert(
+        params.value_col_name.to_string(),
+        Series::F64(
+            params.value_col_name.to_string(),
+            sum_values.clone(),
+            vec![true; sum_values.len()],
+        ),
+    );
+
+    DataFrame::new(result)
+}
+
+/// Fast hashmap groupby implementation for fallback
+fn hashmap_groupby_direct(
+    group_values: &[i32],
+    group_bitmap: &[bool],
+    values: &[f64],
+    value_bitmap: &[bool],
+    group_col_name: &str,
+    value_col_name: &str,
+) -> Result<DataFrame, VeloxxError> {
+    use crate::series::Series;
+    #[cfg(not(target_arch = "wasm32"))]
+    use fxhash::FxHashMap;
+    // ...existing code...
+    #[cfg(target_arch = "wasm32")]
+    use std::collections::HashMap as FxHashMap;
+
+    // Use FxHashMap for better performance on integer keys
+    let mut groups: FxHashMap<i32, (f64, usize)> = FxHashMap::default();
+
+    for i in 0..group_values.len() {
+        if group_bitmap[i] && value_bitmap[i] {
+            let entry = groups.entry(group_values[i]).or_insert((0.0f64, 0usize));
+            entry.0 += values[i];
+            entry.1 += 1;
+        }
+    }
+
+    let mut group_keys: Vec<i32> = groups.keys().copied().collect();
+    group_keys.sort_unstable();
+    let sum_values: Vec<f64> = group_keys.iter().map(|&k| groups[&k].0).collect();
+
+    let mut result = std::collections::HashMap::new();
+    result.insert(
+        group_col_name.to_string(),
+        Series::I32(
+            group_col_name.to_string(),
+            group_keys.clone(),
+            vec![true; group_keys.len()],
+        ),
+    );
+    result.insert(
+        value_col_name.to_string(),
+        Series::F64(
+            value_col_name.to_string(),
+            sum_values.clone(),
+            vec![true; sum_values.len()],
+        ),
+    );
+
+    DataFrame::new(result)
 }

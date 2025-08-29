@@ -18,13 +18,13 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
+//! use std::collections::HashMap;
 //!
 //! # #[cfg(feature = "visualization")]
 //! # {
 //! use veloxx::visualization::{Plot, ChartType};
 //!
-//! let mut columns = BTreeMap::new();
+//! let mut columns = HashMap::new();
 //! columns.insert(
 //!     "x".to_string(),
 //!     Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -47,8 +47,8 @@ use plotters_svg::SVGBackend;
 use std::borrow::BorrowMut;
 
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
 use crate::series::Series;
+use crate::VeloxxError;
 
 #[cfg(feature = "visualization")]
 use crate::types::Value;
@@ -124,9 +124,9 @@ impl<'a> Plot<'a> {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::visualization::{Plot, ChartType};
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let columns = BTreeMap::new();
+    /// let columns = HashMap::new();
     /// let df = DataFrame::new(columns).unwrap();
     /// let plot = Plot::new(&df, ChartType::Line);
     /// ```
@@ -151,9 +151,9 @@ impl<'a> Plot<'a> {
     /// ```rust
     /// use veloxx::visualization::{Plot, PlotConfig, ChartType};
     /// use veloxx::dataframe::DataFrame;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let columns = BTreeMap::new();
+    /// let columns = HashMap::new();
     /// let df = DataFrame::new(columns).unwrap();
     /// let mut config = PlotConfig::default();
     /// config.title = "My Custom Plot".to_string();
@@ -177,9 +177,9 @@ impl<'a> Plot<'a> {
     /// ```rust
     /// use veloxx::visualization::{Plot, ChartType};
     /// use veloxx::dataframe::DataFrame;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let columns = BTreeMap::new();
+    /// let columns = HashMap::new();
     /// let df = DataFrame::new(columns).unwrap();
     /// let plot = Plot::new(&df, ChartType::Scatter)
     ///     .with_columns("x_data", "y_data");
@@ -205,9 +205,9 @@ impl<'a> Plot<'a> {
     /// ```rust
     /// use veloxx::visualization::{Plot, ChartType};
     /// use veloxx::dataframe::DataFrame;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let columns = BTreeMap::new();
+    /// let columns = HashMap::new();
     /// let df = DataFrame::new(columns).unwrap();
     /// let plot = Plot::new(&df, ChartType::Line);
     /// // plot.save("my_plot.svg").unwrap();

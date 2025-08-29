@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::expressions::Expr;
 use veloxx::series::Series;
 
 #[test]
 fn test_simple_expression() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "a".to_string(),
         Series::new_i32("a", vec![Some(1), Some(2), Some(3)]),
@@ -23,8 +23,8 @@ fn test_simple_expression() {
 }
 
 #[test]
-fn test_string_expression() {
-    let mut columns = BTreeMap::new();
+fn test_complex_expression() {
+    let mut columns = HashMap::new();
     columns.insert(
         "a".to_string(),
         Series::new_string(

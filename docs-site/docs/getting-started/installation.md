@@ -30,7 +30,7 @@ For the latest development version:
 
 ```toml title="Cargo.toml"
 [dependencies]
-veloxx = { git = "https://github.com/Conqxeror/veloxx" }
+veloxx = { git = "https://github.com/conqxeror/veloxx" }
 ```
 
 ### Features
@@ -39,7 +39,7 @@ Enable optional features as needed:
 
 ```toml title="Cargo.toml"
 [dependencies]
-veloxx = { version = "0.2.4", features = ["python", "wasm"] }
+veloxx = { version = "0.3.1", features = ["python", "wasm"] }
 ```
 
 Available features:
@@ -96,8 +96,45 @@ pip install veloxx
 For the latest development version:
 
 ```bash
-pip install git+https://github.com/Conqxeror/veloxx.git
+pip install git+https://github.com/conqxeror/veloxx.git
 ```
+
+### From Source
+
+If you need to build from source:
+
+```bash
+# Install Rust first
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Clone and install
+git clone https://github.com/conqxeror/veloxx.git
+cd veloxx
+pip install maturin
+maturin build --release
+pip install target/wheels/veloxx-*-py3-none-any.whl
+```
+
+```bash
+# Clone and build
+git clone https://github.com/conqxeror/veloxx.git
+cd veloxx
+wasm-pack build --target nodejs --features wasm
+```
+
+### For Contributors
+
+Set up a development environment:
+
+```bash
+# Clone the repository
+git clone https://github.com/conqxeror/veloxx.git
+cd veloxx
+```
+
+1. **Check the [GitHub Issues](https://github.com/conqxeror/veloxx/issues)** for known problems
+2. **Search [GitHub Discussions](https://github.com/conqxeror/veloxx/discussions)** for community help
+3. **Create a new issue** with:
 
 ### Using conda
 
@@ -114,7 +151,7 @@ If you need to build from source:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone and install
-git clone https://github.com/Conqxeror/veloxx.git
+git clone https://github.com/conqxeror/veloxx.git
 cd veloxx
 pip install maturin
 maturin build --release
@@ -190,7 +227,7 @@ Build WebAssembly bindings from source:
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 # Clone and build
-git clone https://github.com/Conqxeror/veloxx.git
+git clone https://github.com/conqxeror/veloxx.git
 cd veloxx
 wasm-pack build --target nodejs --features wasm
 ```
@@ -322,7 +359,7 @@ Set up a development environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Conqxeror/veloxx.git
+git clone https://github.com/conqxeror/veloxx.git
 cd veloxx
 
 # Install Rust toolchain
@@ -460,8 +497,8 @@ for chunk in dataset.chunks(100_000) {
 
 If you encounter issues not covered here:
 
-1. **Check the [GitHub Issues](https://github.com/Conqxeror/veloxx/issues)** for known problems
-2. **Search [GitHub Discussions](https://github.com/Conqxeror/veloxx/discussions)** for community help
+1. **Check the [GitHub Issues](https://github.com/conqxeror/veloxx/issues)** for known problems
+2. **Search [GitHub Discussions](https://github.com/conqxeror/veloxx/discussions)** for community help
 3. **Create a new issue** with:
    - Your operating system and version
    - Rust/Python/Node.js versions
@@ -473,6 +510,7 @@ If you encounter issues not covered here:
 | Veloxx Version | Rust Version | Python Version | Node.js Version |
 |----------------|--------------|----------------|-----------------|
 | 0.3.1 | 1.70+ | 3.8+ | 18+ |
+| 0.3.0 | 1.70+ | 3.8+ | 18+ |
 | 0.2.4 | 1.70+ | 3.8+ | 16+ |
 | 0.2.3 | 1.70+ | 3.8+ | 16+ |
 | 0.2.2 | 1.65+ | 3.7+ | 14+ |

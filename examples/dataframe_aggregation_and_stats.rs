@@ -1,10 +1,10 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a DataFrame for grouping and aggregation examples
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "city".to_string(),
         Series::new_string(

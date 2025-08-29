@@ -1,80 +1,81 @@
-//! Data Quality & Validation module for Velox.
-//!
-//! This module provides comprehensive data quality assessment and validation capabilities including:
-//! - Schema validation and enforcement
-//! - Data profiling and statistics
-//! - Anomaly detection algorithms
-//! - Data consistency checks
-//! - Quality metrics and reporting
-//!
-//! # Features
-//!
-//! - Schema validation with custom rules
-//! - Statistical profiling for data understanding
-//! - Outlier and anomaly detection
-//! - Data type validation and coercion
-//! - Quality score calculation
-//!
-//! # Examples
-//!
-//! ```rust
-//! use veloxx::dataframe::DataFrame;
-//! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
-//!
-//! # #[cfg(feature = "data_quality")]
-//! # {
-//! use veloxx::data_quality::{SchemaValidator, DataProfiler, AnomalyDetector};
-//!
-//! let mut columns = BTreeMap::new();
-//! columns.insert(
-//!     "age".to_string(),
-//!     Series::new_i32("age", vec![Some(25), Some(30), Some(35), Some(1000)]), // 1000 is an outlier
-//! );
-//! columns.insert(
-//!     "score".to_string(),
-//!     Series::new_f64("score", vec![Some(80.5), Some(90.0), Some(75.0), Some(95.5)]),
-//! );
-//!
-//! let df = DataFrame::new(columns).unwrap();
-//!
-//! // Profile the data
-//! let profiler = DataProfiler::new();
-//! let profile = profiler.profile_dataframe(&df).unwrap();
-//! println!("Data profile: {:?}", profile);
-//!
-//! // Detect anomalies
-//! let detector = AnomalyDetector::new();
-//! let anomalies = detector.detect_outliers(&df, "age").unwrap();
-//! println!("Anomalies detected: {:?}", anomalies);
-//! # }
-//! ```
-
-use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
-use crate::series::Series;
-
-#[cfg(feature = "data_quality")]
-use crate::types::{DataType, Value};
-use std::collections::BTreeMap;
-
-#[cfg(feature = "data_quality")]
+// Data Quality & Validation module for Velox.
+//
+// This module provides comprehensive data quality assessment and validation capabilities including:
+// - Schema validation and enforcement
+// - Data profiling and statistics
+// - Anomaly detection algorithms
+// - Data consistency checks
+// - Quality metrics and reporting
+#[cfg(all(feature = "data_quality", not(target_arch = "wasm32")))]
 use regex::Regex;
-
-/// Schema definition for data validation
-#[derive(Debug, Clone)]
-pub struct Schema {
-    pub columns: BTreeMap<String, ColumnSchema>,
-}
-
-/// Schema definition for a single column
-#[derive(Debug, Clone)]
-pub struct ColumnSchema {
-    pub name: String,
-    pub data_type: DataType,
-    pub nullable: bool,
-    pub constraints: Vec<Constraint>,
-}
+//
+// # Features
+//
+// - Schema validation with custom rules
+// - Statistical profiling for data understanding
+// - Outlier and anomaly detection
+// - Data type validation and coercion
+// - Quality score calculation
+//
+// # Examples
+//
+// ```rust
+// use veloxx::dataframe::DataFrame;
+// use veloxx::series::Series;
+// use std::collections::HashMap;
+//
+// # #[cfg(feature = "data_quality")]
+// # {
+// use veloxx::data_quality::{SchemaValidator, DataProfiler, AnomalyDetector};
+//
+// let mut columns = HashMap::new();
+// columns.insert(
+//     "age".to_string(),
+//     Series::new_i32("age", vec![Some(25), Some(30), Some(35), Some(1000)]), // 1000 is an outlier
+//     Series::new_i32("age", vec![Some(25), Some(30), Some(35), Some(1000)]), // 1000 is an outlier
+// );
+// );
+// columns.insert(
+// columns.insert(
+//     "score".to_string(),
+//     "score".to_string(),
+//     Series::new_f64("score", vec![Some(80.5), Some(90.0), Some(75.0), Some(95.5)]),
+//     Series::new_f64("score", vec![Some(80.5), Some(90.0), Some(75.0), Some(95.5)]),
+// );
+// );
+//
+//
+// let df = DataFrame::new(columns).unwrap();
+// let df = DataFrame::new(columns).unwrap();
+//
+//
+// // Profile the data
+// // Profile the data
+// let profiler = DataProfiler::new();
+// let profiler = DataProfiler::new();
+// let profile = profiler.profile_dataframe(&df).unwrap();
+// let profile = profiler.profile_dataframe(&df).unwrap();
+// println!("Data profile: {:?}", profile);
+// println!("Data profile: {:?}", profile);
+//
+//
+// // Detect anomalies
+// // Detect anomalies
+// let detector = AnomalyDetector::new();
+// let detector = AnomalyDetector::new();
+// let anomalies = detector.detect_outliers(&df, "age").unwrap();
+// let anomalies = detector.detect_outliers(&df, "age").unwrap();
+// println!("Anomalies detected: {:?}", anomalies);
+// println!("Anomalies detected: {:?}", anomalies);
+// # }
+// # }
+// ```
+/// ```
+use crate::dataframe::DataFrame;
+use crate::series::Series;
+use crate::types::{DataType, Value};
+use crate::VeloxxError;
+use std::collections::{BTreeMap, HashMap};
 
 /// Data validation constraints
 #[derive(Debug, Clone)]
@@ -87,6 +88,21 @@ pub enum Constraint {
     UniqueValues,
     NotNull,
     InSet(Vec<Value>),
+}
+
+/// Schema definition for a single column
+#[derive(Debug, Clone)]
+pub struct ColumnSchema {
+    pub name: String,
+    pub data_type: DataType,
+    pub nullable: bool,
+    pub constraints: Vec<Constraint>,
+}
+
+/// Schema definition for data validation
+#[derive(Debug, Clone)]
+pub struct Schema {
+    pub columns: HashMap<String, ColumnSchema>,
 }
 
 /// Schema validator for enforcing data structure and constraints
@@ -130,9 +146,9 @@ impl SchemaValidator {
     /// use veloxx::series::Series;
     /// use veloxx::data_quality::{SchemaValidator, Schema, ColumnSchema, Constraint};
     /// use veloxx::types::DataType;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "age".to_string(),
     ///     Series::new_i32("age", vec![Some(25), Some(30)]),
@@ -167,7 +183,7 @@ impl SchemaValidator {
         for (column_name, column_schema) in &schema.columns {
             if dataframe.get_column(column_name).is_none() {
                 errors.push(ValidationError {
-                    column: column_name.clone(),
+                    column: column_name.to_string(),
                     row: None,
                     error_type: ValidationErrorType::MissingColumn,
                     message: format!("Required column '{}' is missing", column_name),
@@ -180,7 +196,7 @@ impl SchemaValidator {
             // Check data type
             if series.data_type() != column_schema.data_type {
                 warnings.push(ValidationError {
-                    column: column_name.clone(),
+                    column: column_name.to_string(),
                     row: None,
                     error_type: ValidationErrorType::TypeMismatch,
                     message: format!(
@@ -220,7 +236,7 @@ impl SchemaValidator {
         series: &Series,
         column_schema: &ColumnSchema,
         errors: &mut Vec<ValidationError>,
-        _warnings: &mut [ValidationError],
+    _warnings: &mut Vec<ValidationError>,
     ) -> Result<(), VeloxxError> {
         for constraint in &column_schema.constraints {
             match constraint {
@@ -274,7 +290,7 @@ impl SchemaValidator {
                     }
                 }
                 Constraint::Pattern(pattern) => {
-                    #[cfg(feature = "data_quality")]
+                    #[cfg(all(feature = "data_quality", not(target_arch = "wasm32")))]
                     {
                         let regex = Regex::new(pattern).map_err(|e| {
                             VeloxxError::InvalidOperation(format!("Invalid regex pattern: {}", e))
@@ -295,6 +311,15 @@ impl SchemaValidator {
                                 }
                             }
                         }
+                    }
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        warnings.push(ValidationError {
+                            column: column_schema.name.clone(),
+                            row: None,
+                            error_type: ValidationErrorType::FeatureNotEnabled,
+                            message: "Pattern validation not available in WASM builds".to_string(),
+                        });
                     }
                     #[cfg(not(feature = "data_quality"))]
                     {
@@ -338,7 +363,7 @@ impl SchemaValidator {
     ///
     /// Inferred schema
     pub fn infer_schema(&self, dataframe: &DataFrame, nullable: bool) -> Schema {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
 
         for column_name in dataframe.column_names() {
             if let Some(series) = dataframe.get_column(column_name) {
@@ -431,9 +456,9 @@ impl DataProfiler {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::data_quality::DataProfiler;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "age".to_string(),
     ///     Series::new_i32("age", vec![Some(25), Some(30), Some(35)]),
@@ -481,7 +506,7 @@ impl DataProfiler {
             0.0
         };
 
-        let unique_count = series.unique()?.len();
+        let unique_count = (*series).unique()?.len();
         let unique_percentage = if !series.is_empty() {
             (unique_count as f64 / series.len() as f64) * 100.0
         } else {
@@ -495,11 +520,11 @@ impl DataProfiler {
             null_percentage,
             unique_count,
             unique_percentage,
-            min_value: series.min()?,
-            max_value: series.max()?,
-            mean_value: series.mean()?,
-            std_dev: series.std_dev()?,
-            median_value: series.median()?,
+            min_value: Some((*series).min()?),
+            max_value: Some((*series).max()?),
+            mean_value: Some((*series).mean()?),
+            std_dev: Some((*series).std_dev()?),
+            median_value: Some((*series).median()?),
         })
     }
 
@@ -605,9 +630,9 @@ impl AnomalyDetector {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::data_quality::AnomalyDetector;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "values".to_string(),
     ///     Series::new_f64("values", vec![Some(1.0), Some(2.0), Some(3.0), Some(100.0)]), // 100.0 is an outlier
@@ -708,9 +733,9 @@ impl AnomalyDetector {
             .get_column(column_name)
             .ok_or_else(|| VeloxxError::ColumnNotFound(column_name.to_string()))?;
 
-        let mean = match series.mean()? {
-            Some(Value::F64(m)) => m,
-            Some(Value::I32(m)) => m as f64,
+        let mean = match (*series).mean()? {
+            Value::F64(m) => m,
+            Value::I32(m) => m as f64,
             _ => {
                 return Err(VeloxxError::InvalidOperation(
                     "Cannot calculate mean for Z-score".to_string(),
@@ -718,9 +743,9 @@ impl AnomalyDetector {
             }
         };
 
-        let std_dev = match series.std_dev()? {
-            Some(Value::F64(s)) => s,
-            Some(Value::I32(s)) => s as f64,
+        let std_dev = match (*series).std_dev()? {
+            Value::F64(s) => s,
+            Value::I32(s) => s as f64,
             _ => {
                 return Err(VeloxxError::InvalidOperation(
                     "Cannot calculate std dev for Z-score".to_string(),
@@ -849,8 +874,8 @@ impl ConsistencyChecker {
     /// Map of column names to inconsistent value indices
     pub fn check_type_consistency(
         dataframe: &DataFrame,
-    ) -> Result<BTreeMap<String, Vec<usize>>, VeloxxError> {
-        let mut inconsistencies = BTreeMap::new();
+    ) -> Result<HashMap<String, Vec<usize>>, VeloxxError> {
+        let mut inconsistencies = HashMap::new();
 
         for column_name in dataframe.column_names() {
             if let Some(series) = dataframe.get_column(column_name) {
@@ -880,7 +905,7 @@ impl ConsistencyChecker {
 mod tests {
     use super::*;
     use crate::series::Series;
-    use std::collections::BTreeMap;
+    use std::collections::HashMap;
 
     #[test]
     fn test_schema_validator_creation() {
@@ -911,7 +936,7 @@ mod tests {
 
     #[test]
     fn test_schema_inference() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "age".to_string(),
             Series::new_i32("age", vec![Some(25), Some(30)]),
@@ -935,7 +960,7 @@ mod tests {
 
     #[test]
     fn test_data_profiling() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), None, Some(4)]),
@@ -956,7 +981,7 @@ mod tests {
 
     #[test]
     fn test_outlier_detection() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_f64("values", vec![Some(1.0), Some(2.0), Some(3.0), Some(100.0)]),
@@ -973,7 +998,7 @@ mod tests {
 
     #[test]
     fn test_duplicate_detection() {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "id".to_string(),
             Series::new_i32("id", vec![Some(1), Some(2), Some(1)]), // Duplicate: 1

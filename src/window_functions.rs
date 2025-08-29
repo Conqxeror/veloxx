@@ -20,13 +20,13 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
+//! use std::collections::HashMap;
 //!
 //! # #[cfg(feature = "window_functions")]
 //! # {
 //! use veloxx::window_functions::{WindowFunction, WindowSpec, RankingFunction};
 //!
-//! let mut columns = BTreeMap::new();
+//! let mut columns = HashMap::new();
 //! columns.insert(
 //!     "sales".to_string(),
 //!     Series::new_f64("sales", vec![Some(100.0), Some(200.0), Some(150.0), Some(300.0)]),
@@ -55,12 +55,12 @@
 //! ```
 
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
 use crate::series::Series;
+use crate::VeloxxError;
 
 #[cfg(feature = "window_functions")]
 use crate::types::Value;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 #[cfg(feature = "window_functions")]
 /// Window specification for defining partitioning, ordering, and frame bounds
@@ -207,9 +207,9 @@ impl WindowFunction {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::window_functions::{WindowFunction, WindowSpec, RankingFunction};
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "sales".to_string(),
     ///     Series::new_f64("sales", vec![Some(100.0), Some(200.0), Some(150.0)]),
@@ -224,7 +224,7 @@ impl WindowFunction {
         function: &RankingFunction,
         _window_spec: &WindowSpec,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = BTreeMap::new();
+        let mut result_columns = HashMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -261,11 +261,12 @@ impl WindowFunction {
             .ok_or_else(|| VeloxxError::ColumnNotFound(order_by_col_name.clone()))?;
 
         let mut indexed_values: Vec<(usize, Option<Value>)> = (0..row_count)
-            .map(|i| (i, order_by_series.get_value(i)))
+            .map(|i| (i, (*order_by_series).get_value(i)))
             .collect();
 
+        use rayon::prelude::*;
         indexed_values
-            .sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+            .par_sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
 
         let mut rankings = vec![None; row_count];
         match function {
@@ -343,7 +344,7 @@ impl WindowFunction {
         function: &AggregateFunction,
         _window_spec: &WindowSpec,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = BTreeMap::new();
+        let mut result_columns = HashMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -380,7 +381,7 @@ impl WindowFunction {
         for (i, result) in results.iter_mut().enumerate() {
             let window_values: Vec<f64> = (0..=i)
                 .filter_map(|idx| {
-                    series.get_value(idx).and_then(|v| match v {
+                    (*series).get_value(idx).and_then(|v| match v {
                         Value::F64(f) => Some(f),
                         Value::I32(n) => Some(n as f64),
                         _ => None,
@@ -427,7 +428,7 @@ impl WindowFunction {
         offset: i32,
         _window_spec: &WindowSpec,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = BTreeMap::new();
+        let mut result_columns = HashMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -444,7 +445,7 @@ impl WindowFunction {
         for i in 0..row_count {
             let target_index = i as i32 - offset;
             if target_index >= 0 && (target_index as usize) < row_count {
-                lag_lead_values.push(series.get_value(target_index as usize));
+                lag_lead_values.push((*series).get_value(target_index as usize));
             } else {
                 lag_lead_values.push(None);
             }
@@ -455,7 +456,7 @@ impl WindowFunction {
 
         // Convert to appropriate series type based on original series
         let lag_lead_series = match series {
-            Series::I32(_, _) => {
+            Series::I32(_, _, _) => {
                 let i32_values: Vec<Option<i32>> = lag_lead_values
                     .into_iter()
                     .map(|v| {
@@ -467,7 +468,7 @@ impl WindowFunction {
                     .collect();
                 Series::new_i32(&column_name_result, i32_values)
             }
-            Series::F64(_, _) => {
+            Series::F64(_, _, _) => {
                 let f64_values: Vec<Option<f64>> = lag_lead_values
                     .into_iter()
                     .map(|v| {
@@ -480,7 +481,7 @@ impl WindowFunction {
                     .collect();
                 Series::new_f64(&column_name_result, f64_values)
             }
-            Series::String(_, _) => {
+            Series::String(_, _, _) => {
                 let string_values: Vec<Option<String>> = lag_lead_values
                     .into_iter()
                     .map(|v| {
@@ -492,7 +493,7 @@ impl WindowFunction {
                     .collect();
                 Series::new_string(&column_name_result, string_values)
             }
-            Series::Bool(_, _) => {
+            Series::Bool(_, _, _) => {
                 let bool_values: Vec<Option<bool>> = lag_lead_values
                     .into_iter()
                     .map(|v| {
@@ -504,7 +505,7 @@ impl WindowFunction {
                     .collect();
                 Series::new_bool(&column_name_result, bool_values)
             }
-            Series::DateTime(_, _) => {
+            Series::DateTime(_, _, _) => {
                 // For DateTime, we'll convert to string representation
                 let string_values: Vec<Option<String>> = lag_lead_values
                     .into_iter()
@@ -534,7 +535,7 @@ impl WindowFunction {
         column_name: &str,
         window_size: usize,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = BTreeMap::new();
+        let mut result_columns = HashMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -573,7 +574,7 @@ impl WindowFunction {
 
             let window_values: Vec<f64> = (start..=end)
                 .filter_map(|idx| {
-                    series.get_value(idx).and_then(|v| match v {
+                    (*series).get_value(idx).and_then(|v| match v {
                         Value::F64(f) => Some(f),
                         Value::I32(n) => Some(n as f64),
                         _ => None,

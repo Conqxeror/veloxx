@@ -624,7 +624,7 @@ fn comprehensive_analysis() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-This comprehensive API reference covers all major Veloxx functionality. For more examples and advanced usage patterns, check out the [examples repository](https://github.com/Conqxeror/veloxx/tree/main/examples) and [performance benchmarks](/docs/performance/benchmarks).
+This comprehensive API reference covers all major Veloxx functionality. For more examples and advanced usage patterns, check out the [examples repository](https://github.com/conqxeror/veloxx/tree/main/examples) and [performance benchmarks](/docs/performance/benchmarks).
 
 ## Visualization
 

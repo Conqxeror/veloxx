@@ -16,13 +16,13 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
+//! use std::collections::HashMap;
 //!
 //! # #[cfg(feature = "ml")]
 //! # {
 //! use veloxx::ml::{LinearRegression, Preprocessing};
 //!
-//! let mut columns = BTreeMap::new();
+//! let mut columns = HashMap::new();
 //! columns.insert(
 //!     "x".to_string(),
 //!     Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -46,10 +46,10 @@ use linfa_linear::LinearRegression as LinfaLinearRegression;
 use ndarray::{Array1, Array2};
 
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
 use crate::series::Series;
 #[cfg(feature = "ml")]
 use crate::types::Value;
+use crate::VeloxxError;
 
 /// Linear regression model for predictive analytics
 #[derive(Debug, Clone)]
@@ -97,9 +97,9 @@ impl LinearRegression {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::ml::LinearRegression;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "x".to_string(),
     ///     Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0)]),
@@ -158,7 +158,7 @@ impl LinearRegression {
         let target_series = dataframe
             .get_column(target_column)
             .ok_or_else(|| VeloxxError::ColumnNotFound(target_column.to_string()))?;
-        let targets = self.series_to_array1(target_series)?;
+        let targets = Array1::from_vec(target_series.to_vec_f64()?);
 
         // Extract feature data
         let mut feature_data = Vec::new();
@@ -166,7 +166,7 @@ impl LinearRegression {
             let series = dataframe
                 .get_column(col_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(col_name.to_string()))?;
-            let col_data = self.series_to_vec(series)?;
+            let col_data = series.to_vec_f64()?;
             feature_data.push(col_data);
         }
 
@@ -182,35 +182,6 @@ impl LinearRegression {
         }
 
         Ok((features, targets))
-    }
-
-    #[cfg(feature = "ml")]
-    fn series_to_array1(&self, series: &Series) -> Result<Array1<f64>, VeloxxError> {
-        let vec_data = self.series_to_vec(series)?;
-        Ok(Array1::from_vec(vec_data))
-    }
-
-    #[cfg(feature = "ml")]
-    fn series_to_vec(&self, series: &Series) -> Result<Vec<f64>, VeloxxError> {
-        let mut result = Vec::new();
-        for i in 0..series.len() {
-            if let Some(value) = series.get_value(i) {
-                match value {
-                    Value::F64(f) => result.push(f),
-                    Value::I32(i) => result.push(i as f64),
-                    _ => {
-                        return Err(VeloxxError::InvalidOperation(
-                            "Cannot convert non-numeric data to f64".to_string(),
-                        ));
-                    }
-                }
-            } else {
-                return Err(VeloxxError::InvalidOperation(
-                    "Cannot handle null values in ML operations".to_string(),
-                ));
-            }
-        }
-        Ok(result)
     }
 
     /// Check if the model has been fitted
@@ -271,9 +242,9 @@ impl FittedLinearRegression {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::ml::LinearRegression;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "x".to_string(),
     ///     Series::new_f64("x", vec![Some(5.0), Some(6.0)]),
@@ -315,7 +286,7 @@ impl FittedLinearRegression {
             let series = dataframe
                 .get_column(col_name)
                 .ok_or_else(|| VeloxxError::ColumnNotFound(col_name.to_string()))?;
-            let col_data = self.series_to_vec(series)?;
+            let col_data = series.to_vec_f64()?;
             feature_data.push(col_data);
         }
 
@@ -330,29 +301,6 @@ impl FittedLinearRegression {
         }
 
         Ok(features)
-    }
-
-    #[cfg(feature = "ml")]
-    fn series_to_vec(&self, series: &Series) -> Result<Vec<f64>, VeloxxError> {
-        let mut result = Vec::new();
-        for i in 0..series.len() {
-            if let Some(value) = series.get_value(i) {
-                match value {
-                    Value::F64(f) => result.push(f),
-                    Value::I32(i) => result.push(i as f64),
-                    _ => {
-                        return Err(VeloxxError::InvalidOperation(
-                            "Cannot convert non-numeric data to f64".to_string(),
-                        ));
-                    }
-                }
-            } else {
-                return Err(VeloxxError::InvalidOperation(
-                    "Cannot handle null values in ML operations".to_string(),
-                ));
-            }
-        }
-        Ok(result)
     }
 
     /// Get the model coefficients
@@ -407,9 +355,9 @@ impl Preprocessing {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::ml::Preprocessing;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "feature".to_string(),
     ///     Series::new_f64("feature", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -419,7 +367,7 @@ impl Preprocessing {
     /// let standardized_df = Preprocessing::standardize(&df, &["feature"]).unwrap();
     /// ```
     pub fn standardize(dataframe: &DataFrame, columns: &[&str]) -> Result<DataFrame, VeloxxError> {
-        let mut new_columns = std::collections::BTreeMap::new();
+        let mut new_columns = std::collections::HashMap::new();
 
         // Copy non-standardized columns
         for (name, series) in dataframe.columns.iter() {
@@ -443,9 +391,9 @@ impl Preprocessing {
 
     fn standardize_series(series: &Series) -> Result<Series, VeloxxError> {
         // Calculate mean and standard deviation
-        let mean = match series.mean()? {
-            Some(Value::F64(m)) => m,
-            Some(Value::I32(m)) => m as f64,
+        let mean = match (*series).mean()? {
+            Value::F64(m) => m,
+            Value::I32(m) => m as f64,
             _ => {
                 return Err(VeloxxError::InvalidOperation(
                     "Cannot calculate mean for standardization".to_string(),
@@ -453,9 +401,9 @@ impl Preprocessing {
             }
         };
 
-        let std_dev = match series.std_dev()? {
-            Some(Value::F64(s)) => s,
-            Some(Value::I32(s)) => s as f64,
+        let std_dev = match (*series).std_dev()? {
+            Value::F64(s) => s,
+            Value::I32(s) => s as f64,
             _ => {
                 return Err(VeloxxError::InvalidOperation(
                     "Cannot calculate std dev for standardization".to_string(),
@@ -471,17 +419,25 @@ impl Preprocessing {
 
         // Apply standardization
         match series {
-            Series::F64(name, values) => {
+            Series::F64(name, values, bitmap) => {
                 let standardized_values: Vec<Option<f64>> = values
                     .iter()
-                    .map(|&val| val.map(|v| (v - mean) / std_dev))
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| if b { Some((v - mean) / std_dev) } else { None })
                     .collect();
                 Ok(Series::new_f64(name, standardized_values))
             }
-            Series::I32(name, values) => {
+            Series::I32(name, values, bitmap) => {
                 let standardized_values: Vec<Option<f64>> = values
                     .iter()
-                    .map(|&val| val.map(|v| (v as f64 - mean) / std_dev))
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| {
+                        if b {
+                            Some((v as f64 - mean) / std_dev)
+                        } else {
+                            None
+                        }
+                    })
                     .collect();
                 Ok(Series::new_f64(name, standardized_values))
             }
@@ -508,9 +464,9 @@ impl Preprocessing {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::ml::Preprocessing;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "feature".to_string(),
     ///     Series::new_f64("feature", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -520,7 +476,7 @@ impl Preprocessing {
     /// let normalized_df = Preprocessing::normalize(&df, &["feature"]).unwrap();
     /// ```
     pub fn normalize(dataframe: &DataFrame, columns: &[&str]) -> Result<DataFrame, VeloxxError> {
-        let mut new_columns = std::collections::BTreeMap::new();
+        let mut new_columns = std::collections::HashMap::new();
 
         // Copy non-normalized columns
         for (name, series) in dataframe.columns.iter() {
@@ -544,9 +500,9 @@ impl Preprocessing {
 
     fn normalize_series(series: &Series) -> Result<Series, VeloxxError> {
         // Calculate min and max
-        let min_val = match series.min()? {
-            Some(Value::F64(m)) => m,
-            Some(Value::I32(m)) => m as f64,
+        let min_val = match (*series).min()? {
+            Value::F64(m) => m,
+            Value::I32(m) => m as f64,
             _ => {
                 return Err(VeloxxError::InvalidOperation(
                     "Cannot calculate min for normalization".to_string(),
@@ -554,9 +510,9 @@ impl Preprocessing {
             }
         };
 
-        let max_val = match series.max()? {
-            Some(Value::F64(m)) => m,
-            Some(Value::I32(m)) => m as f64,
+        let max_val = match (*series).max()? {
+            Value::F64(m) => m,
+            Value::I32(m) => m as f64,
             _ => {
                 return Err(VeloxxError::InvalidOperation(
                     "Cannot calculate max for normalization".to_string(),
@@ -573,17 +529,25 @@ impl Preprocessing {
 
         // Apply normalization
         match series {
-            Series::F64(name, values) => {
+            Series::F64(name, values, bitmap) => {
                 let normalized_values: Vec<Option<f64>> = values
                     .iter()
-                    .map(|&val| val.map(|v| (v - min_val) / range))
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| if b { Some((v - min_val) / range) } else { None })
                     .collect();
                 Ok(Series::new_f64(name, normalized_values))
             }
-            Series::I32(name, values) => {
+            Series::I32(name, values, bitmap) => {
                 let normalized_values: Vec<Option<f64>> = values
                     .iter()
-                    .map(|&val| val.map(|v| (v as f64 - min_val) / range))
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| {
+                        if b {
+                            Some((v as f64 - min_val) / range)
+                        } else {
+                            None
+                        }
+                    })
                     .collect();
                 Ok(Series::new_f64(name, normalized_values))
             }
@@ -598,7 +562,7 @@ impl Preprocessing {
 mod tests {
     use super::*;
     use crate::series::Series;
-    use std::collections::BTreeMap;
+    use std::collections::HashMap;
 
     #[test]
     fn test_linear_regression_creation() {
@@ -608,7 +572,7 @@ mod tests {
 
     #[test]
     fn test_standardization() -> Result<(), Box<dyn std::error::Error>> {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "feature".to_string(),
             Series::new_f64("feature", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -619,13 +583,13 @@ mod tests {
 
         let standardized_series = standardized_df.get_column("feature").unwrap();
         let mean = match standardized_series.mean()? {
-            Some(Value::F64(m)) => m,
-            Some(Value::I32(m)) => m as f64,
+            Value::F64(m) => m,
+            Value::I32(m) => m as f64,
             _ => 0.0,
         };
         let std_dev = match standardized_series.std_dev()? {
-            Some(Value::F64(s)) => s,
-            Some(Value::I32(s)) => s as f64,
+            Value::F64(s) => s,
+            Value::I32(s) => s as f64,
             _ => 0.0,
         };
 
@@ -638,7 +602,7 @@ mod tests {
 
     #[test]
     fn test_normalization() -> Result<(), Box<dyn std::error::Error>> {
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "feature".to_string(),
             Series::new_f64("feature", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -649,13 +613,13 @@ mod tests {
 
         let normalized_series = normalized_df.get_column("feature").unwrap();
         let min_val = match normalized_series.min()? {
-            Some(Value::F64(m)) => m,
-            Some(Value::I32(m)) => m as f64,
+            Value::F64(m) => m,
+            Value::I32(m) => m as f64,
             _ => 0.0,
         };
         let max_val = match normalized_series.max()? {
-            Some(Value::F64(m)) => m,
-            Some(Value::I32(m)) => m as f64,
+            Value::F64(m) => m,
+            Value::I32(m) => m as f64,
             _ => 0.0,
         };
 
@@ -668,7 +632,7 @@ mod tests {
     #[test]
     #[cfg(not(feature = "ml"))]
     fn test_ml_operations_without_feature() {
-        let columns = BTreeMap::new();
+        let columns = HashMap::new();
         let df = DataFrame::new(columns).unwrap();
 
         let model = LinearRegression::new();
