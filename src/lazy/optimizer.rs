@@ -27,6 +27,7 @@ impl QueryOptimizer {
     }
 
     /// Push predicates down towards scan nodes
+    #[allow(clippy::only_used_in_recursion)]
     fn predicate_pushdown(&self, plan: LogicalPlan) -> LogicalPlan {
         match plan {
             LogicalPlan::Filter { input, predicate } => {
@@ -107,6 +108,7 @@ impl QueryOptimizer {
     }
 
     /// Push projections down towards scan nodes
+    #[allow(clippy::only_used_in_recursion)]
     fn projection_pushdown(&self, plan: LogicalPlan) -> LogicalPlan {
         match plan {
             LogicalPlan::Projection {

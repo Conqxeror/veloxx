@@ -381,6 +381,16 @@
 				"echo 🚀 Starting comprehensive test suite... && cargo test && call venv\\Scripts\\activate && maturin develop --features python && python -m pytest tests\\python\\ -v && wasm-pack build --target web --out-dir pkg && npm test"
 			],
 			"group": "test"
+		},
+		{
+			"label": "run-all-tests-now",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"echo 🚀 Starting comprehensive test suite... && cargo test && call venv\\Scripts\\activate && maturin develop --features python && python -m pytest tests\\python\\ -v && wasm-pack build --target web --out-dir pkg && npm test"
+			],
+			"group": "test"
 		}
 	]
 }

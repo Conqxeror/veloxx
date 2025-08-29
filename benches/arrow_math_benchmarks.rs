@@ -12,9 +12,9 @@ fn bench_arrow_math_ops(c: &mut Criterion) {
     let data2_f64: Vec<Option<f64>> = (0..size)
         .map(|i| Some(((i % 1000) as f64) * 2.0 + 1.0))
         .collect();
-    let data1_i32: Vec<Option<i32>> = (0..size).map(|i| Some((i % 1000 + 1) as i32)).collect();
+    let data1_i32: Vec<Option<i32>> = (0..size).map(|i| Some(i % 1000 + 1)).collect();
     let data2_i32: Vec<Option<i32>> = (0..size)
-        .map(|i| Some(((i % 1000) as i32) * 2 + 1))
+        .map(|i| Some((i % 1000) * 2 + 1))
         .collect();
 
     // Test Arrow Series
@@ -77,8 +77,8 @@ fn bench_arrow_math_ops(c: &mut Criterion) {
     // Traditional mathematical operations for comparison
     let values1_f64: Vec<f64> = (0..size).map(|i| (i % 1000 + 1) as f64).collect();
     let values2_f64: Vec<f64> = (0..size).map(|i| ((i % 1000) as f64) * 2.0 + 1.0).collect();
-    let values1_i32: Vec<i32> = (0..size).map(|i| (i % 1000 + 1) as i32).collect();
-    let values2_i32: Vec<i32> = (0..size).map(|i| ((i % 1000) as i32) * 2 + 1).collect();
+    let values1_i32: Vec<i32> = (0..size).map(|i| i % 1000 + 1).collect();
+    let values2_i32: Vec<i32> = (0..size).map(|i| (i % 1000) * 2 + 1).collect();
 
     c.bench_with_input(
         BenchmarkId::new("traditional_f64_add", size),

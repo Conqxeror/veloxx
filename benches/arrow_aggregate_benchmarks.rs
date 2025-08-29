@@ -9,7 +9,7 @@ fn bench_arrow_aggregations(c: &mut Criterion) {
 
     // Create test data
     let data_f64: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
-    let data_i32: Vec<Option<i32>> = (0..size).map(|i| Some(i as i32)).collect();
+    let data_i32: Vec<Option<i32>> = (0..size).map(Some).collect();
 
     // Test Arrow Series
     #[cfg(feature = "arrow")]
@@ -38,7 +38,7 @@ fn bench_arrow_aggregations(c: &mut Criterion) {
 
     // Traditional aggregation for comparison
     let values_f64: Vec<f64> = (0..size).map(|i| i as f64).collect();
-    let values_i32: Vec<i32> = (0..size).map(|i| i as i32).collect();
+    let values_i32: Vec<i32> = (0..size).collect();
 
     c.bench_with_input(
         BenchmarkId::new("traditional_mean_f64", size),
@@ -46,7 +46,7 @@ fn bench_arrow_aggregations(c: &mut Criterion) {
         |b, v| {
             b.iter(|| {
                 let sum: f64 = v.iter().sum();
-                black_box(sum / v.len() as f64)
+                let _ = black_box(sum / v.len() as f64);
             })
         },
     );
@@ -62,7 +62,7 @@ fn bench_arrow_aggregations(c: &mut Criterion) {
                         min = val;
                     }
                 }
-                black_box(min)
+                let _ = black_box(min);
             })
         },
     );
@@ -78,7 +78,7 @@ fn bench_arrow_aggregations(c: &mut Criterion) {
                         max = val;
                     }
                 }
-                black_box(max)
+                let _ = black_box(max);
             })
         },
     );

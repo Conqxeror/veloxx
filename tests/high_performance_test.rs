@@ -113,7 +113,7 @@ mod high_performance_tests {
     #[test]
     fn test_optimized_group_by_performance() {
     let size = cfg_size(100_000, 50_000);
-        let categories = vec!["A", "B", "C", "D", "E"];
+    let categories = ["A", "B", "C", "D", "E"]; 
 
         // Create test data with groups
         let cat_data: Vec<Option<String>> = (0..size)
@@ -219,7 +219,7 @@ mod high_performance_tests {
         let data: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64 * 1.5)).collect();
         
         // Create a categorical column with reasonable number of groups (10)
-        let categories = vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+    let categories = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]; 
         let category_data: Vec<Option<String>> = (0..size)
             .map(|i| Some(categories[i % categories.len()].to_string()))
             .collect();
@@ -331,8 +331,7 @@ mod benchmark_comparisons {
 
         // Verify results are identical
         assert_eq!(simd_result.len(), scalar_result.len());
-        for i in 0..std::cmp::min(100, size) {
-            // Check first 100 elements
+        for (i, _) in (0..std::cmp::min(100, size)).enumerate() {
             let simd_val = simd_result.get_value(i);
             let scalar_val = scalar_result[i].map(Value::F64);
             assert_eq!(

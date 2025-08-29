@@ -42,23 +42,23 @@ fn bench_rayon_group_by(c: &mut Criterion) {
             let groups: std::collections::HashMap<i32, Vec<i32>> = data
                 .par_iter()
                 .fold(
-                    || std::collections::HashMap::new(),
+                    std::collections::HashMap::<i32, Vec<i32>>::new,
                     |mut acc, &item| {
                         let key = item % 10;
-                        acc.entry(key).or_insert_with(Vec::new).push(item);
+                        acc.entry(key).or_default().push(item);
                         acc
                     },
                 )
                 .reduce(
-                    || std::collections::HashMap::new(),
+                    std::collections::HashMap::<i32, Vec<i32>>::new,
                     |mut map1, map2| {
                         for (key, mut values) in map2 {
-                            map1.entry(key).or_insert_with(Vec::new).append(&mut values);
+                            map1.entry(key).or_default().append(&mut values);
                         }
                         map1
                     },
                 );
-            black_box(groups);
+            let _ = black_box(groups);
         })
     });
 }

@@ -91,7 +91,7 @@ fn bench_lazy_evaluation_optimized(c: &mut Criterion) {
 
     c.bench_function("lazy_evaluation_optimized", |b| {
         b.iter(|| {
-            let lazy_df = LazyDataFrame::from_dataframe(df.clone())
+            LazyDataFrame::from_dataframe(df.clone())
                 .filter(veloxx::lazy::binary_op(
                     col("col1"),
                     BinaryOperator::Gt,
@@ -99,8 +99,7 @@ fn bench_lazy_evaluation_optimized(c: &mut Criterion) {
                 ))
                 .select(vec![col("col1")])
                 .collect()
-                .unwrap();
-            lazy_df
+                .unwrap()
         })
     });
 }
@@ -110,7 +109,7 @@ fn bench_lazy_evaluation_unoptimized(c: &mut Criterion) {
 
     c.bench_function("lazy_evaluation_unoptimized", |b| {
         b.iter(|| {
-            let lazy_df = LazyDataFrame::from_dataframe(df.clone())
+            LazyDataFrame::from_dataframe(df.clone())
                 .filter(veloxx::lazy::binary_op(
                     col("col1"),
                     BinaryOperator::Gt,
@@ -118,8 +117,7 @@ fn bench_lazy_evaluation_unoptimized(c: &mut Criterion) {
                 ))
                 .select(vec![col("col1")])
                 .collect_unoptimized()
-                .unwrap();
-            lazy_df
+                .unwrap()
         })
     });
 }

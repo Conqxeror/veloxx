@@ -32,7 +32,7 @@ fn bench_optimization_layers(c: &mut Criterion) {
             for i in 0..size {
                 result[i] = data_a[i] + data_b[i];
             }
-            black_box(&result);
+            let _ = black_box(&result);
         })
     });
 
@@ -40,7 +40,7 @@ fn bench_optimization_layers(c: &mut Criterion) {
     group.bench_function("basic_simd", |b| {
         b.iter(|| {
             data_a.optimized_simd_add(&data_b, &mut result);
-            black_box(&result);
+            let _ = black_box(&result);
         })
     });
 
@@ -48,7 +48,7 @@ fn bench_optimization_layers(c: &mut Criterion) {
     group.bench_function("advanced_parallel_simd", |b| {
         b.iter(|| {
             parallel_simd_add_advanced(&data_a, &data_b, &mut result).unwrap();
-            black_box(&result);
+            let _ = black_box(&result);
         })
     });
 
@@ -61,7 +61,7 @@ fn bench_optimization_layers(c: &mut Criterion) {
 
         b.iter(|| {
             let result = series_a.simd_add_raw(&series_b).unwrap();
-            black_box(result);
+            let _ = black_box(result);
         })
     });
 
@@ -74,7 +74,7 @@ fn bench_optimization_layers(c: &mut Criterion) {
 
             b.iter(|| {
                 let result = &series_a + &series_b;
-                black_box(result);
+                let _ = black_box(result);
             })
         });
     }
@@ -98,7 +98,7 @@ fn bench_fused_operations(c: &mut Criterion) {
         b.iter(|| {
             data_a.optimized_simd_add(&data_b, &mut temp);
             temp.optimized_simd_mul(&data_c, &mut result);
-            black_box(&result);
+            let _ = black_box(&result);
         })
     });
 
@@ -106,7 +106,7 @@ fn bench_fused_operations(c: &mut Criterion) {
     group.bench_function("fused_parallel", |b| {
         b.iter(|| {
             parallel_fused_add_mul_advanced(&data_a, &data_b, &data_c, &mut result).unwrap();
-            black_box(&result);
+            let _ = black_box(&result);
         })
     });
 
@@ -124,7 +124,7 @@ fn bench_memory_optimization(c: &mut Criterion) {
     group.bench_function("standard_vec", |b| {
         b.iter(|| {
             let result = data.optimized_simd_sum();
-            black_box(result);
+            let _ = black_box(result);
         })
     });
 
@@ -132,7 +132,7 @@ fn bench_memory_optimization(c: &mut Criterion) {
     group.bench_function("aligned_buffer", |b| {
         b.iter(|| {
             let result = parallel_simd_sum_advanced(&data).unwrap();
-            black_box(result);
+            let _ = black_box(result);
         })
     });
 
@@ -143,7 +143,7 @@ fn bench_memory_optimization(c: &mut Criterion) {
             let series = Series::new("data", &data);
             b.iter(|| {
                 let result = series.sum::<f64>().unwrap();
-                black_box(result);
+                let _ = black_box(result);
             })
         });
     }
@@ -160,12 +160,12 @@ fn bench_scalability(c: &mut Criterion) {
         let data_b = create_test_data(size);
         let mut result = vec![0.0; size];
 
-        let mut group = c.benchmark_group(&format!("scalability_{}", size));
+    let mut group = c.benchmark_group(format!("scalability_{}", size));
 
         group.bench_function("veloxx_advanced", |b| {
             b.iter(|| {
                 parallel_simd_add_advanced(&data_a, &data_b, &mut result).unwrap();
-                black_box(&result);
+                let _ = black_box(&result);
             })
         });
 
@@ -176,7 +176,7 @@ fn bench_scalability(c: &mut Criterion) {
 
             b.iter(|| {
                 let result = &series_a + &series_b;
-                black_box(result);
+                let _ = black_box(result);
             })
         });
 
@@ -196,7 +196,7 @@ fn bench_final_comparison(c: &mut Criterion) {
     group.bench_function("veloxx_sum", |b| {
         b.iter(|| {
             let result = parallel_simd_sum_advanced(&data).unwrap();
-            black_box(result);
+            let _ = black_box(result);
         })
     });
 
@@ -205,7 +205,7 @@ fn bench_final_comparison(c: &mut Criterion) {
         let mut result = vec![0.0; size];
         b.iter(|| {
             parallel_simd_add_advanced(&data, &data_b, &mut result).unwrap();
-            black_box(&result);
+            let _ = black_box(&result);
         })
     });
 
@@ -216,7 +216,7 @@ fn bench_final_comparison(c: &mut Criterion) {
             let series = Series::new("data", &data);
             b.iter(|| {
                 let result = series.sum::<f64>().unwrap();
-                black_box(result);
+                let _ = black_box(result);
             })
         });
 
@@ -227,7 +227,7 @@ fn bench_final_comparison(c: &mut Criterion) {
 
             b.iter(|| {
                 let result = &series_a + &series_b;
-                black_box(result);
+                let _ = black_box(result);
             })
         });
     }

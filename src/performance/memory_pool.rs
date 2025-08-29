@@ -19,6 +19,11 @@ pub struct MemoryPool {
     /// Pools for different sizes of memory blocks (legacy)
     pools: Arc<Mutex<HashMap<usize, Vec<Vec<u8>>>>>,
     /// Aligned memory pools for SIMD operations
+    // SAFETY & lint rationale:
+    // - This Arc<Mutex<...>> holds raw pointers managed only inside this module.
+    // - We implement Send/Sync for MemoryPool and guard access via Mutex.
+    // - Clippy warns about non-Send/Sync inner types; in our design, we never share
+    //   these pointers across threads without the Mutex, so this is acceptable.
     #[allow(clippy::arc_with_non_send_sync)]
     aligned_pools: Arc<Mutex<HashMap<usize, Vec<*mut u8>>>>,
     /// Maximum size of memory blocks to pool
@@ -35,6 +40,7 @@ unsafe impl Sync for MemoryPool {}
 
 impl MemoryPool {
     /// Create a new memory pool
+    #[allow(clippy::arc_with_non_send_sync)]
     pub fn new(max_pool_size: usize) -> Self {
         Self {
             pools: Arc::new(Mutex::new(HashMap::new())),

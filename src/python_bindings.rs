@@ -915,7 +915,7 @@ impl PySeries {
         }
     }
 
-    /// Convert to Vec<f64> for numeric series
+    /// Convert to `Vec<f64>` for numeric series
     pub fn to_vec_f64(&self) -> PyResult<Vec<Option<f64>>> {
         match self.inner.to_vec_f64() {
             Ok(result) => Ok(result.into_iter().map(Some).collect()),

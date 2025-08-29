@@ -48,7 +48,7 @@ impl ExpressionFusion {
         values.iter().filter(|&&x| x > threshold).count()
     }
 
-    /// Fused multiply and accumulate: result += a[i] * b[i]
+    /// Fused multiply and accumulate: result += a\[i\] * b\[i\]
     pub fn fused_multiply_accumulate_f64(a: &[f64], b: &[f64]) -> Result<f64, VeloxxError> {
         if a.len() != b.len() {
             return Err(VeloxxError::InvalidOperation(

@@ -15,7 +15,7 @@ fn create_arrow_series(size: usize) -> ArrowSeries {
 
 fn create_polars_series(size: usize) -> Series {
     let data: Vec<f64> = create_test_data(size);
-    Series::new("test".into(), data)
+    Series::new("test", data)
 }
 
 fn bench_arrow_vs_polars(c: &mut Criterion) {
@@ -26,7 +26,7 @@ fn bench_arrow_vs_polars(c: &mut Criterion) {
         let series = create_arrow_series(size);
         b.iter(|| {
             let result = series.simd_sum().unwrap();
-            black_box(result)
+            let _ = black_box(result);
         })
     });
 
@@ -35,7 +35,7 @@ fn bench_arrow_vs_polars(c: &mut Criterion) {
         let series = create_polars_series(size);
         b.iter(|| {
             let result = series.sum::<f64>().unwrap();
-            black_box(result)
+            let _ = black_box(result);
         })
     });
 
@@ -45,7 +45,7 @@ fn bench_arrow_vs_polars(c: &mut Criterion) {
         let series2 = create_arrow_series(size);
         b.iter(|| {
             let result = series1.simd_add(&series2).unwrap();
-            black_box(result)
+            let _ = black_box(result);
         })
     });
 
@@ -55,7 +55,7 @@ fn bench_arrow_vs_polars(c: &mut Criterion) {
         let series2 = create_polars_series(size);
         b.iter(|| {
             let result = &series1 + &series2;
-            black_box(result)
+            let _ = black_box(result);
         })
     });
 }

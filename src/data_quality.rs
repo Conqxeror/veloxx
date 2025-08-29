@@ -231,7 +231,7 @@ impl SchemaValidator {
         })
     }
 
-    #[allow(unused_variables)]
+    #[allow(unused_variables, clippy::ptr_arg)]
     fn validate_constraints(
         &self,
         series: &Series,

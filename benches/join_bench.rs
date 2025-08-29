@@ -20,7 +20,7 @@ fn join_benchmark(c: &mut Criterion) {
     let df1 = create_test_dataframe(100_000);
 
     // Create second dataframe with overlapping ids (50K rows)
-    let ids: Vec<Option<i32>> = (50_000..150_000).map(|i| Some(i as i32)).collect();
+    let ids: Vec<Option<i32>> = (50_000..150_000).map(Some).collect();
     let values2: Vec<Option<f64>> = (0..100_000).map(|i| Some(i as f64 * 2.5)).collect();
 
     let mut columns2 = HashMap::new();
