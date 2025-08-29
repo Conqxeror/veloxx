@@ -231,12 +231,13 @@ impl SchemaValidator {
         })
     }
 
+    #[allow(unused_variables)]
     fn validate_constraints(
         &self,
         series: &Series,
         column_schema: &ColumnSchema,
         errors: &mut Vec<ValidationError>,
-    _warnings: &mut Vec<ValidationError>,
+        warnings: &mut Vec<ValidationError>,
     ) -> Result<(), VeloxxError> {
         for constraint in &column_schema.constraints {
             match constraint {
