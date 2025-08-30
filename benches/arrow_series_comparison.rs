@@ -1,5 +1,6 @@
 // benches/arrow_series_comparison.rs
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+#[cfg(feature = "polars")]
 use polars::prelude::*;
 use veloxx::arrow::series::ArrowSeries;
 
@@ -13,6 +14,7 @@ fn create_arrow_series(size: usize) -> ArrowSeries {
     ArrowSeries::new_f64("test", opt_data)
 }
 
+#[cfg(feature = "polars")]
 fn create_polars_series(size: usize) -> Series {
     let data: Vec<f64> = create_test_data(size);
     Series::new("test", data)
@@ -31,6 +33,7 @@ fn bench_arrow_vs_polars(c: &mut Criterion) {
     });
 
     // Polars sum benchmark
+    #[cfg(feature = "polars")]
     c.bench_function("polars_series_sum", |b| {
         let series = create_polars_series(size);
         b.iter(|| {
@@ -50,6 +53,7 @@ fn bench_arrow_vs_polars(c: &mut Criterion) {
     });
 
     // Polars add benchmark
+    #[cfg(feature = "polars")]
     c.bench_function("polars_series_add", |b| {
         let series1 = create_polars_series(size);
         let series2 = create_polars_series(size);

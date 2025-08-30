@@ -1,0 +1,22 @@
+# cargo-audit configuration
+# Centralize allow-list for advisories we’ve assessed as low impact for this project.
+# Please revisit on dependency updates.
+
+[advisories]
+ignore = [
+  # rsa via sqlx-mysql (not enabled; we avoid mysql backend)
+  "RUSTSEC-2023-0071",
+  # instant crate unmaintained (pulled via linfa-linear dev path)
+  "RUSTSEC-2024-0384",
+  # paste crate unmaintained (transitive via parquet/argmin)
+  "RUSTSEC-2024-0436",
+  # fast-float advisories via polars (only used in optional benches)
+  "RUSTSEC-2024-0379",
+  "RUSTSEC-2025-0003",
+]
+
+# Treat yanked and unmaintained as warnings for now (tracked above if actionable).
+[yanked]
+den y = false
+[unmaintained]
+deny = false
