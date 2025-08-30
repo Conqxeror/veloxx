@@ -7,12 +7,15 @@
   <a href="https://pypi.org/project/veloxx/"><img src="https://img.shields.io/pypi/v/veloxx?color=blue&label=PyPI&logo=python" alt="PyPI" /></a>
   <a href="https://www.npmjs.com/package/veloxx"><img src="https://img.shields.io/npm/v/veloxx?color=red&label=npm&logo=npm" alt="npm" /></a>
   <a href="https://github.com/Conqxeror/veloxx"><img src="https://img.shields.io/github/stars/Conqxeror/veloxx?style=social&label=GitHub&logo=github" alt="GitHub" /></a>
+  <a href="https://docs.rs/veloxx"><img src="https://docs.rs/veloxx/badge.svg" alt="docs.rs" /></a>
+  <a href="https://github.com/Conqxeror/veloxx/actions/workflows/ci.yml"><img src="https://github.com/Conqxeror/veloxx/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" /></a>
   <a href="https://conqxeror.github.io/veloxx/"><img src="https://img.shields.io/badge/docs-online-blue?logo=readthedocs" alt="Documentation" /></a>
 </p>
 
 ---
 
-> 🚀 **v0.3.1 Released!** Major performance breakthroughs with industry-leading SIMD optimizations and comprehensive feature set.
+> 🚀 **v0.3.2 Released!** Production polish, docs overhaul, and security audit hardening.
 
 Veloxx is a **blazing-fast**, ultra-lightweight data processing and analytics library in Rust, with seamless bindings for Python and WebAssembly. Built from the ground up for **maximum performance**, featuring advanced SIMD acceleration, memory optimization, and parallel processing that often **outperforms industry leaders**.
 
@@ -81,7 +84,7 @@ Veloxx is a **blazing-fast**, ultra-lightweight data processing and analytics li
 
 ```toml
 [dependencies]
-veloxx = "0.3.1"
+veloxx = "0.3.2"
 ```
 
 ```rust
@@ -143,7 +146,13 @@ cargo run --example advanced_io --features advanced_io
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines. Please review our [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+## 💬 Support
+
+- Issues: https://github.com/Conqxeror/veloxx/issues
+- Discussions: https://github.com/Conqxeror/veloxx/discussions
+- Documentation: https://conqxeror.github.io/veloxx/
 
 ## 📝 License
 
