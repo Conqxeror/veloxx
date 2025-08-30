@@ -168,15 +168,15 @@ dependencies = [
  "arrow-arith",
  "arrow-array 53.4.1",
  "arrow-buffer 53.4.1",
- "arrow-cast 53.4.1",
+ "arrow-cast",
  "arrow-csv",
  "arrow-data 53.4.1",
- "arrow-ipc 53.4.1",
+ "arrow-ipc",
  "arrow-json",
  "arrow-ord",
  "arrow-row",
  "arrow-schema 53.4.1",
- "arrow-select 53.4.1",
+ "arrow-select",
  "arrow-string",
 ]
 
@@ -259,27 +259,7 @@ dependencies = [
  "arrow-buffer 53.4.1",
  "arrow-data 53.4.1",
  "arrow-schema 53.4.1",
- "arrow-select 53.4.1",
- "atoi",
- "base64",
- "chrono",
- "half",
- "lexical-core",
- "num",
- "ryu",
-]
-
-[[package]]
-name = "arrow-cast"
-version = "54.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4103d88c5b441525ed4ac23153be7458494c2b0c9a11115848fdb9b81f6f886a"
-dependencies = [
- "arrow-array 54.2.1",
- "arrow-buffer 54.3.1",
- "arrow-data 54.3.1",
- "arrow-schema 54.3.1",
- "arrow-select 54.2.1",
+ "arrow-select",
  "atoi",
  "base64",
  "chrono",
@@ -297,7 +277,7 @@ checksum = "30dac4d23ac769300349197b845e0fd18c7f9f15d260d4659ae6b5a9ca06f586"
 dependencies = [
  "arrow-array 53.4.1",
  "arrow-buffer 53.4.1",
- "arrow-cast 53.4.1",
+ "arrow-cast",
  "arrow-data 53.4.1",
  "arrow-schema 53.4.1",
  "chrono",
@@ -334,20 +314,22 @@ dependencies = [
 
 [[package]]
 name = "arrow-flight"
-version = "54.2.1"
+version = "53.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7408f2bf3b978eddda272c7699f439760ebc4ac70feca25fefa82c5b8ce808d"
+checksum = "51e3a40b6ef36f4c17d1fae5af3438c3d6c660401f9ac8a4d921c27d368b8dee"
 dependencies = [
- "arrow-array 54.2.1",
- "arrow-buffer 54.3.1",
- "arrow-cast 54.2.1",
- "arrow-ipc 54.2.1",
- "arrow-schema 54.3.1",
+ "arrow-array 53.4.1",
+ "arrow-buffer 53.4.1",
+ "arrow-cast",
+ "arrow-ipc",
+ "arrow-schema 53.4.1",
  "base64",
  "bytes",
  "futures",
+ "paste",
  "prost",
  "prost-types",
+ "tokio",
  "tonic",
 ]
 
@@ -359,22 +341,9 @@ checksum = "c3527365b24372f9c948f16e53738eb098720eea2093ae73c7af04ac5e30a39b"
 dependencies = [
  "arrow-array 53.4.1",
  "arrow-buffer 53.4.1",
- "arrow-cast 53.4.1",
+ "arrow-cast",
  "arrow-data 53.4.1",
  "arrow-schema 53.4.1",
- "flatbuffers",
-]
-
-[[package]]
-name = "arrow-ipc"
-version = "54.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddecdeab02491b1ce88885986e25002a3da34dd349f682c7cfe67bab7cc17b86"
-dependencies = [
- "arrow-array 54.2.1",
- "arrow-buffer 54.3.1",
- "arrow-data 54.3.1",
- "arrow-schema 54.3.1",
  "flatbuffers",
 ]
 
@@ -386,7 +355,7 @@ checksum = "acdec0024749fc0d95e025c0b0266d78613727b3b3a5d4cf8ea47eb6d38afdd1"
 dependencies = [
  "arrow-array 53.4.1",
  "arrow-buffer 53.4.1",
- "arrow-cast 53.4.1",
+ "arrow-cast",
  "arrow-data 53.4.1",
  "arrow-schema 53.4.1",
  "chrono",
@@ -408,7 +377,7 @@ dependencies = [
  "arrow-buffer 53.4.1",
  "arrow-data 53.4.1",
  "arrow-schema 53.4.1",
- "arrow-select 53.4.1",
+ "arrow-select",
  "half",
  "num",
 ]
@@ -454,20 +423,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "arrow-select"
-version = "54.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e2932aece2d0c869dd2125feb9bd1709ef5c445daa3838ac4112dcfa0fda52c"
-dependencies = [
- "ahash",
- "arrow-array 54.2.1",
- "arrow-buffer 54.3.1",
- "arrow-data 54.3.1",
- "arrow-schema 54.3.1",
- "num",
-]
-
-[[package]]
 name = "arrow-string"
 version = "53.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -477,7 +432,7 @@ dependencies = [
  "arrow-buffer 53.4.1",
  "arrow-data 53.4.1",
  "arrow-schema 53.4.1",
- "arrow-select 53.4.1",
+ "arrow-select",
  "memchr",
  "num",
  "regex",
@@ -2437,11 +2392,11 @@ dependencies = [
  "ahash",
  "arrow-array 53.4.1",
  "arrow-buffer 53.4.1",
- "arrow-cast 53.4.1",
+ "arrow-cast",
  "arrow-data 53.4.1",
- "arrow-ipc 53.4.1",
+ "arrow-ipc",
  "arrow-schema 53.4.1",
- "arrow-select 53.4.1",
+ "arrow-select",
  "base64",
  "brotli",
  "bytes",
@@ -4129,18 +4084,18 @@ dependencies = [
  "aligned",
  "arrow",
  "arrow-arith",
- "arrow-array 53.4.1",
+ "arrow-array 54.2.1",
  "arrow-buffer 53.4.1",
- "arrow-cast 53.4.1",
+ "arrow-cast",
  "arrow-csv",
  "arrow-data 53.4.1",
  "arrow-flight",
- "arrow-ipc 53.4.1",
+ "arrow-ipc",
  "arrow-json",
  "arrow-ord",
  "arrow-row",
  "arrow-schema 53.4.1",
- "arrow-select 53.4.1",
+ "arrow-select",
  "arrow-string",
  "bincode",
  "chrono",
