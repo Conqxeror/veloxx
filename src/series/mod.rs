@@ -1,18 +1,16 @@
 use crate::types::{DataType, Value};
 use crate::VeloxxError;
 
-// Arrow imports only for non-WASM targets
-#[cfg(not(target_arch = "wasm32"))]
+// Arrow imports only when the `arrow` feature is enabled and not targeting WASM
+#[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
 use arrow::array::{
     ArrayRef, BooleanArray, Float64Array, Int32Array, StringArray, TimestampNanosecondArray,
 };
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
 use arrow::datatypes::{DataType as ArrowDataType, TimeUnit};
 
 // SIMD trait imports - only for native targets
 // Note: we use concrete traits in method scopes to minimize compile-time coupling
-
-
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Series {
@@ -105,10 +103,18 @@ impl Series {
     fn get_numeric_f64(&self, index: usize) -> Option<f64> {
         match self {
             Series::F64(_, values, validity) => {
-                if index < values.len() && validity[index] { Some(values[index]) } else { None }
+                if index < values.len() && validity[index] {
+                    Some(values[index])
+                } else {
+                    None
+                }
             }
             Series::I32(_, values, validity) => {
-                if index < values.len() && validity[index] { Some(values[index] as f64) } else { None }
+                if index < values.len() && validity[index] {
+                    Some(values[index] as f64)
+                } else {
+                    None
+                }
             }
             _ => None,
         }
@@ -321,8 +327,8 @@ impl Series {
         Series::DateTime(name.to_string(), values, bitmap)
     }
 
-    /// Create a Series from an Arrow array (not available in WASM)
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Create a Series from an Arrow array (requires `arrow` feature, not available in WASM)
+    #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
     pub fn from_arrow_array(array: ArrayRef, name: String) -> Result<Self, VeloxxError> {
         match array.data_type() {
             ArrowDataType::Int32 => {
@@ -658,7 +664,8 @@ impl Series {
                 Ok(Series::DateTime(new_name, new_values, new_bitmap))
             }
             _ => Err(VeloxxError::InvalidOperation(
-                "Mismatched series types during append (should be caught by data_type check).".to_string()
+                "Mismatched series types during append (should be caught by data_type check)."
+                    .to_string(),
             )),
         }
     }
@@ -769,9 +776,11 @@ impl Series {
             // Same type - just clone
             (_, target_type) if self.data_type() == target_type => Ok(self.clone()),
             // Unsupported conversion
-            _ => Err(VeloxxError::InvalidOperation(
-                format!("Cannot cast from {:?} to {:?}", self.data_type(), target_type)
-            )),
+            _ => Err(VeloxxError::InvalidOperation(format!(
+                "Cannot cast from {:?} to {:?}",
+                self.data_type(),
+                target_type
+            ))),
         }
     }
 
@@ -780,12 +789,12 @@ impl Series {
         // Both series must be numeric and same length
         if !self.is_numeric() || !other.is_numeric() {
             return Err(VeloxxError::InvalidOperation(
-                "Correlation requires numeric series".to_string()
+                "Correlation requires numeric series".to_string(),
             ));
         }
         if self.len() != other.len() {
             return Err(VeloxxError::InvalidOperation(
-                "Series must have same length for correlation".to_string()
+                "Series must have same length for correlation".to_string(),
             ));
         }
 
@@ -831,12 +840,12 @@ impl Series {
         // Both series must be numeric and same length
         if !self.is_numeric() || !other.is_numeric() {
             return Err(VeloxxError::InvalidOperation(
-                "Covariance requires numeric series".to_string()
+                "Covariance requires numeric series".to_string(),
             ));
         }
         if self.len() != other.len() {
             return Err(VeloxxError::InvalidOperation(
-                "Series must have same length for covariance".to_string()
+                "Series must have same length for covariance".to_string(),
             ));
         }
 
@@ -857,9 +866,11 @@ impl Series {
         let mean_y: f64 = pairs.iter().map(|(_, y)| y).sum::<f64>() / pairs.len() as f64;
 
         // Calculate covariance
-        let covariance: f64 = pairs.iter()
+        let covariance: f64 = pairs
+            .iter()
             .map(|(x, y)| (x - mean_x) * (y - mean_y))
-            .sum::<f64>() / (pairs.len() - 1) as f64;
+            .sum::<f64>()
+            / (pairs.len() - 1) as f64;
 
         Ok(Some(covariance))
     }
@@ -873,5 +884,5 @@ impl Series {
 
 pub mod aggregations;
 pub mod arithmetic;
-pub mod time_series;
 pub mod ops;
+pub mod time_series;

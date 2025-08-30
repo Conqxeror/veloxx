@@ -43,8 +43,9 @@ impl DataFrame {
     /// Selects a subset of columns from the `DataFrame`.
     ///
     /// This method creates a new `DataFrame` containing only the columns specified
-    /// in the `names` vector. The order of columns in the new DataFrame will match
-    /// the order provided in `names`.
+    /// in the `names` vector. Note: internal storage uses a HashMap, so iteration
+    /// order is not guaranteed – don't rely on column order; instead check for
+    /// membership or sort when comparing.
     ///
     /// # Arguments
     ///
@@ -70,7 +71,10 @@ impl DataFrame {
     ///
     /// let selected_df = df.select_columns(vec!["A".to_string(), "C".to_string()]).unwrap();
     /// assert_eq!(selected_df.column_count(), 2);
-    /// assert_eq!(selected_df.column_names(), vec![&"A".to_string(), &"C".to_string()]);
+    /// // Compare without relying on HashMap iteration order
+    /// let mut names: Vec<String> = selected_df.column_names().iter().cloned().cloned().collect();
+    /// names.sort();
+    /// assert_eq!(names, vec!["A".to_string(), "C".to_string()]);
     /// ```
     pub fn select_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
         let mut selected_columns = HashMap::new();
@@ -607,7 +611,7 @@ impl DataFrame {
     /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(10), Some(20), Some(30), Some(40)]));
     /// let df = DataFrame::new(columns).unwrap();
     ///
@@ -996,7 +1000,7 @@ impl DataFrame {
     /// use veloxx::series::Series;
     /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("X".to_string(), Series::new_i32("X", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]));
     /// columns.insert("Y".to_string(), Series::new_f64("Y", vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -1220,9 +1224,7 @@ struct DenseSeqGroupByParams<'a> {
 
 /// Fast dense sequential groupby implementation
 #[allow(clippy::too_many_arguments)]
-fn dense_sequential_groupby(
-    params: DenseSeqGroupByParams,
-) -> Result<DataFrame, VeloxxError> {
+fn dense_sequential_groupby(params: DenseSeqGroupByParams) -> Result<DataFrame, VeloxxError> {
     use crate::series::Series;
     // ...existing code...
 

@@ -288,7 +288,7 @@ mod tests {
             .contains(&&"volume_rolling_mean_3".to_string()));
 
         let price_rolling = result.get_column("price_rolling_mean_3").unwrap();
-        
+
         // Check rolling mean values using get_value method
         assert_eq!(price_rolling.get_value(0), None);
         assert_eq!(price_rolling.get_value(1), None);
@@ -323,10 +323,10 @@ mod tests {
             .contains(&&"price_pct_change".to_string()));
 
         let pct_change = result.get_column("price_pct_change").unwrap();
-        
+
         // Check pct_change values using get_value method
         assert_eq!(pct_change.get_value(0), None);
-        
+
         if let Some(val) = pct_change.get_value(1) {
             if let Value::F64(v) = val {
                 assert!((v - 0.1).abs() < 1e-10); // 10% increase
@@ -336,7 +336,7 @@ mod tests {
         } else {
             panic!("Expected Some value for index 1");
         }
-        
+
         if let Some(val) = pct_change.get_value(2) {
             if let Value::F64(v) = val {
                 assert!((v - (-0.1)).abs() < 1e-10); // 10% decrease
@@ -363,7 +363,7 @@ mod tests {
         assert!(result.column_names().contains(&&"sales_cumsum".to_string()));
 
         let cumsum = result.get_column("sales_cumsum").unwrap();
-        
+
         // Check cumsum values using get_value method
         if let Some(val) = cumsum.get_value(0) {
             if let Value::I32(v) = val {
@@ -374,7 +374,7 @@ mod tests {
         } else {
             panic!("Expected Some value for index 0");
         }
-        
+
         if let Some(val) = cumsum.get_value(1) {
             if let Value::I32(v) = val {
                 assert_eq!(v, 30);
@@ -384,7 +384,7 @@ mod tests {
         } else {
             panic!("Expected Some value for index 1");
         }
-        
+
         if let Some(val) = cumsum.get_value(2) {
             if let Value::I32(v) = val {
                 assert_eq!(v, 45);
@@ -394,7 +394,7 @@ mod tests {
         } else {
             panic!("Expected Some value for index 2");
         }
-        
+
         if let Some(val) = cumsum.get_value(3) {
             if let Value::I32(v) = val {
                 assert_eq!(v, 70);

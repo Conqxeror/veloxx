@@ -13,9 +13,7 @@ fn bench_arrow_math_ops(c: &mut Criterion) {
         .map(|i| Some(((i % 1000) as f64) * 2.0 + 1.0))
         .collect();
     let data1_i32: Vec<Option<i32>> = (0..size).map(|i| Some(i % 1000 + 1)).collect();
-    let data2_i32: Vec<Option<i32>> = (0..size)
-        .map(|i| Some((i % 1000) * 2 + 1))
-        .collect();
+    let data2_i32: Vec<Option<i32>> = (0..size).map(|i| Some((i % 1000) * 2 + 1)).collect();
 
     // Test Arrow Series
     #[cfg(feature = "arrow")]

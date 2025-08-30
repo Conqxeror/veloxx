@@ -2,7 +2,7 @@ use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::types::Value;
 use std::cmp::Ordering;
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 /// Ultra-fast query engine with SIMD-accelerated predicate evaluation
 pub struct UltraFastQueryEngine;
@@ -296,8 +296,6 @@ impl UltraFastQueryEngine {
 
         Ok(())
     }
-
-    
 
     fn apply_filter(
         &self,

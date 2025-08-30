@@ -831,7 +831,10 @@ mod tests {
         let objects = vec![{
             let mut obj = HashMap::new();
             obj.insert("int_col".to_string(), JsonValue::Integer(42));
-            obj.insert("float_col".to_string(), JsonValue::Float(std::f64::consts::PI));
+            obj.insert(
+                "float_col".to_string(),
+                JsonValue::Float(std::f64::consts::PI),
+            );
             obj.insert("bool_col".to_string(), JsonValue::Bool(true));
             obj.insert(
                 "str_col".to_string(),

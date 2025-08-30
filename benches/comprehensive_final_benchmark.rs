@@ -160,7 +160,7 @@ fn bench_scalability(c: &mut Criterion) {
         let data_b = create_test_data(size);
         let mut result = vec![0.0; size];
 
-    let mut group = c.benchmark_group(format!("scalability_{}", size));
+        let mut group = c.benchmark_group(format!("scalability_{}", size));
 
         group.bench_function("veloxx_advanced", |b| {
             b.iter(|| {

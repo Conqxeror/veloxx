@@ -84,13 +84,11 @@ fn simd_max_f64(values: &[f64]) -> f64 {
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap_or(&0.0)
 }
-use crate::{
-    dataframe::DataFrame, series::Series, types::Value, VeloxxError,
-};
 #[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
 use crate::performance::simd_eq_str;
 #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))]
 use crate::performance::simd_string::simd_eq_str;
+use crate::{dataframe::DataFrame, series::Series, types::Value, VeloxxError};
 // use bincode::{config, decode_from_slice, encode_to_vec};
 use std::collections::HashMap;
 
@@ -279,7 +277,7 @@ impl<'a> GroupedDataFrame<'a> {
     /// use std::collections::HashMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string())]));
     /// columns.insert("sales".to_string(), Series::new_f64("sales", vec![Some(100.0), Some(150.0), Some(200.0)]));
     /// columns.insert("quantity".to_string(), Series::new_i32("quantity", vec![Some(10), Some(15), Some(20)]));

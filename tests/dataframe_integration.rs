@@ -157,7 +157,7 @@ mod tests {
         let df1_cols = df1.column_names();
         let df2_cols = df2.column_names();
         assert_eq!(df1_cols.len(), df2_cols.len());
-        
+
         // Since HashMap doesn't guarantee order, try to handle the error gracefully
         match df1.append(&df2) {
             Ok(appended_df) => {
@@ -171,7 +171,9 @@ mod tests {
                     Some(Value::I32(4))
                 );
             }
-            Err(VeloxxError::InvalidOperation(msg)) if msg.contains("different column names or order") => {
+            Err(VeloxxError::InvalidOperation(msg))
+                if msg.contains("different column names or order") =>
+            {
                 // This is expected due to HashMap ordering - test passes
                 println!("Note: HashMap column ordering caused expected append failure");
             }

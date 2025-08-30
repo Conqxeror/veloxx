@@ -182,9 +182,7 @@ impl FastGroupBy {
 
     /// Dense array group by with SIMD acceleration for aggregation
     #[allow(clippy::too_many_arguments)]
-    fn dense_array_groupby_simd(
-        params: DenseSimdGroupByParams,
-    ) -> Result<DataFrame, VeloxxError> {
+    fn dense_array_groupby_simd(params: DenseSimdGroupByParams) -> Result<DataFrame, VeloxxError> {
         // Allocate dense arrays for sums and counts
         let mut sums = vec![0.0f64; params.range];
         let mut counts = vec![0u32; params.range];

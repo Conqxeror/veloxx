@@ -18,8 +18,8 @@ mod high_performance_tests {
 
     #[test]
     fn test_vectorized_filter_performance() {
-    // Create a dataset for performance testing (smaller by default)
-    let size = cfg_size(100_000, 20_000);
+        // Create a dataset for performance testing (smaller by default)
+        let size = cfg_size(100_000, 20_000);
         let data: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
         let series = Series::new_f64("values", data);
 
@@ -28,27 +28,30 @@ mod high_performance_tests {
         let df = DataFrame::new(columns).expect("DataFrame creation should succeed");
 
         // Test vectorized filtering
-    let start = Instant::now();
-    // Use a dynamic threshold at half the range so roughly half the rows match
-    let threshold = (size as f64) / 2.0;
-    let condition = Condition::Gt("values".to_string(), Value::F64(threshold));
+        let start = Instant::now();
+        // Use a dynamic threshold at half the range so roughly half the rows match
+        let threshold = (size as f64) / 2.0;
+        let condition = Condition::Gt("values".to_string(), Value::F64(threshold));
         let filtered = df.filter(&condition).expect("Filter should succeed");
         let duration = start.elapsed();
 
-    // Should filter approximately half the data (±10%)
-    let expected = size as f64 / 2.0;
-    let lower = (expected * 0.9) as usize;
-    let upper = (expected * 1.1) as usize;
-    assert!(filtered.row_count() > lower && filtered.row_count() < upper);
+        // Should filter approximately half the data (±10%)
+        let expected = size as f64 / 2.0;
+        let lower = (expected * 0.9) as usize;
+        let upper = (expected * 1.1) as usize;
+        assert!(filtered.row_count() > lower && filtered.row_count() < upper);
         println!("Vectorized filter of {} rows took: {:?}", size, duration);
 
         // Should be reasonably fast
-    assert!(duration.as_millis() < 5_000, "Vectorized filter should be performant");
+        assert!(
+            duration.as_millis() < 5_000,
+            "Vectorized filter should be performant"
+        );
     }
 
     #[test]
     fn test_simd_sum_performance() {
-    let size = cfg_size(1_000_000, 200_000);
+        let size = cfg_size(1_000_000, 200_000);
         let data: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
         let series = Series::new_f64("values", data);
 
@@ -66,12 +69,12 @@ mod high_performance_tests {
         }
 
         println!("SIMD sum of {} elements took: {:?}", size, duration);
-    assert!(duration.as_millis() < 1_000, "SIMD sum should be very fast");
+        assert!(duration.as_millis() < 1_000, "SIMD sum should be very fast");
     }
 
     #[test]
     fn test_simd_arithmetic_performance() {
-    let size = cfg_size(500_000, 100_000);
+        let size = cfg_size(500_000, 100_000);
         let data1: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
         let data2: Vec<Option<f64>> = (0..size).map(|i| Some((i + 1) as f64)).collect();
 
@@ -106,14 +109,20 @@ mod high_performance_tests {
             size, mul_duration
         );
 
-    assert!(add_duration.as_millis() < 2_000, "SIMD addition should be fast");
-    assert!(mul_duration.as_millis() < 2_000, "SIMD multiplication should be fast");
+        assert!(
+            add_duration.as_millis() < 2_000,
+            "SIMD addition should be fast"
+        );
+        assert!(
+            mul_duration.as_millis() < 2_000,
+            "SIMD multiplication should be fast"
+        );
     }
 
     #[test]
     fn test_optimized_group_by_performance() {
-    let size = cfg_size(100_000, 50_000);
-    let categories = ["A", "B", "C", "D", "E"]; 
+        let size = cfg_size(100_000, 50_000);
+        let categories = ["A", "B", "C", "D", "E"];
 
         // Create test data with groups
         let cat_data: Vec<Option<String>> = (0..size)
@@ -143,14 +152,17 @@ mod high_performance_tests {
         assert_eq!(result.row_count(), 5);
 
         println!("Optimized group by on {} rows took: {:?}", size, duration);
-    assert!(duration.as_millis() < 10_000, "Optimized group by should be fast");
+        assert!(
+            duration.as_millis() < 10_000,
+            "Optimized group by should be fast"
+        );
     }
 
     #[test]
     fn test_memory_pool_efficiency() {
-    // Test that our memory pool reduces allocation overhead
-    let iterations = cfg_size(1_000, 200);
-    let size = cfg_size(1_000, 500);
+        // Test that our memory pool reduces allocation overhead
+        let iterations = cfg_size(1_000, 200);
+        let size = cfg_size(1_000, 500);
 
         let start = Instant::now();
         for i in 0..iterations {
@@ -178,12 +190,15 @@ mod high_performance_tests {
         );
 
         // Should complete in reasonable time (memory pool should help)
-    assert!(duration.as_secs() < 10, "Memory pool should provide efficiency gains");
+        assert!(
+            duration.as_secs() < 10,
+            "Memory pool should provide efficiency gains"
+        );
     }
 
     #[test]
     fn test_expression_fusion_optimization() {
-    let size = cfg_size(50_000, 20_000);
+        let size = cfg_size(50_000, 20_000);
         let data1: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
         let data2: Vec<Option<f64>> = (0..size).map(|i| Some((i + 1) as f64)).collect();
         let data3: Vec<Option<f64>> = (0..size).map(|i| Some((i * 2) as f64)).collect();
@@ -210,20 +225,23 @@ mod high_performance_tests {
             "Expression fusion test on {} elements took: {:?}",
             size, duration
         );
-    assert!(duration.as_millis() < 3_000, "Expression fusion should optimize chained operations");
+        assert!(
+            duration.as_millis() < 3_000,
+            "Expression fusion should optimize chained operations"
+        );
     }
 
     #[test]
     fn test_parallel_processing_scaling() {
-    let size = cfg_size(200_000, 100_000);
+        let size = cfg_size(200_000, 100_000);
         let data: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64 * 1.5)).collect();
-        
+
         // Create a categorical column with reasonable number of groups (10)
-    let categories = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]; 
+        let categories = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
         let category_data: Vec<Option<String>> = (0..size)
             .map(|i| Some(categories[i % categories.len()].to_string()))
             .collect();
-        
+
         let series = Series::new_f64("values", data);
         let cat_series = Series::new_string("category", category_data);
 
@@ -254,7 +272,10 @@ mod high_performance_tests {
             "Parallel processing test on {} rows took: {:?}",
             size, duration
         );
-    assert!(duration.as_millis() < 25_000, "Parallel processing should provide performance benefits");
+        assert!(
+            duration.as_millis() < 25_000,
+            "Parallel processing should provide performance benefits"
+        );
     }
 
     #[test]

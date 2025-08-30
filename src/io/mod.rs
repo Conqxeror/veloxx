@@ -23,11 +23,11 @@ impl CsvReader {
     }
 
     pub fn read_file(&self, _path: &str) -> Result<DataFrame, VeloxxError> {
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
         {
             arrow::read_csv_to_dataframe(_path)
         }
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(any(target_arch = "wasm32", not(feature = "arrow")))]
         {
             Err(VeloxxError::Unsupported(
                 "File I/O not supported in WASM builds".to_string(),
@@ -56,11 +56,11 @@ impl ParquetReader {
 
     #[cfg(feature = "advanced_io")]
     pub fn read_file(&self, path: &str) -> Result<DataFrame, VeloxxError> {
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
         {
             arrow::read_parquet_to_dataframe(path)
         }
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(any(target_arch = "wasm32", not(feature = "arrow")))]
         {
             Err(VeloxxError::Unsupported(
                 "File I/O not supported in WASM builds".to_string(),

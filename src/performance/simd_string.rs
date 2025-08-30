@@ -5,15 +5,15 @@ pub fn simd_eq_str(a: &str, b: &str) -> bool {
     use std::arch::x86_64::*;
     let a_bytes = a.as_bytes();
     let b_bytes = b.as_bytes();
-    
+
     // First check if lengths are equal
     if a_bytes.len() != b_bytes.len() {
         return false;
     }
-    
+
     let len = a_bytes.len();
     let mut i = 0;
-    
+
     // Compare 16-byte chunks with SIMD
     while i + 16 <= len {
         unsafe {
@@ -26,7 +26,7 @@ pub fn simd_eq_str(a: &str, b: &str) -> bool {
         }
         i += 16;
     }
-    
+
     // Fallback for remaining bytes
     a_bytes[i..] == b_bytes[i..]
 }

@@ -387,7 +387,12 @@ impl StdSimdOps<i32> for [i32] {
         let mut sum = simd_sum.reduce_add();
 
         // Add remaining elements
-        sum += self.iter().skip(len - remainder).take(remainder).copied().sum::<i32>();
+        sum += self
+            .iter()
+            .skip(len - remainder)
+            .take(remainder)
+            .copied()
+            .sum::<i32>();
 
         Ok(sum)
     }

@@ -17,7 +17,7 @@ pub use crate::types::{DataType, Value};
 
 // WASM exports
 #[cfg(target_arch = "wasm32")]
-pub use wasm_bindings::{WasmDataFrame, WasmSeries, WasmGroupedDataFrame};
+pub use wasm_bindings::{WasmDataFrame, WasmGroupedDataFrame, WasmSeries};
 
 // Core modules
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]

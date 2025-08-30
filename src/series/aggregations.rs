@@ -178,12 +178,17 @@ impl Series {
                         "No valid values in series".to_string(),
                     ));
                 }
-                let mean: f64 = valid_values.iter().map(|&x| x as f64).sum::<f64>() / valid_values.len() as f64;
+                let mean: f64 =
+                    valid_values.iter().map(|&x| x as f64).sum::<f64>() / valid_values.len() as f64;
                 let variance = if valid_values.len() > 1 {
-                    valid_values.iter().map(|&x| {
-                        let diff = x as f64 - mean;
-                        diff * diff
-                    }).sum::<f64>() / (valid_values.len() - 1) as f64
+                    valid_values
+                        .iter()
+                        .map(|&x| {
+                            let diff = x as f64 - mean;
+                            diff * diff
+                        })
+                        .sum::<f64>()
+                        / (valid_values.len() - 1) as f64
                 } else {
                     return Err(VeloxxError::InvalidOperation(
                         "Standard deviation requires at least 2 values".to_string(),
@@ -204,10 +209,14 @@ impl Series {
                 }
                 let mean: f64 = valid_values.iter().sum::<f64>() / valid_values.len() as f64;
                 let variance = if valid_values.len() > 1 {
-                    valid_values.iter().map(|&x| {
-                        let diff = x - mean;
-                        diff * diff
-                    }).sum::<f64>() / (valid_values.len() - 1) as f64
+                    valid_values
+                        .iter()
+                        .map(|&x| {
+                            let diff = x - mean;
+                            diff * diff
+                        })
+                        .sum::<f64>()
+                        / (valid_values.len() - 1) as f64
                 } else {
                     return Err(VeloxxError::InvalidOperation(
                         "Standard deviation requires at least 2 values".to_string(),
@@ -279,7 +288,7 @@ impl Series {
                 let mut unique_bitmap = Vec::new();
                 let mut seen = HashSet::new();
                 let mut has_null = false;
-                
+
                 for (&val, &valid) in values.iter().zip(bitmap.iter()) {
                     if valid && seen.insert(val) {
                         unique_values.push(val);
@@ -291,7 +300,7 @@ impl Series {
                         unique_bitmap.push(false);
                     }
                 }
-                
+
                 Ok(Series::I32(name.clone(), unique_values, unique_bitmap))
             }
             Series::F64(name, values, bitmap) => {
@@ -300,7 +309,7 @@ impl Series {
                 let mut unique_bitmap = Vec::new();
                 let mut seen = HashSet::new();
                 let mut has_null = false;
-                
+
                 for (&val, &valid) in values.iter().zip(bitmap.iter()) {
                     if valid {
                         let key = val.to_bits(); // Use bit representation for hashing
@@ -315,7 +324,7 @@ impl Series {
                         unique_bitmap.push(false);
                     }
                 }
-                
+
                 Ok(Series::F64(name.clone(), unique_values, unique_bitmap))
             }
             Series::String(name, values, bitmap) => {
@@ -324,7 +333,7 @@ impl Series {
                 let mut unique_bitmap = Vec::new();
                 let mut seen = HashSet::new();
                 let mut has_null = false;
-                
+
                 for (val, &valid) in values.iter().zip(bitmap.iter()) {
                     if valid && seen.insert(val.clone()) {
                         unique_values.push(val.clone());
@@ -336,7 +345,7 @@ impl Series {
                         unique_bitmap.push(false);
                     }
                 }
-                
+
                 Ok(Series::String(name.clone(), unique_values, unique_bitmap))
             }
             _ => Err(VeloxxError::InvalidOperation(

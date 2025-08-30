@@ -1,4 +1,3 @@
-
 use crate::series::Series;
 use crate::VeloxxError;
 
@@ -6,11 +5,13 @@ impl Series {
     pub fn add(&self, other: &Series) -> Result<Series, VeloxxError> {
         // Check if lengths match
         if self.len() != other.len() {
-            return Err(VeloxxError::InvalidOperation(
-                format!("Series length mismatch: {} vs {}", self.len(), other.len())
-            ));
+            return Err(VeloxxError::InvalidOperation(format!(
+                "Series length mismatch: {} vs {}",
+                self.len(),
+                other.len()
+            )));
         }
-        
+
         match (self, other) {
             (Series::I32(name, values, bitmap), Series::I32(_, other_values, other_bitmap)) => {
                 let mut new_values = Vec::with_capacity(values.len());

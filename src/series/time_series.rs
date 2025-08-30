@@ -1,5 +1,5 @@
-use crate::VeloxxError;
 use crate::series::Series;
+use crate::VeloxxError;
 
 impl Series {
     /// Calculates a rolling mean (moving average) over a specified window size.
@@ -70,8 +70,13 @@ impl Series {
                 }
 
                 let result_validity: Vec<bool> = result.iter().map(|x| x.is_some()).collect();
-                let result_values: Vec<f64> = result.into_iter().map(|x| x.unwrap_or(0.0)).collect();
-                Ok(Series::F64(new_name.clone(), result_values, result_validity))
+                let result_values: Vec<f64> =
+                    result.into_iter().map(|x| x.unwrap_or(0.0)).collect();
+                Ok(Series::F64(
+                    new_name.clone(),
+                    result_values,
+                    result_validity,
+                ))
             }
             Series::F64(_name, data, validity) => {
                 let mut result = Vec::with_capacity(data.len());
@@ -100,7 +105,8 @@ impl Series {
                 }
 
                 let result_validity: Vec<bool> = result.iter().map(|x| x.is_some()).collect();
-                let result_values: Vec<f64> = result.into_iter().map(|x| x.unwrap_or(0.0)).collect();
+                let result_values: Vec<f64> =
+                    result.into_iter().map(|x| x.unwrap_or(0.0)).collect();
                 Ok(Series::F64(new_name, result_values, result_validity))
             }
             _ => Err(VeloxxError::InvalidOperation(
@@ -158,8 +164,7 @@ impl Series {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<i32> =
-                            data[window_start..=i].to_vec();
+                        let window_data: Vec<i32> = data[window_start..=i].to_vec();
 
                         if window_data.is_empty() {
                             result.push(None);
@@ -182,8 +187,7 @@ impl Series {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> =
-                            data[window_start..=i].to_vec();
+                        let window_data: Vec<f64> = data[window_start..=i].to_vec();
 
                         if window_data.is_empty() {
                             result.push(None);
@@ -253,8 +257,7 @@ impl Series {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<i32> =
-                            data[window_start..=i].to_vec();
+                        let window_data: Vec<i32> = data[window_start..=i].to_vec();
 
                         if window_data.is_empty() {
                             result.push(None);
@@ -277,8 +280,7 @@ impl Series {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> =
-                            data[window_start..=i].to_vec();
+                        let window_data: Vec<f64> = data[window_start..=i].to_vec();
 
                         if window_data.is_empty() {
                             result.push(None);
@@ -348,8 +350,7 @@ impl Series {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<i32> =
-                            data[window_start..=i].to_vec();
+                        let window_data: Vec<i32> = data[window_start..=i].to_vec();
 
                         if window_data.is_empty() {
                             result.push(None);
@@ -372,8 +373,7 @@ impl Series {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> =
-                            data[window_start..=i].to_vec();
+                        let window_data: Vec<f64> = data[window_start..=i].to_vec();
 
                         if window_data.is_empty() {
                             result.push(None);
@@ -473,8 +473,7 @@ impl Series {
                         result.push(None);
                     } else {
                         let window_start = i + 1 - window_size;
-                        let window_data: Vec<f64> =
-                            data[window_start..=i].to_vec();
+                        let window_data: Vec<f64> = data[window_start..=i].to_vec();
 
                         if window_data.len() < 2 {
                             result.push(None);

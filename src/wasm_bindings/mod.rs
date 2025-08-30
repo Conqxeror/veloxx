@@ -1,9 +1,9 @@
 #![allow(clippy::boxed_local)]
 
+use crate::conditions::Condition;
 use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::types::Value;
-use crate::conditions::Condition;
 use std::collections::HashMap;
 
 #[cfg(target_arch = "wasm32")]
@@ -31,7 +31,7 @@ impl WasmDataFrame {
     #[wasm_bindgen(js_name = fromObject, static_method_of = WasmDataFrame)]
     pub fn from_object(data: &js_sys::Object) -> Result<WasmDataFrame, JsValue> {
         let mut rust_columns: HashMap<String, Series> = HashMap::new();
-        
+
         // Parse the JavaScript object into Rust data structures
         let entries = js_sys::Object::entries(data);
         for entry in entries.iter() {
@@ -41,7 +41,7 @@ impl WasmDataFrame {
                 .as_string()
                 .ok_or("Column name must be a string")?;
             let values_js = arr.get(1);
-            
+
             // Convert to an Array; Array::from handles array-like inputs
             let values_array = js_sys::Array::from(&values_js);
             // Try to determine the type and parse values
@@ -59,11 +59,12 @@ impl WasmDataFrame {
                     string_values.push(None);
                 } else if let Some(num) = val.as_f64() {
                     if detected_type.is_none() {
-                        detected_type = Some(if num.fract() == 0.0 && num.abs() <= i32::MAX as f64 {
-                            "i32"
-                        } else {
-                            "f64"
-                        });
+                        detected_type =
+                            Some(if num.fract() == 0.0 && num.abs() <= i32::MAX as f64 {
+                                "i32"
+                            } else {
+                                "f64"
+                            });
                     }
                     i32_values.push(Some(num as i32));
                     f64_values.push(Some(num));
@@ -87,7 +88,7 @@ impl WasmDataFrame {
             rust_columns.insert(name, series);
         }
 
-    let df = DataFrame::new(rust_columns).map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let df = DataFrame::new(rust_columns).map_err(|e| JsValue::from_str(&e.to_string()))?;
         Ok(WasmDataFrame { df })
     }
 
@@ -126,9 +127,11 @@ impl WasmDataFrame {
             return Err(JsValue::from_str("Unsupported value type"));
         };
 
-        let filtered = self.df.filter(&condition)
+        let filtered = self
+            .df
+            .filter(&condition)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        
+
         Ok(WasmDataFrame { df: filtered })
     }
 
@@ -137,9 +140,10 @@ impl WasmDataFrame {
     pub fn group_by(&self, columns: Box<[JsValue]>) -> Result<WasmGroupedDataFrame, JsValue> {
         let column_names: Result<Vec<String>, JsValue> = columns
             .iter()
-            .map(|v| v
-                .as_string()
-                .ok_or_else(|| JsValue::from_str("Column name must be a string")))
+            .map(|v| {
+                v.as_string()
+                    .ok_or_else(|| JsValue::from_str("Column name must be a string"))
+            })
             .collect();
 
         // Store owned DataFrame and group columns, re-create GroupedDataFrame on demand
@@ -166,7 +170,9 @@ impl WasmDataFrame {
     /// Get a column as WasmSeries
     #[wasm_bindgen(js_name = getColumn)]
     pub fn get_column(&self, name: &str) -> Option<WasmSeries> {
-        self.df.get_column(name).map(|s| WasmSeries { inner: s.clone() })
+        self.df
+            .get_column(name)
+            .map(|s| WasmSeries { inner: s.clone() })
     }
 
     /// Convert to JSON string for JavaScript consumption
@@ -174,13 +180,13 @@ impl WasmDataFrame {
     pub fn to_json(&self) -> String {
         // Simple JSON serialization - would be improved in production
         let mut json = String::from("{");
-        
+
         for (i, name) in self.df.column_names().iter().enumerate() {
             if i > 0 {
                 json.push(',');
             }
             json.push_str(&format!("\"{}\":[", name));
-            
+
             if let Some(series) = self.df.get_column(name) {
                 for j in 0..series.len() {
                     if j > 0 {
@@ -197,7 +203,7 @@ impl WasmDataFrame {
             }
             json.push(']');
         }
-        
+
         json.push('}');
         json
     }
@@ -222,17 +228,31 @@ impl WasmSeries {
 
         // Determine type from first non-null value
         let first_valid = values.iter().find(|v| !v.is_null() && !v.is_undefined());
-        
+
         let series = match first_valid {
             Some(val) if val.as_f64().is_some() => {
-                let data: Vec<Option<f64>> = values.iter()
-                    .map(|v| if v.is_null() || v.is_undefined() { None } else { v.as_f64() })
+                let data: Vec<Option<f64>> = values
+                    .iter()
+                    .map(|v| {
+                        if v.is_null() || v.is_undefined() {
+                            None
+                        } else {
+                            v.as_f64()
+                        }
+                    })
                     .collect();
                 Series::new_f64(name, data)
             }
             Some(val) if val.as_string().is_some() => {
-                let data: Vec<Option<String>> = values.iter()
-                    .map(|v| if v.is_null() || v.is_undefined() { None } else { v.as_string() })
+                let data: Vec<Option<String>> = values
+                    .iter()
+                    .map(|v| {
+                        if v.is_null() || v.is_undefined() {
+                            None
+                        } else {
+                            v.as_string()
+                        }
+                    })
                     .collect();
                 Series::new_string(name, data)
             }
@@ -312,7 +332,9 @@ impl WasmGroupedDataFrame {
         }
 
         if agg_specs.is_empty() {
-            return Err(JsValue::from_str("No numeric columns found for aggregation"));
+            return Err(JsValue::from_str(
+                "No numeric columns found for aggregation",
+            ));
         }
 
         let grouped = self
@@ -343,7 +365,9 @@ impl WasmGroupedDataFrame {
         }
 
         if agg_specs.is_empty() {
-            return Err(JsValue::from_str("No numeric columns found for aggregation"));
+            return Err(JsValue::from_str(
+                "No numeric columns found for aggregation",
+            ));
         }
 
         let grouped = self
@@ -399,4 +423,3 @@ pub enum WasmDataType {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub struct WasmExpr {}
-

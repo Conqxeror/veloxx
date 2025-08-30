@@ -363,7 +363,11 @@ impl OptimizedSimdOps<f64> for [f64] {
         let mut sum = simd_sum.reduce_add();
 
         // Add remaining elements
-        sum += self.iter().skip(len - remainder).take(remainder).sum::<f64>();
+        sum += self
+            .iter()
+            .skip(len - remainder)
+            .take(remainder)
+            .sum::<f64>();
 
         sum
     }
@@ -558,7 +562,11 @@ impl OptimizedSimdOps<i32> for [i32] {
         let mut sum = simd_sum.reduce_add();
 
         // Add remaining elements
-        sum += self.iter().skip(len - remainder).take(remainder).sum::<i32>();
+        sum += self
+            .iter()
+            .skip(len - remainder)
+            .take(remainder)
+            .sum::<i32>();
 
         sum
     }
