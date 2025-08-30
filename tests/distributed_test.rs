@@ -1,11 +1,13 @@
-use std::collections::BTreeMap;
+#![cfg(not(target_arch = "wasm32"))]
+
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::distributed::DistributedDataFrame;
 use veloxx::series::Series;
 
 #[test]
 fn test_distributed_dataframe_creation() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -22,7 +24,7 @@ fn test_distributed_dataframe_creation() {
 
 #[test]
 fn test_distributed_dataframe_single_partition() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -35,7 +37,7 @@ fn test_distributed_dataframe_single_partition() {
 
 #[test]
 fn test_distributed_dataframe_empty() {
-    let columns = BTreeMap::new();
+    let columns = HashMap::new();
     let df = DataFrame::new(columns).unwrap();
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 2).unwrap();
@@ -44,7 +46,7 @@ fn test_distributed_dataframe_empty() {
 
 #[test]
 fn test_distributed_dataframe_zero_partitions() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert("id".to_string(), Series::new_i32("id", vec![Some(1)]));
     let df = DataFrame::new(columns).unwrap();
 
@@ -54,7 +56,7 @@ fn test_distributed_dataframe_zero_partitions() {
 
 #[test]
 fn test_distributed_dataframe_collect() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -70,7 +72,7 @@ fn test_distributed_dataframe_collect() {
 
 #[test]
 fn test_distributed_dataframe_more_partitions_than_rows() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -84,7 +86,7 @@ fn test_distributed_dataframe_more_partitions_than_rows() {
 
 #[test]
 fn test_distributed_dataframe_large_dataset() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     let data: Vec<Option<i32>> = (1..=1000).map(Some).collect();
     columns.insert("id".to_string(), Series::new_i32("id", data));
     let df = DataFrame::new(columns).unwrap();
@@ -98,7 +100,7 @@ fn test_distributed_dataframe_large_dataset() {
 
 #[test]
 fn test_distributed_dataframe_clone() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -116,7 +118,7 @@ fn test_distributed_dataframe_clone() {
 
 #[test]
 fn test_distributed_dataframe_debug() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert("test".to_string(), Series::new_i32("test", vec![Some(1)]));
     let df = DataFrame::new(columns).unwrap();
 

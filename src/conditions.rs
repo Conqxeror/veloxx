@@ -1,6 +1,6 @@
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
 use crate::types::Value;
+use crate::VeloxxError;
 
 /// Defines conditions that can be used to filter rows in a `DataFrame`.
 ///
@@ -83,7 +83,7 @@ use crate::types::Value;
 /// let condition = Condition::Not(Box::new(Condition::Eq("is_admin".to_string(), Value::Bool(true))));
 /// // This condition can then be used with a DataFrame's filter method.
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Condition {
     /// Represents an equality comparison (column == value).
     ///
@@ -147,9 +147,9 @@ impl Condition {
                     .get_column(col_name)
                     .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
                 let cell_value = series.get_value(row_index);
-                match (cell_value.clone(), value) {
-                    (Some(Value::I32(a)), Value::I32(b)) => Ok(a > *b),
-                    (Some(Value::F64(a)), Value::F64(b)) => Ok(a > *b),
+                match (cell_value.as_ref(), value) {
+                    (Some(Value::I32(a)), Value::I32(b)) => Ok(a > b),
+                    (Some(Value::F64(a)), Value::F64(b)) => Ok(a > b),
                     _ => Err(VeloxxError::InvalidOperation(format!(
                         "Cannot compare {cell_value:?} and {value:?}"
                     ))),
@@ -160,9 +160,9 @@ impl Condition {
                     .get_column(col_name)
                     .ok_or(VeloxxError::ColumnNotFound(col_name.to_string()))?;
                 let cell_value = series.get_value(row_index);
-                match (cell_value.clone(), value) {
-                    (Some(Value::I32(a)), Value::I32(b)) => Ok(a < *b),
-                    (Some(Value::F64(a)), Value::F64(b)) => Ok(a < *b),
+                match (cell_value.as_ref(), value) {
+                    (Some(Value::I32(a)), Value::I32(b)) => Ok(a < b),
+                    (Some(Value::F64(a)), Value::F64(b)) => Ok(a < b),
                     _ => Err(VeloxxError::InvalidOperation(format!(
                         "Cannot compare {cell_value:?} and {value:?}"
                     ))),

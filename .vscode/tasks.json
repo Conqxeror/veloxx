@@ -1,326 +1,396 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "🧪 Run All Tests (Rust + Python + WASM)",
-            "type": "shell",
-            "command": "echo",
-            "args": ["🚀 Starting comprehensive test suite..."],
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            },
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true,
-                "clear": true
-            },
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "test-rust",
-                "test-python-setup",
-                "test-python",
-                "test-wasm-setup", 
-                "test-wasm",
-                "test-summary"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "test-rust",
-            "type": "shell",
-            "command": "echo",
-            "args": ["🦀 Running Rust tests..."],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "dependsOn": "test-rust-actual",
-            "problemMatcher": []
-        },
-        {
-            "label": "test-rust-actual",
-            "type": "shell",
-            "command": "cargo",
-            "args": ["test"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": ["$rustc"]
-        },
-        {
-            "label": "test-python-setup",
-            "type": "shell",
-            "command": "echo",
-            "args": ["🐍 Setting up Python bindings..."],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "dependsOn": "test-python-setup-actual",
-            "problemMatcher": []
-        },
-        {
-            "label": "test-python-setup-actual",
-            "type": "shell",
-            "command": "cmd",
-            "args": ["/c", "venv\\Scripts\\activate && maturin develop --features python"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "test-python",
-            "type": "shell",
-            "command": "echo",
-            "args": ["🐍 Running Python tests..."],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "dependsOn": "test-python-actual",
-            "problemMatcher": []
-        },
-        {
-            "label": "test-python-actual",
-            "type": "shell",
-            "command": "cmd",
-            "args": ["/c", "venv\\Scripts\\activate && python -m pytest tests/python/ -v"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "test-wasm-setup",
-            "type": "shell",
-            "command": "echo",
-            "args": ["🕸️ Building WASM package..."],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "dependsOn": "test-wasm-setup-actual",
-            "problemMatcher": []
-        },
-        {
-            "label": "test-wasm-setup-actual",
-            "type": "shell",
-            "command": "wasm-pack",
-            "args": ["build", "--target", "web", "--out-dir", "pkg"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "test-wasm",
-            "type": "shell",
-            "command": "echo",
-            "args": ["🕸️ Running WASM/JavaScript tests..."],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "dependsOn": "test-wasm-actual",
-            "problemMatcher": []
-        },
-        {
-            "label": "test-wasm-actual",
-            "type": "shell",
-            "command": "npm",
-            "args": ["test"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "test-summary",
-            "type": "shell",
-            "command": "echo",
-            "args": ["🎉 All test suites completed! Check the output above for results."],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "🦀 Test Rust Only",
-            "type": "shell",
-            "command": "cargo",
-            "args": ["test"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "clear": true
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": ["$rustc"]
-        },
-        {
-            "label": "🐍 Test Python Only",
-            "type": "shell",
-            "command": "cmd",
-            "args": ["/c", "venv\\Scripts\\activate && maturin develop --features python && python -m pytest tests/python/ -v"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "clear": true
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "🕸️ Test WASM Only",
-            "type": "shell",
-            "command": "cmd",
-            "args": ["/c", "wasm-pack build --target web --out-dir pkg && npm test"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "clear": true
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "🔧 Build All Features",
-            "type": "shell",
-            "command": "cmd",
-            "args": ["/c", "cargo build && cargo build --features python && cargo build --features wasm"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "clear": true
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": ["$rustc"]
-        },
-        {
-            "label": "🧹 Clean All Builds",
-            "type": "shell",
-            "command": "cmd",
-            "args": ["/c", "cargo clean && if exist pkg rmdir /s /q pkg && if exist target rmdir /s /q target"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "clear": true
-            },
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "type": "shell",
-            "label": "Run Rust tests",
-            "command": "cargo test",
-            "group": "test",
-            "problemMatcher": [
-                "$rustc"
-            ]
-        },
-        {
-            "type": "shell",
-            "label": "Run all tests (Rust, JS/WASM, Python with venv)",
-            "command": "cargo test --all && npm test --prefix pkg && D:/Rust/Velox/velox/venv/Scripts/pytest.exe tests/python/test_veloxx.py",
-            "group": "test",
-            "problemMatcher": [
-                "$rustc",
-                "$tsc-watch",
-                "$pytest"
-            ]
-        },
-        {
-            "type": "shell",
-            "label": "Run Rust benchmarks",
-            "command": "cargo bench",
-            "group": "test",
-            "problemMatcher": [
-                "$rustc"
-            ]
-        }
-    ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "🧪 Run All Tests (Rust + Python + WASM)",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"🚀 Starting comprehensive test suite..."
+			],
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"test-rust",
+				"test-python-setup",
+				"test-python",
+				"test-wasm-setup",
+				"test-wasm",
+				"test-summary"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "test-rust",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"🦀 Running Rust tests..."
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"dependsOn": "test-rust-actual",
+			"problemMatcher": []
+		},
+		{
+			"label": "test-rust-actual",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "test-python-setup",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"🐍 Setting up Python bindings..."
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"dependsOn": "test-python-setup-actual",
+			"problemMatcher": []
+		},
+		{
+			"label": "test-python-setup-actual",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"venv\\Scripts\\activate && maturin develop --features python"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "test-python",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"🐍 Running Python tests..."
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"dependsOn": "test-python-actual",
+			"problemMatcher": []
+		},
+		{
+			"label": "test-python-actual",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"venv\\Scripts\\activate && python -m pytest tests/python/ -v"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "test-wasm-setup",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"🕸️ Building WASM package..."
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"dependsOn": "test-wasm-setup-actual",
+			"problemMatcher": []
+		},
+		{
+			"label": "test-wasm-setup-actual",
+			"type": "shell",
+			"command": "wasm-pack",
+			"args": [
+				"build",
+				"--target",
+				"web",
+				"--out-dir",
+				"pkg"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "test-wasm",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"🕸️ Running WASM/JavaScript tests..."
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"dependsOn": "test-wasm-actual",
+			"problemMatcher": []
+		},
+		{
+			"label": "test-wasm-actual",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"test"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "test-summary",
+			"type": "shell",
+			"command": "echo",
+			"args": [
+				"🎉 All test suites completed! Check the output above for results."
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "🦀 Test Rust Only",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"test"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"clear": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "🐍 Test Python Only",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"venv\\Scripts\\activate && maturin develop --features python && python -m pytest tests/python/ -v"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"clear": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "🕸️ Test WASM Only",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"wasm-pack build --target web --out-dir pkg && npm test"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"clear": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "🔧 Build All Features",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"cargo build && cargo build --features python && cargo build --features wasm"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"clear": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "🧹 Clean All Builds",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"cargo clean && if exist pkg rmdir /s /q pkg && if exist target rmdir /s /q target"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"clear": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "shell",
+			"label": "Run Rust tests",
+			"command": "cargo test",
+			"group": "test",
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Run all tests (Rust, JS/WASM, Python with venv)",
+			"command": "cargo test --all && npm test --prefix pkg && D:/Rust/Velox/velox/venv/Scripts/pytest.exe tests/python/test_veloxx.py",
+			"group": "test",
+			"problemMatcher": [
+				"$rustc",
+				"$tsc-watch",
+				"$pytest"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Run Rust benchmarks",
+			"command": "cargo bench",
+			"group": "test",
+			"problemMatcher": [
+				"$rustc"
+			]
+		},
+		{
+			"label": "run-all-tests-now",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"echo 🚀 Starting comprehensive test suite... && cargo test && call venv\\Scripts\\activate && maturin develop --features python && python -m pytest tests\\python\\ -v && wasm-pack build --target web --out-dir pkg && npm test"
+			],
+			"group": "test"
+		},
+		{
+			"label": "run-all-tests-now",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"echo 🚀 Starting comprehensive test suite... && cargo test && call venv\\Scripts\\activate && maturin develop --features python && python -m pytest tests\\python\\ -v && wasm-pack build --target web --out-dir pkg && npm test"
+			],
+			"group": "test"
+		}
+	]
 }

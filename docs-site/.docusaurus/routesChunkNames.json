@@ -5,17 +5,17 @@
       "plugin": "c141421f"
     }
   },
-  "/veloxx/docs-54d": {
+  "/veloxx/docs-ec5": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/veloxx/docs-b41": {
+  "/veloxx/docs-50e": {
     "__comp": "a7bd4aaa",
     "__props": "70330048"
   },
-  "/veloxx/docs-05e": {
+  "/veloxx/docs-83d": {
     "__comp": "a94703ab"
   },
   "/veloxx/docs/api/javascript-0ca": {
@@ -42,9 +42,29 @@
     "__comp": "17896441",
     "content": "0e384e19"
   },
+  "/veloxx/docs/performance-analysis-827": {
+    "__comp": "17896441",
+    "content": "64b80ad7"
+  },
+  "/veloxx/docs/performance/benchmark-report-153": {
+    "__comp": "17896441",
+    "content": "27f092b2"
+  },
   "/veloxx/docs/performance/benchmarks-427": {
     "__comp": "17896441",
     "content": "d21108db"
+  },
+  "/veloxx/docs/performance/competitive-benchmarks-ae1": {
+    "__comp": "17896441",
+    "content": "afa02654"
+  },
+  "/veloxx/docs/performance/cross-language-analysis-707": {
+    "__comp": "17896441",
+    "content": "95d29e36"
+  },
+  "/veloxx/docs/performance/features-7d3": {
+    "__comp": "17896441",
+    "content": "51b10751"
   },
   "/veloxx/docs/tutorials/async_json-53c": {
     "__comp": "17896441",

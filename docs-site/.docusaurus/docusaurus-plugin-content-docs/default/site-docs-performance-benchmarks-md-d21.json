@@ -1,20 +1,27 @@
 {
   "id": "performance/benchmarks",
   "title": "Performance Benchmarks",
-  "description": "Veloxx is designed for maximum performance while maintaining a minimal footprint. Here are comprehensive benchmarks comparing Veloxx against industry-leading data processing libraries.",
+  "description": "Veloxx delivers exceptional performance through advanced SIMD acceleration, memory optimization, and parallel processing. Our comprehensive benchmarks demonstrate significant performance improvements over traditional data processing approaches.",
   "source": "@site/docs/performance/benchmarks.md",
   "sourceDirName": "performance",
   "slug": "/performance/benchmarks",
   "permalink": "/veloxx/docs/performance/benchmarks",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/Conqxeror/veloxx/tree/main/docs-site/docs/performance/benchmarks.md",
+  "editUrl": "https://github.com/conqxeror/veloxx/tree/main/docs-site/docs/performance/benchmarks.md",
   "tags": [],
   "version": "current",
-  "frontMatter": {},
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
   "sidebar": "tutorialSidebar",
   "previous": {
-    "title": "Veloxx Tutorial: A Quick Tour",
-    "permalink": "/veloxx/docs/tutorials/general_tutorial"
+    "title": "Cross-Language Performance Analysis",
+    "permalink": "/veloxx/docs/performance/cross-language-analysis"
+  },
+  "next": {
+    "title": "Benchmarking Report: Veloxx vs. Competitors",
+    "permalink": "/veloxx/docs/performance/benchmark-report"
   }
 }

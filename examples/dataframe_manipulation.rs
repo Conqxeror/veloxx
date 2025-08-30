@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::conditions::Condition;
 use veloxx::dataframe::DataFrame;
 use veloxx::expressions::Expr;
@@ -8,7 +8,7 @@ use veloxx::types::Value;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Initial DataFrame
     println!("--- 1. Initial DataFrame ---");
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]),
@@ -98,7 +98,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", filtered_df);
     // 8. Append DataFrames
     println!("\n--- 8. Append DataFrames ---");
-    let mut new_columns = BTreeMap::new();
+    let mut new_columns = HashMap::new();
     new_columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(6), Some(7)]),

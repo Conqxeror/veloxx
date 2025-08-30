@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 use veloxx::visualization::{ChartType, Plot};
 
 #[test]
 fn test_save_histogram() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "a".to_string(),
         Series::new_i32("a", vec![Some(1), Some(2), Some(2), Some(3)]),
@@ -17,7 +17,7 @@ fn test_save_histogram() {
 
 #[test]
 fn test_save_scatter_plot() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "a".to_string(),
         Series::new_i32("a", vec![Some(1), Some(2), Some(3), Some(4)]),

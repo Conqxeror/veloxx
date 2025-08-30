@@ -1,0 +1,223 @@
+.performanceSection {
+	padding: 4rem 0;
+	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Dark mode performance section */
+[data-theme='dark'] .performanceSection {
+	background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+}
+
+.sectionHeader {
+	text-align: center;
+	margin-bottom: 3rem;
+}
+
+.sectionHeader h2 {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-bottom: 1rem;
+	color: #1e293b;
+}
+
+/* Dark mode section header */
+[data-theme='dark'] .sectionHeader h2 {
+	color: #f1f5f9;
+}
+
+.sectionHeader p {
+	font-size: 1.1rem;
+	color: #64748b;
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+/* Dark mode section header paragraph */
+[data-theme='dark'] .sectionHeader p {
+	color: #cbd5e1;
+}
+
+.comparisonTable {
+	background: white;
+	border-radius: 1rem;
+	overflow: hidden;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+	margin-bottom: 3rem;
+}
+
+/* Dark mode comparison table */
+[data-theme='dark'] .comparisonTable {
+	background: #1e293b;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.tableHeader {
+	display: grid;
+	grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+	background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+	color: white;
+	font-weight: 600;
+}
+
+/* Dark mode table header */
+[data-theme='dark'] .tableHeader {
+	background: linear-gradient(135deg, #4338ca 0%, #7c3aed 100%);
+}
+
+.headerCell {
+	padding: 1rem;
+	text-align: center;
+	border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.headerCell:last-child {
+	border-right: none;
+}
+
+.tableRow {
+	display: grid;
+	grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+/* Dark mode table row */
+[data-theme='dark'] .tableRow {
+	border-bottom: 1px solid #374151;
+}
+
+.tableRow:last-child {
+	border-bottom: none;
+}
+
+.cell {
+	padding: 1rem;
+	text-align: center;
+	border-right: 1px solid #e2e8f0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #374151;
+}
+
+/* Dark mode cell */
+[data-theme='dark'] .cell {
+	border-right: 1px solid #374151;
+	color: #e2e8f0;
+}
+
+.cell:last-child {
+	border-right: none;
+}
+
+.cell:first-child {
+	text-align: left;
+	font-weight: 500;
+	color: #1f2937;
+}
+
+/* Dark mode first cell */
+[data-theme='dark'] .cell:first-child {
+	color: #f9fafb;
+}
+
+.veloxxCell {
+	background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+	color: #065f46;
+	font-weight: 600;
+}
+
+/* Dark mode veloxx cell */
+[data-theme='dark'] .veloxxCell {
+	background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+	color: #a7f3d0;
+}
+
+.improvementCell {
+	font-weight: 600;
+}
+
+.performanceMetrics {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 2rem;
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.metric {
+	text-align: center;
+	padding: 2rem;
+	background: white;
+	border-radius: 1rem;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+	border: 1px solid #e2e8f0;
+}
+
+/* Dark mode metric */
+[data-theme='dark'] .metric {
+	background: #1e293b;
+	border: 1px solid #374151;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.metricValue {
+	font-size: 2.5rem;
+	font-weight: 800;
+	background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	margin-bottom: 0.5rem;
+}
+
+/* Dark mode metric value */
+[data-theme='dark'] .metricValue {
+	background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.metricLabel {
+	font-size: 0.875rem;
+	color: #64748b;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Dark mode metric label */
+[data-theme='dark'] .metricLabel {
+	color: #cbd5e1;
+}
+
+@media (max-width: 768px) {
+	.comparisonTable {
+		font-size: 0.875rem;
+	}
+
+	.tableHeader {
+		grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+	}
+
+	.tableRow {
+		grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+	}
+
+	.cell {
+		padding: 0.75rem 0.5rem;
+	}
+
+	.performanceMetrics {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+
+	.metric {
+		padding: 1.5rem;
+	}
+
+	.metricValue {
+		font-size: 2rem;
+	}
+}

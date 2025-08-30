@@ -3,8 +3,8 @@
 //! This module provides memory-efficient data structures and operations
 //! for improved performance and reduced memory footprint.
 
-use crate::error::VeloxxError;
 use crate::series::Series;
+use crate::VeloxxError;
 use std::collections::HashMap;
 
 /// Memory usage analyzer
@@ -14,26 +14,23 @@ impl MemoryAnalyzer {
     /// Estimate memory usage of a series
     pub fn estimate_series_memory(series: &Series) -> usize {
         match series {
-            Series::I32(name, values) => {
+            Series::I32(name, values, _) => {
                 name.len() + values.len() * std::mem::size_of::<Option<i32>>()
             }
-            Series::F64(name, values) => {
+            Series::F64(name, values, _) => {
                 name.len() + values.len() * std::mem::size_of::<Option<f64>>()
             }
-            Series::Bool(name, values) => {
+            Series::Bool(name, values, _) => {
                 name.len() + values.len() * std::mem::size_of::<Option<bool>>()
             }
-            Series::String(name, values) => {
+            Series::String(name, values, _) => {
                 name.len()
                     + values
                         .iter()
-                        .map(|v| match v {
-                            Some(s) => s.len() + std::mem::size_of::<Option<String>>(),
-                            None => std::mem::size_of::<Option<String>>(),
-                        })
+                        .map(|v| v.len() + std::mem::size_of::<Option<String>>())
                         .sum::<usize>()
             }
-            Series::DateTime(name, values) => {
+            Series::DateTime(name, values, _) => {
                 name.len() + values.len() * std::mem::size_of::<Option<i64>>()
             }
         }
@@ -44,21 +41,24 @@ impl MemoryAnalyzer {
         let mut suggestions = Vec::new();
 
         match series {
-            Series::String(_, _) => {
+            Series::String(_, _, _) => {
                 suggestions.push("dictionary");
             }
-            Series::Bool(_, _) => {
+            Series::Bool(_, _, _) => {
                 suggestions.push("bit_packed");
             }
-            Series::DateTime(_, values) => {
+            Series::DateTime(_, values, bitmap) => {
                 // Check if values are sequential or have small deltas
                 let mut is_sequential = true;
                 let mut has_small_deltas = true;
 
                 if values.len() > 1 {
                     for i in 1..values.len() {
-                        if let (Some(prev), Some(curr)) = (values[i - 1], values[i]) {
-                            let delta = curr - prev;
+                        // Only consider valid values for delta calculation
+                        if bitmap[i - 1] && bitmap[i] {
+                            let prev_val = values[i - 1];
+                            let curr_val = values[i];
+                            let delta = curr_val - prev_val;
                             if delta.abs() > 1000 {
                                 has_small_deltas = false;
                             }
@@ -146,25 +146,27 @@ impl CompressedColumn {
     /// Create a dictionary encoded column for strings
     pub fn from_dictionary(series: &Series) -> Result<Self, VeloxxError> {
         match series {
-            Series::String(_, values) => {
+            Series::String(_, values, bitmap) => {
                 let mut dictionary = Vec::new();
                 let mut dict_map = HashMap::new();
                 let mut indices = Vec::new();
 
-                for value in values {
-                    match value {
-                        Some(s) => {
-                            let index = if let Some(&idx) = dict_map.get(s) {
-                                idx
-                            } else {
-                                let idx = dictionary.len() as u32;
-                                dictionary.push(s.clone());
-                                dict_map.insert(s.clone(), idx);
-                                idx
-                            };
-                            indices.push(Some(index));
-                        }
-                        None => indices.push(None),
+                for (i, value) in values.iter().enumerate() {
+                    if bitmap[i] {
+                        // Value is valid
+                        let s = value;
+                        let index = if let Some(&idx) = dict_map.get(s) {
+                            idx
+                        } else {
+                            let idx = dictionary.len() as u32;
+                            dictionary.push(s.clone());
+                            dict_map.insert(s.clone(), idx);
+                            idx
+                        };
+                        indices.push(Some(index));
+                    } else {
+                        // Value is null
+                        indices.push(None);
                     }
                 }
 

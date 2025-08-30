@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::{dataframe::DataFrame, error::VeloxxError, series::Series};
 
 #[cfg(feature = "ml")]
@@ -28,7 +28,7 @@ fn linear_regression_example() -> Result<(), VeloxxError> {
         .map(|x| x.as_ref().map(|val| 2.0 * val + 1.0 + (val % 3.0 - 1.0)))
         .collect();
 
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert("x".to_string(), Series::new_f64("x", x_values));
     columns.insert("y".to_string(), Series::new_f64("y", y_values));
 
@@ -47,7 +47,7 @@ fn linear_regression_example() -> Result<(), VeloxxError> {
         // Make predictions
         for i in 11..=13 {
             let x_val = i as f64;
-            let mut test_columns = BTreeMap::new();
+            let mut test_columns = HashMap::new();
             test_columns.insert("x".to_string(), Series::new_f64("x", vec![Some(x_val)]));
             let test_df = DataFrame::new(test_columns)?;
 
@@ -81,7 +81,7 @@ fn preprocessing_example() -> Result<(), VeloxxError> {
 
     let feature2: Vec<Option<f64>> = vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)];
 
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", feature1),
@@ -103,7 +103,7 @@ fn preprocessing_example() -> Result<(), VeloxxError> {
         println!("{}", standardized_df);
 
         if let Some(std_feature1) = standardized_df.get_column("feature1") {
-            if let Some(mean_val) = std_feature1.mean()? {
+            if let Ok(mean_val) = std_feature1.mean() {
                 let mean = match mean_val {
                     Value::F64(m) => m,
                     Value::I32(m) => m as f64,
@@ -111,8 +111,8 @@ fn preprocessing_example() -> Result<(), VeloxxError> {
                 };
 
                 let std_dev = match std_feature1.std_dev()? {
-                    Some(Value::F64(s)) => s,
-                    Some(Value::I32(s)) => s as f64,
+                    Value::F64(s) => s,
+                    Value::I32(s) => s as f64,
                     _ => 0.0,
                 };
 
@@ -130,14 +130,14 @@ fn preprocessing_example() -> Result<(), VeloxxError> {
 
         if let Some(norm_feature1) = normalized_df.get_column("feature1") {
             let min_val = match norm_feature1.min()? {
-                Some(Value::F64(m)) => m,
-                Some(Value::I32(m)) => m as f64,
+                Value::F64(m) => m,
+                Value::I32(m) => m as f64,
                 _ => 0.0,
             };
 
             let max_val = match norm_feature1.max()? {
-                Some(Value::F64(m)) => m,
-                Some(Value::I32(m)) => m as f64,
+                Value::F64(m) => m,
+                Value::I32(m) => m as f64,
                 _ => 0.0,
             };
 

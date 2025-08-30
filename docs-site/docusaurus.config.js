@@ -18,7 +18,7 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'Conqxeror', // Usually your GitHub org/user name.
+  organizationName: 'conqxeror', // Usually your GitHub org/user name.
   projectName: 'veloxx', // Usually your repo name.
 
   onBrokenLinks: 'throw',
@@ -42,14 +42,14 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/Conqxeror/veloxx/tree/main/docs-site/',
+            'https://github.com/conqxeror/veloxx/tree/main/docs-site/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/Conqxeror/veloxx/tree/main/docs-site/',
+            'https://github.com/conqxeror/veloxx/tree/main/docs-site/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -108,7 +108,7 @@ const config = {
           },
           
           {
-            href: 'https://github.com/Conqxeror/veloxx',
+            href: 'https://github.com/conqxeror/veloxx',
             label: 'GitHub',
             position: 'right',
           },
@@ -152,11 +152,11 @@ const config = {
             items: [
               {
                 label: 'GitHub Discussions',
-                href: 'https://github.com/Conqxeror/veloxx/discussions',
+                href: 'https://github.com/conqxeror/veloxx/discussions',
               },
               {
                 label: 'Issues',
-                href: 'https://github.com/Conqxeror/veloxx/issues',
+                href: 'https://github.com/conqxeror/veloxx/issues',
               },
             ],
           },
@@ -169,7 +169,7 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/Conqxeror/veloxx',
+                href: 'https://github.com/conqxeror/veloxx',
               },
               {
                 label: 'Crates.io',

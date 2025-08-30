@@ -15,16 +15,16 @@
 //!
 //! # Examples
 //!
-//! ```rust
+//! ```rust,no_run
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::BTreeMap;
+//! use std::collections::HashMap;
 //!
 //! # #[cfg(feature = "advanced_io")]
 //! # {
 //! use veloxx::advanced_io::{ParquetReader, ParquetWriter, DatabaseConnector};
 //!
-//! let mut columns = BTreeMap::new();
+//! let mut columns = HashMap::new();
 //! columns.insert(
 //!     "id".to_string(),
 //!     Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -47,10 +47,10 @@
 //! ```
 
 use crate::dataframe::DataFrame;
-use crate::error::VeloxxError;
 use crate::series::Series;
 use crate::types::DataType;
-use std::collections::BTreeMap;
+use crate::VeloxxError;
+use std::collections::HashMap;
 use std::path::Path;
 
 #[cfg(feature = "advanced_io")]
@@ -67,7 +67,7 @@ impl ParquetReader {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```rust,no_run
     /// use veloxx::advanced_io::ParquetReader;
     ///
     /// let reader = ParquetReader::new();
@@ -91,7 +91,7 @@ impl ParquetReader {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```rust,no_run
     /// use veloxx::advanced_io::ParquetReader;
     ///
     /// # #[tokio::main]
@@ -116,7 +116,7 @@ impl ParquetReader {
 
         // For now, return a placeholder implementation
         // In a full implementation, we would parse the Parquet schema and data
-        let mut columns = BTreeMap::new();
+        let mut columns = HashMap::new();
         columns.insert(
             "placeholder".to_string(),
             Series::new_string(
@@ -185,7 +185,7 @@ impl ParquetWriter {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```rust,no_run
     /// use veloxx::advanced_io::ParquetWriter;
     ///
     /// let writer = ParquetWriter::new();
@@ -210,11 +210,11 @@ impl ParquetWriter {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::advanced_io::ParquetWriter;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -376,7 +376,7 @@ impl JsonStreamer {
         _batch_size: usize,
     ) -> Result<Vec<DataFrame>, VeloxxError> {
         // Placeholder implementation - in reality would parse JSON incrementally
-        let mut columns = BTreeMap::new();
+        let mut columns = std::collections::HashMap::new();
         columns.insert(
             "json_data".to_string(),
             Series::new_string("json_data", vec![Some(json_str.to_string())]),
@@ -460,7 +460,7 @@ impl DatabaseConnector {
     #[cfg(feature = "advanced_io")]
     pub async fn query(&self, query: &str) -> Result<DataFrame, VeloxxError> {
         // Placeholder implementation - in a real implementation this would use self.connection_string
-        let mut columns = BTreeMap::new();
+        let mut columns = std::collections::HashMap::new();
         columns.insert(
             "query_result".to_string(),
             Series::new_string(
@@ -495,11 +495,11 @@ impl DatabaseConnector {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::advanced_io::DatabaseConnector;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2)]),

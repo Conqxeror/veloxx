@@ -49,7 +49,7 @@ const sidebars = {
         {
           type: 'link',
           label: 'Data Processing Examples (GitHub)',
-          href: 'https://github.com/Conqxeror/veloxx/tree/main/examples',
+          href: 'https://github.com/conqxeror/veloxx/tree/main/examples',
         },
       ],
     },
@@ -57,7 +57,10 @@ const sidebars = {
       type: 'category',
       label: 'Performance',
       items: [
+        'performance/competitive-benchmarks',
+        'performance/cross-language-analysis',
         'performance/benchmarks',
+        'performance/benchmark-report',
       ],
     },
   ],

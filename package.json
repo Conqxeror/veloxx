@@ -15,12 +15,21 @@
     "rimraf": "^6.0.1"
   },
   "jest": {
-    "testEnvironment": "jsdom",
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.js$": "babel-jest",
+      "^.+\\.wasm$": "jest-transform-stub"
+    },
     "moduleNameMapper": {
       "\\.(wasm)$": "jest-transform-stub"
     },
     "testMatch": [
       "**/tests/**/*.test.js"
     ]
+  },
+  "dependencies": {
+    "alasql": "^4.6.6",
+    "danfojs": "^1.2.0",
+    "lodash": "^4.17.21"
   }
 }

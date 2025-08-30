@@ -1,11 +1,44 @@
-use crate::error::VeloxxError;
-use crate::{dataframe::DataFrame, series::Series};
+use crate::dataframe::DataFrame;
+use crate::series::Series;
+use crate::VeloxxError;
 use csv_core::{ReadFieldResult, Reader};
 use microjson::JSONValue;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::io::Read;
 
 impl DataFrame {
+    #[cfg(all(feature = "arrow-io", not(target_arch = "wasm32")))]
+    pub fn from_arrow_csv(path: &str) -> Result<Self, crate::error::VeloxxError> {
+        crate::io::arrow::read_csv_to_dataframe(path)
+    }
+
+    #[cfg(not(all(feature = "arrow-io", not(target_arch = "wasm32"))))]
+    pub fn from_arrow_csv(_path: &str) -> Result<Self, crate::error::VeloxxError> {
+        Err(crate::error::VeloxxError::Unsupported(
+            "Arrow IO not enabled or not available on WASM. Rebuild with --features arrow-io on native targets".to_string(),
+        ))
+    }
+
+    #[cfg(all(
+        feature = "advanced_io",
+        feature = "arrow-io",
+        not(target_arch = "wasm32")
+    ))]
+    pub fn from_arrow_parquet(path: &str) -> Result<Self, crate::error::VeloxxError> {
+        crate::io::arrow::read_parquet_to_dataframe(path)
+    }
+
+    #[cfg(not(all(
+        feature = "advanced_io",
+        feature = "arrow-io",
+        not(target_arch = "wasm32")
+    )))]
+    pub fn from_arrow_parquet(_path: &str) -> Result<Self, crate::error::VeloxxError> {
+        Err(crate::error::VeloxxError::Unsupported(
+            "Parquet support requires advanced_io and arrow-io features on native targets"
+                .to_string(),
+        ))
+    }
     pub fn from_csv(path: &str) -> Result<Self, VeloxxError> {
         let mut file = std::fs::File::open(path).map_err(|e| VeloxxError::FileIO(e.to_string()))?;
         let mut contents = Vec::new();
@@ -21,11 +54,11 @@ impl DataFrame {
         }
 
         if trimmed_bytes.is_empty() {
-            return DataFrame::new(BTreeMap::new());
+            return DataFrame::new(HashMap::new());
         }
 
         let mut rdr = Reader::new();
-        let mut field_buf = [0; 1024]; // Buffer for a single field
+        let mut field_buf = [0; 8192]; // Buffer for a single field
 
         let mut column_names: Vec<String> = Vec::new();
         let mut all_rows_as_strings: Vec<Vec<String>> = Vec::new();
@@ -84,167 +117,34 @@ impl DataFrame {
         }
 
         if column_names.is_empty() {
-            return DataFrame::new(BTreeMap::new());
+            return DataFrame::new(HashMap::new());
         }
 
         let header = column_names;
         let data_rows = all_rows_as_strings.clone();
-        for row in &all_rows_as_strings {
+        for (row_idx, row) in all_rows_as_strings.iter().enumerate() {
             if row.len() != header.len() {
-                return Err(VeloxxError::Parsing(
-                    "CSV rows have inconsistent number of columns.".to_string(),
-                ));
+                return Err(VeloxxError::Parsing(format!(
+                    "CSV row {} has {} columns, expected {} (header: {:?}, row: {:?})",
+                    row_idx + 1,
+                    row.len(),
+                    header.len(),
+                    header,
+                    row
+                )));
             }
         }
 
         if data_rows.is_empty() {
             // If only header exists, create an empty DataFrame with correct columns
-            let mut columns: BTreeMap<String, Series> = BTreeMap::new();
+            let mut columns: HashMap<String, Series> = HashMap::new();
             for col_name in header {
                 columns.insert(col_name.clone(), Series::new_string(&col_name, Vec::new()));
             }
             return DataFrame::new(columns);
         }
 
-        // Infer types and create Series
-        let num_cols = header.len();
-        let num_rows = data_rows.len();
-        let mut columns: BTreeMap<String, Series> = BTreeMap::new();
-
-        for (col_idx, header_item) in header.iter().enumerate().take(num_cols) {
-            let col_name = &header_item;
-            let mut col_data_i32: Vec<Option<i32>> = Vec::with_capacity(num_rows);
-            let mut col_data_f64: Vec<Option<f64>> = Vec::with_capacity(num_rows);
-            let mut col_data_bool: Vec<Option<bool>> = Vec::with_capacity(num_rows);
-            let mut col_data_string: Vec<Option<String>> = Vec::with_capacity(num_rows);
-            let mut col_data_datetime: Vec<Option<i64>> = Vec::with_capacity(num_rows);
-
-            let mut is_i32 = true;
-            let mut is_f64 = true;
-            let mut is_bool = true;
-            let mut is_datetime = true;
-            let is_string = true; // Always possible to be a string
-
-            for data_row in all_rows_as_strings.iter().take(num_rows) {
-                let cell_val = if col_idx < data_row.len() {
-                    &data_row[col_idx]
-                } else {
-                    ""
-                };
-
-                // Try parsing as i32
-                if is_i32 {
-                    match cell_val.parse::<i32>() {
-                        Ok(val) => col_data_i32.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_i32.push(None);
-                            } else {
-                                is_i32 = false;
-                            }
-                        }
-                    }
-                }
-
-                // Try parsing as f64
-                if is_f64 {
-                    match cell_val.parse::<f64>() {
-                        Ok(val) => col_data_f64.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_f64.push(None);
-                            } else {
-                                is_f64 = false;
-                            }
-                        }
-                    }
-                }
-
-                // Try parsing as bool
-                if is_bool {
-                    match cell_val.parse::<bool>() {
-                        Ok(val) => col_data_bool.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_bool.push(None);
-                            } else {
-                                is_bool = false;
-                            }
-                        }
-                    }
-                }
-
-                // Try parsing as datetime (i64 for Unix timestamp)
-                if is_datetime {
-                    match cell_val.parse::<i64>() {
-                        Ok(val) => col_data_datetime.push(Some(val)),
-                        Err(_) => {
-                            if cell_val.is_empty() {
-                                col_data_datetime.push(None);
-                            } else {
-                                is_datetime = false;
-                            }
-                        }
-                    }
-                }
-
-                // Always possible to be a string
-                if is_string {
-                    if cell_val.is_empty() {
-                        col_data_string.push(None);
-                    } else {
-                        col_data_string.push(Some(cell_val.to_string()));
-                    }
-                }
-            }
-
-            let inferred_type = if is_i32 {
-                crate::types::DataType::I32
-            } else if is_f64 {
-                crate::types::DataType::F64
-            } else if is_bool {
-                crate::types::DataType::Bool
-            } else if is_datetime {
-                crate::types::DataType::DateTime
-            } else {
-                crate::types::DataType::String
-            };
-
-            match inferred_type {
-                crate::types::DataType::I32 => {
-                    columns.insert(
-                        col_name.to_string(),
-                        Series::new_i32(col_name, col_data_i32),
-                    );
-                }
-                crate::types::DataType::F64 => {
-                    columns.insert(
-                        col_name.to_string(),
-                        Series::new_f64(col_name, col_data_f64),
-                    );
-                }
-                crate::types::DataType::Bool => {
-                    columns.insert(
-                        col_name.to_string(),
-                        Series::new_bool(col_name, col_data_bool),
-                    );
-                }
-                crate::types::DataType::DateTime => {
-                    columns.insert(
-                        col_name.to_string(),
-                        Series::new_datetime(col_name, col_data_datetime),
-                    );
-                }
-                crate::types::DataType::String => {
-                    columns.insert(
-                        col_name.to_string(),
-                        Series::new_string(col_name, col_data_string),
-                    );
-                }
-            }
-        }
-
-        DataFrame::new(columns)
+        DataFrame::from_vec_of_vec(data_rows, header)
     }
 
     pub fn from_vec_of_vec(
@@ -252,7 +152,7 @@ impl DataFrame {
         column_names: Vec<String>,
     ) -> Result<Self, VeloxxError> {
         if data.is_empty() {
-            return DataFrame::new(BTreeMap::new());
+            return DataFrame::new(HashMap::new());
         }
 
         if data[0].len() != column_names.len() {
@@ -264,7 +164,7 @@ impl DataFrame {
         let num_rows = data.len();
         let num_cols = column_names.len();
 
-        let mut columns: BTreeMap<String, Series> = BTreeMap::new();
+        let mut columns: HashMap<String, Series> = HashMap::new();
 
         for (col_idx, column_name) in column_names.iter().enumerate().take(num_cols) {
             let col_name = &column_name;
@@ -366,7 +266,8 @@ impl DataFrame {
                 columns.insert(col_name.to_string(), Series::new_string(col_name, col_data));
             } else {
                 return Err(VeloxxError::Parsing(format!(
-                    "Could not infer type for column '{col_name}'."
+                    "Could not infer type for column '{}'",
+                    col_name
                 )));
             }
         }
@@ -383,7 +284,9 @@ impl DataFrame {
             return Ok(());
         }
 
-        let column_names: Vec<&str> = self.column_names().iter().map(|s| s.as_str()).collect();
+        let mut column_names: Vec<&str> = self.column_names().iter().map(|s| s.as_str()).collect();
+        // Sort column names to ensure consistent ordering
+        column_names.sort();
         writeln!(file, "{}", column_names.join(","))
             .map_err(|e| VeloxxError::FileIO(e.to_string()))?;
 
@@ -431,7 +334,7 @@ impl DataFrame {
                     ))
                 }
             };
-            let mut row = std::collections::BTreeMap::new();
+            let mut row = std::collections::HashMap::new();
             for entry in obj_iter {
                 let (k, v) = match entry {
                     Ok((k, v)) => (k, v),
@@ -462,7 +365,8 @@ impl DataFrame {
             return Err(VeloxxError::Parsing("JSON array is empty".to_string()));
         }
         let column_names: Vec<String> = rows[0].keys().cloned().collect();
-        let mut columns: BTreeMap<String, Vec<Option<crate::types::Value>>> = BTreeMap::new();
+        let mut columns: std::collections::HashMap<String, Vec<Option<crate::types::Value>>> =
+            std::collections::HashMap::new();
         for name in &column_names {
             columns.insert(name.clone(), Vec::new());
         }
@@ -474,7 +378,7 @@ impl DataFrame {
                     .push(row.get(name).cloned().unwrap_or(None));
             }
         }
-        let mut series_map = BTreeMap::new();
+        let mut series_map = std::collections::HashMap::new();
         for (name, values) in columns {
             let series = if let Some(Some(crate::types::Value::F64(_))) =
                 values.iter().find(|v| v.is_some())

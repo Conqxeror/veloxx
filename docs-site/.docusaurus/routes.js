@@ -9,15 +9,15 @@ export default [
   },
   {
     path: '/veloxx/docs',
-    component: ComponentCreator('/veloxx/docs', '54d'),
+    component: ComponentCreator('/veloxx/docs', 'ec5'),
     routes: [
       {
         path: '/veloxx/docs',
-        component: ComponentCreator('/veloxx/docs', 'b41'),
+        component: ComponentCreator('/veloxx/docs', '50e'),
         routes: [
           {
             path: '/veloxx/docs',
-            component: ComponentCreator('/veloxx/docs', '05e'),
+            component: ComponentCreator('/veloxx/docs', '83d'),
             routes: [
               {
                 path: '/veloxx/docs/api/javascript',
@@ -56,10 +56,38 @@ export default [
                 sidebar: "tutorialSidebar"
               },
               {
+                path: '/veloxx/docs/performance-analysis',
+                component: ComponentCreator('/veloxx/docs/performance-analysis', '827'),
+                exact: true
+              },
+              {
+                path: '/veloxx/docs/performance/benchmark-report',
+                component: ComponentCreator('/veloxx/docs/performance/benchmark-report', '153'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
                 path: '/veloxx/docs/performance/benchmarks',
                 component: ComponentCreator('/veloxx/docs/performance/benchmarks', '427'),
                 exact: true,
                 sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/veloxx/docs/performance/competitive-benchmarks',
+                component: ComponentCreator('/veloxx/docs/performance/competitive-benchmarks', 'ae1'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/veloxx/docs/performance/cross-language-analysis',
+                component: ComponentCreator('/veloxx/docs/performance/cross-language-analysis', '707'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/veloxx/docs/performance/features',
+                component: ComponentCreator('/veloxx/docs/performance/features', '7d3'),
+                exact: true
               },
               {
                 path: '/veloxx/docs/tutorials/async_json',

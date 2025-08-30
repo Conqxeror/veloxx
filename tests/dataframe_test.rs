@@ -2,11 +2,11 @@ use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 use veloxx::types::Value;
 
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 #[test]
 fn test_to_csv() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "col1".to_string(),
         Series::new_i32("col1", vec![Some(1), Some(2), Some(3)]),
@@ -86,7 +86,7 @@ fn test_from_csv_malformed() {
 
 #[test]
 fn test_empty_dataframe_to_from_csv() {
-    let columns = BTreeMap::new();
+    let columns = HashMap::new();
     let df = DataFrame::new(columns).unwrap();
     let path = "empty.csv";
     df.to_csv(path).unwrap();
@@ -97,7 +97,7 @@ fn test_empty_dataframe_to_from_csv() {
 
 #[test]
 fn test_get_nonexistent_column() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1)]));
     let df = DataFrame::new(columns).unwrap();
     assert!(df.get_column("colX").is_none());

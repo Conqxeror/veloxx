@@ -1,4 +1,5 @@
-use crate::{dataframe::DataFrame, series::Series};
+use crate::dataframe::DataFrame;
+use crate::series::Series;
 use std::fmt;
 
 /// Implements the `Display` trait for `DataFrame`.
@@ -15,9 +16,9 @@ use std::fmt;
 /// ```rust
 /// use veloxx::dataframe::DataFrame;
 /// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
+/// use std::collections::HashMap;
 ///
-/// let mut columns = BTreeMap::new();
+/// let mut columns = HashMap::new();
 /// columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string())]));
 /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), Some(24)]));
 /// columns.insert("score".to_string(), Series::new_f64("score", vec![Some(85.5), Some(92.123)]));
@@ -57,28 +58,16 @@ impl fmt::Display for DataFrame {
         for i in 0..self.row_count {
             for name in &column_names {
                 let series = self.columns.get(*name).unwrap();
-                match series {
-                    Series::I32(_, v) => {
-                        let val = v[i].map_or("null".to_string(), |x| x.to_string());
-                        write!(f, "{val: <15}")?;
+                let value_str = match series {
+                    Series::I32(_, v, _) => v.get(i).map_or("null".to_string(), |i| i.to_string()),
+                    Series::F64(_, v, _) => v.get(i).map_or("null".to_string(), |f| f.to_string()),
+                    Series::Bool(_, v, _) => v.get(i).map_or("null".to_string(), |b| b.to_string()),
+                    Series::String(_, v, _) => v.get(i).map_or("null".to_string(), |s| s.clone()),
+                    Series::DateTime(_, v, _) => {
+                        v.get(i).map_or("null".to_string(), |t| t.to_string())
                     }
-                    Series::F64(_, v) => {
-                        let val = v[i].map_or("null".to_string(), |x| format!("{x:.2}"));
-                        write!(f, "{val: <15}")?;
-                    }
-                    Series::Bool(_, v) => {
-                        let val = v[i].map_or("null".to_string(), |x| x.to_string());
-                        write!(f, "{val: <15}")?;
-                    }
-                    Series::String(_, v) => {
-                        let val = v[i].as_ref().map_or("null".to_string(), |x| x.clone());
-                        write!(f, "{val: <15}")?;
-                    }
-                    Series::DateTime(_, v) => {
-                        let val = v[i].map_or("null".to_string(), |x| x.to_string());
-                        write!(f, "{val: <15}")?;
-                    }
-                }
+                };
+                write!(f, "{value_str: <15}")?;
             }
             writeln!(f)?;
         }

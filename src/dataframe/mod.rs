@@ -1,14 +1,17 @@
-use crate::error::VeloxxError;
+use crate::lazy::LazyDataFrame;
 use crate::series::Series;
-use std::collections::BTreeMap;
+use crate::VeloxxError;
+use std::collections::HashMap;
 
 pub mod cleaning;
 pub mod display;
 pub mod group_by;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod io;
 pub mod join;
 pub mod manipulation;
 pub mod sources;
+pub mod time_series;
 
 /// Represents a tabular data structure with named columns, similar to a data frame in other data manipulation libraries.
 ///
@@ -22,9 +25,9 @@ pub mod sources;
 /// ```rust
 /// use veloxx::dataframe::DataFrame;
 /// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
+/// use std::collections::HashMap;
 ///
-/// let mut columns = BTreeMap::new();
+/// let mut columns = HashMap::new();
 /// columns.insert(
 ///     "name".to_string(),
 ///     Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string())]),
@@ -43,9 +46,9 @@ pub mod sources;
 /// ```rust
 /// use veloxx::dataframe::DataFrame;
 /// use veloxx::series::Series;
-/// use std::collections::BTreeMap;
+/// use std::collections::HashMap;
 ///
-/// let mut columns = BTreeMap::new();
+/// let mut columns = HashMap::new();
 /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
 /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2)]));
 /// let df = DataFrame::new(columns).unwrap();
@@ -56,19 +59,19 @@ pub mod sources;
 /// ```
 #[derive(Debug, Clone)]
 pub struct DataFrame {
-    pub(crate) columns: BTreeMap<String, Series>,
+    pub(crate) columns: HashMap<String, Series>,
     pub(crate) row_count: usize,
 }
 
 impl DataFrame {
-    /// Creates a new `DataFrame` from a `BTreeMap` of column names to `Series`.
+    /// Creates a new `DataFrame` from a `HashMap` of column names to `Series`.
     ///
     /// All `Series` in the map must have the same length, and their internal names
-    /// must match the keys in the `BTreeMap`.
+    /// must match the keys in the `HashMap`.
     ///
     /// # Arguments
     ///
-    /// * `columns` - A `BTreeMap` where keys are column names (`String`) and values are `Series`.
+    /// * `columns` - A `HashMap` where keys are column names (`String`) and values are `Series`.
     ///
     /// # Returns
     ///
@@ -81,16 +84,16 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2)]));
     /// columns.insert("value".to_string(), Series::new_f64("value", vec![Some(10.0), Some(20.0)]));
     ///
     /// let df = DataFrame::new(columns).unwrap();
     /// assert_eq!(df.row_count(), 2);
     /// ```
-    pub fn new(columns: BTreeMap<String, Series>) -> Result<Self, VeloxxError> {
+    pub fn new(columns: HashMap<String, Series>) -> Result<Self, VeloxxError> {
         if columns.is_empty() {
             return Ok(DataFrame {
                 columns,
@@ -130,9 +133,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(1), Some(2), Some(3)]));
     /// let df = DataFrame::new(columns).unwrap();
     /// assert_eq!(df.row_count(), 3);
@@ -152,9 +155,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1)]));
     /// columns.insert("col2".to_string(), Series::new_f64("col2", vec![Some(1.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -166,7 +169,7 @@ impl DataFrame {
 
     /// Returns a vector containing the names of all columns in the `DataFrame`.
     ///
-    /// The order of column names is determined by the internal `BTreeMap` (lexicographical).
+    /// The order of column names is not guaranteed.
     ///
     /// # Returns
     ///
@@ -177,9 +180,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("B".to_string(), Series::new_i32("B", vec![Some(1)]));
     /// columns.insert("A".to_string(), Series::new_f64("A", vec![Some(1.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -207,9 +210,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::BTreeMap;
+    /// use std::collections::HashMap;
     ///
-    /// let mut columns = BTreeMap::new();
+    /// let mut columns = HashMap::new();
     /// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(1), Some(2)]));
     /// let df = DataFrame::new(columns).unwrap();
     ///
@@ -220,5 +223,28 @@ impl DataFrame {
     /// ```
     pub fn get_column(&self, name: &str) -> Option<&Series> {
         self.columns.get(name)
+    }
+
+    /// Converts this DataFrame to a LazyDataFrame for lazy evaluation
+    ///
+    /// # Returns
+    ///
+    /// A `LazyDataFrame` that can be used for optimized query execution
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use veloxx::dataframe::DataFrame;
+    /// use veloxx::series::Series;
+    /// use std::collections::HashMap;
+    ///
+    /// let mut columns = HashMap::new();
+    /// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(1), Some(2)]));
+    /// let df = DataFrame::new(columns).unwrap();
+    ///
+    /// let lazy_df = df.lazy();
+    /// ```
+    pub fn lazy(self) -> LazyDataFrame {
+        LazyDataFrame::from_dataframe(self)
     }
 }

@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::expressions::Expr;
 use veloxx::series::Series;
@@ -97,7 +97,7 @@ fn test_not_expression() {
 
 #[test]
 fn test_expression_evaluation() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(30), Some(35)]),
@@ -121,7 +121,7 @@ fn test_expression_evaluation() {
 
 #[test]
 fn test_arithmetic_expression_evaluation() {
-    let mut columns = BTreeMap::new();
+    let mut columns = HashMap::new();
     columns.insert(
         "a".to_string(),
         Series::new_i32("a", vec![Some(10), Some(20)]),
