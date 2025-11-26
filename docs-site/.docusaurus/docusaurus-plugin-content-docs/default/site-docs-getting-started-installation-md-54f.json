@@ -1,7 +1,7 @@
 {
   "id": "getting-started/installation",
   "title": "Installation",
-  "description": "Get Veloxx up and running in your environment quickly and easily.",
+  "description": "Rust",
   "source": "@site/docs/getting-started/installation.md",
   "sourceDirName": "getting-started",
   "slug": "/getting-started/installation",
@@ -18,7 +18,7 @@
     "permalink": "/veloxx/docs/intro"
   },
   "next": {
-    "title": "Quick Start",
+    "title": "Quick Start Guide",
     "permalink": "/veloxx/docs/getting-started/quick-start"
   }
 }

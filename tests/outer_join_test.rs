@@ -3,7 +3,6 @@ mod tests {
     use indexmap::IndexMap;
     use veloxx::dataframe::{join::JoinType, DataFrame};
     use veloxx::series::Series;
-    use veloxx::types::Value;
 
     #[test]
     fn test_outer_join() {

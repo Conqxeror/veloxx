@@ -4,7 +4,6 @@ mod tests {
     use proptest::prelude::*;
     use veloxx::dataframe::{join::JoinType, DataFrame};
     use veloxx::series::Series;
-    use veloxx::types::Value;
 
     // Helper to create DataFrame from proptest generated data
     fn create_df(id_col: &str, ids: Vec<i32>, val_col: &str, values: Vec<i32>) -> DataFrame {

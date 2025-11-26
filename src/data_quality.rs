@@ -78,7 +78,6 @@ use crate::VeloxxError;
 use indexmap::IndexMap;
 use std::collections::BTreeMap;
 
-
 /// Data validation constraints
 #[derive(Debug, Clone)]
 pub enum Constraint {

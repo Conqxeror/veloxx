@@ -15,10 +15,8 @@ use crate::VeloxxError;
 use memmap2::Mmap;
 use rayon::prelude::*;
 
-
 // ...existing code...
 use std::fs::File;
-
 
 /// SIMD-accelerated CSV parser for ultra-fast data loading
 ///

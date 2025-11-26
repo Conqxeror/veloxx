@@ -4,12 +4,12 @@
 //! with SIMD-optimized and parallel operations.
 
 use criterion::{criterion_group, criterion_main, Criterion};
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::lazy::{col, lit, BinaryOperator, LazyDataFrame};
 use veloxx::performance::series_ext::SeriesPerformanceExt;
 use veloxx::series::Series;
 use veloxx::types::Value;
-use indexmap::IndexMap;
 
 fn create_test_series(size: usize) -> (Series, Series) {
     let data1: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();

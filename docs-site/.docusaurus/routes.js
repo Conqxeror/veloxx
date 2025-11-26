@@ -3,11 +3,6 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 
 export default [
   {
-    path: '/veloxx/search',
-    component: ComponentCreator('/veloxx/search', 'bdd'),
-    exact: true
-  },
-  {
     path: '/veloxx/docs',
     component: ComponentCreator('/veloxx/docs', 'ec5'),
     routes: [

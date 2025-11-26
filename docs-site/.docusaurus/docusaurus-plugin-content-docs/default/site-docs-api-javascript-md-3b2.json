@@ -1,7 +1,7 @@
 {
   "id": "api/javascript",
   "title": "JavaScript API Reference",
-  "description": "Complete API reference for Veloxx JavaScript/WebAssembly bindings.",
+  "description": "Veloxx provides WebAssembly (WASM) bindings for running high-performance data processing in the browser or Node.js.",
   "source": "@site/docs/api/javascript.md",
   "sourceDirName": "api",
   "slug": "/api/javascript",

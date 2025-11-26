@@ -32,7 +32,7 @@ mod tests {
         assert_eq!(collected.row_count(), 2);
 
         let a = collected.get_column("a").unwrap();
-        let b = collected.get_column("b").unwrap();
+        let _b = collected.get_column("b").unwrap();
 
         // Should have values 3, 4
         let val0 = a.get_i32(0).unwrap();

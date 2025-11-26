@@ -1,7 +1,6 @@
 //! Tests for Arrow filtering operations
 
 #[cfg(feature = "arrow")]
-#[cfg(feature = "arrow")]
 use veloxx::series::Series;
 
 #[cfg(feature = "arrow")]

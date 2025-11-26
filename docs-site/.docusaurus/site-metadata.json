@@ -1,6 +1,6 @@
 {
   "docusaurusVersion": "3.8.1",
-  "siteVersion": "0.3.1",
+  "siteVersion": "0.3.2",
   "pluginVersions": {
     "docusaurus-plugin-content-docs": {
       "type": "package",
@@ -30,11 +30,6 @@
     "docusaurus-theme-classic": {
       "type": "package",
       "name": "@docusaurus/theme-classic",
-      "version": "3.8.1"
-    },
-    "docusaurus-theme-search-algolia": {
-      "type": "package",
-      "name": "@docusaurus/theme-search-algolia",
       "version": "3.8.1"
     }
   }

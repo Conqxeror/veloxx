@@ -1,7 +1,7 @@
-use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, Criterion};
 use indexmap::IndexMap;
 use rand::prelude::*;
-use std::sync::Arc;
+
 use veloxx::dataframe::DataFrame;
 use veloxx::lazy::{binary_op, col, lit, Aggregation, BinaryOperator, LazyDataFrame};
 use veloxx::series::Series;

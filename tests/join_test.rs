@@ -45,9 +45,9 @@ fn test_inner_join() {
 
     // Check column names
     let column_names = result.column_names();
-    assert!(column_names.contains(&&"id".to_string()));
-    assert!(column_names.contains(&&"name".to_string()));
-    assert!(column_names.contains(&&"age".to_string()));
+    assert!(column_names.contains(&"id".to_string()));
+    assert!(column_names.contains(&"name".to_string()));
+    assert!(column_names.contains(&"age".to_string()));
 }
 
 #[test]

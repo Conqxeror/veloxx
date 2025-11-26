@@ -1,7 +1,7 @@
 {
   "id": "api/python",
   "title": "Python API Reference",
-  "description": "Complete API reference for Veloxx Python bindings.",
+  "description": "Veloxx provides comprehensive Python bindings via pyo3, offering high-performance DataFrame operations with a NumPy-compatible API.",
   "source": "@site/docs/api/python.md",
   "sourceDirName": "api",
   "slug": "/api/python",

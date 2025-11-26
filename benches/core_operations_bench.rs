@@ -1,15 +1,15 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::collections::HashMap;
+
 use veloxx::dataframe::join::JoinType;
 use veloxx::dataframe::DataFrame;
 
+use indexmap::IndexMap;
 use veloxx::conditions::Condition;
 use veloxx::series::Series;
 use veloxx::types::Value;
-use indexmap::IndexMap;
 
 fn filter_benchmark_small(c: &mut Criterion) {
-    let mut columns: HashMap<String, Series> = IndexMap::new();
+    let mut columns: IndexMap<String, Series> = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", (0..10000).map(Some).collect()),
@@ -39,7 +39,7 @@ fn filter_benchmark_small(c: &mut Criterion) {
 }
 
 fn filter_benchmark_medium(c: &mut Criterion) {
-    let mut columns: HashMap<String, Series> = IndexMap::new();
+    let mut columns: IndexMap<String, Series> = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", (0..100000).map(Some).collect()),
@@ -69,7 +69,7 @@ fn filter_benchmark_medium(c: &mut Criterion) {
 }
 
 fn aggregation_benchmark_small(c: &mut Criterion) {
-    let mut columns: HashMap<String, Series> = IndexMap::new();
+    let mut columns: IndexMap<String, Series> = IndexMap::new();
     columns.insert(
         "category".to_string(),
         Series::new_string(
@@ -100,7 +100,7 @@ fn aggregation_benchmark_small(c: &mut Criterion) {
 }
 
 fn aggregation_benchmark_medium(c: &mut Criterion) {
-    let mut columns: HashMap<String, Series> = IndexMap::new();
+    let mut columns: IndexMap<String, Series> = IndexMap::new();
     columns.insert(
         "category".to_string(),
         Series::new_string(
@@ -135,7 +135,7 @@ fn aggregation_benchmark_medium(c: &mut Criterion) {
 
 fn join_benchmark_small(c: &mut Criterion) {
     // Create first dataframe
-    let mut columns1: HashMap<String, Series> = IndexMap::new();
+    let mut columns1: IndexMap<String, Series> = IndexMap::new();
     columns1.insert(
         "id".to_string(),
         Series::new_i32("id", (0..10000).map(Some).collect()),
@@ -147,7 +147,7 @@ fn join_benchmark_small(c: &mut Criterion) {
     let df1 = DataFrame::new(columns1);
 
     // Create second dataframe
-    let mut columns2: HashMap<String, Series> = IndexMap::new();
+    let mut columns2: IndexMap<String, Series> = IndexMap::new();
     columns2.insert(
         "id".to_string(),
         Series::new_i32("id", (0..10000).map(|i| Some(i + 5000)).collect()), // Overlapping ids
@@ -167,7 +167,7 @@ fn join_benchmark_small(c: &mut Criterion) {
 
 fn join_benchmark_medium(c: &mut Criterion) {
     // Create first dataframe
-    let mut columns1: HashMap<String, Series> = IndexMap::new();
+    let mut columns1: IndexMap<String, Series> = IndexMap::new();
     columns1.insert(
         "id".to_string(),
         Series::new_i32("id", (0..100000).map(Some).collect()),
@@ -182,7 +182,7 @@ fn join_benchmark_medium(c: &mut Criterion) {
     let df1 = DataFrame::new(columns1);
 
     // Create second dataframe
-    let mut columns2: HashMap<String, Series> = IndexMap::new();
+    let mut columns2: IndexMap<String, Series> = IndexMap::new();
     columns2.insert(
         "id".to_string(),
         Series::new_i32("id", (0..100000).map(|i| Some(i + 50000)).collect()), // Overlapping ids

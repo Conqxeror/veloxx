@@ -1,11 +1,11 @@
 #[macro_use]
 extern crate criterion;
 use criterion::Criterion;
-use std::collections::HashMap;
+
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 use veloxx::window_functions::{RankingFunction, WindowFunction, WindowSpec};
-use indexmap::IndexMap;
 
 fn bench_window_ranking(c: &mut Criterion) {
     let mut columns = IndexMap::new();

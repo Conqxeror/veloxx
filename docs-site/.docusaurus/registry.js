@@ -1,7 +1,6 @@
 export default {
   "0e384e19": [() => import(/* webpackChunkName: "0e384e19" */ "@site/docs/intro.md"), "@site/docs/intro.md", require.resolveWeak("@site/docs/intro.md")],
   "17896441": [() => import(/* webpackChunkName: "17896441" */ "@theme/DocItem"), "@theme/DocItem", require.resolveWeak("@theme/DocItem")],
-  "1a4e3797": [() => import(/* webpackChunkName: "1a4e3797" */ "@theme/SearchPage"), "@theme/SearchPage", require.resolveWeak("@theme/SearchPage")],
   "1df93b7f": [() => import(/* webpackChunkName: "1df93b7f" */ "@site/src/pages/index.tsx"), "@site/src/pages/index.tsx", require.resolveWeak("@site/src/pages/index.tsx")],
   "27f092b2": [() => import(/* webpackChunkName: "27f092b2" */ "@site/docs/performance/benchmark-report.md"), "@site/docs/performance/benchmark-report.md", require.resolveWeak("@site/docs/performance/benchmark-report.md")],
   "3b281a57": [() => import(/* webpackChunkName: "3b281a57" */ "@site/docs/api/javascript.md"), "@site/docs/api/javascript.md", require.resolveWeak("@site/docs/api/javascript.md")],
@@ -22,6 +21,5 @@ export default {
   "a94703ab": [() => import(/* webpackChunkName: "a94703ab" */ "@theme/DocRoot"), "@theme/DocRoot", require.resolveWeak("@theme/DocRoot")],
   "aba21aa0": [() => import(/* webpackChunkName: "aba21aa0" */ "@generated/docusaurus-plugin-content-docs/default/__plugin.json"), "@generated/docusaurus-plugin-content-docs/default/__plugin.json", require.resolveWeak("@generated/docusaurus-plugin-content-docs/default/__plugin.json")],
   "afa02654": [() => import(/* webpackChunkName: "afa02654" */ "@site/docs/performance/competitive-benchmarks.md"), "@site/docs/performance/competitive-benchmarks.md", require.resolveWeak("@site/docs/performance/competitive-benchmarks.md")],
-  "c141421f": [() => import(/* webpackChunkName: "c141421f" */ "@generated/docusaurus-theme-search-algolia/default/__plugin.json"), "@generated/docusaurus-theme-search-algolia/default/__plugin.json", require.resolveWeak("@generated/docusaurus-theme-search-algolia/default/__plugin.json")],
   "d21108db": [() => import(/* webpackChunkName: "d21108db" */ "@site/docs/performance/benchmarks.md"), "@site/docs/performance/benchmarks.md", require.resolveWeak("@site/docs/performance/benchmarks.md")],
   "db39a754": [() => import(/* webpackChunkName: "db39a754" */ "@site/docs/api/python.md"), "@site/docs/api/python.md", require.resolveWeak("@site/docs/api/python.md")],};

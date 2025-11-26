@@ -24,7 +24,6 @@ impl ExpressionFusion {
             ));
         }
 
-        
         result.par_iter_mut().enumerate().for_each(|(i, r)| {
             *r = (a[i] + b[i]) * c[i];
         });

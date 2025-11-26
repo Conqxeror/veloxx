@@ -1,7 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use indexmap::IndexMap;
-use std::fs::File;
-use std::sync::Arc;
+
 use veloxx::dataframe::DataFrame;
 use veloxx::io::arrow::{read_parquet_to_dataframe, write_parquet_from_dataframe};
 use veloxx::series::Series;

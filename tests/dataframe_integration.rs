@@ -28,7 +28,7 @@ mod tests {
         let new_df = df.with_column("c", &expr).unwrap();
 
         assert_eq!(new_df.column_count(), 3);
-        assert!(new_df.column_names().contains(&&"c".to_string()));
+        assert!(new_df.column_names().contains(&"c".to_string()));
 
         let col_c = new_df.get_column("c").unwrap();
         match col_c {

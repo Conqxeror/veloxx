@@ -494,7 +494,6 @@ pub struct LogisticRegression {
     _phantom: std::marker::PhantomData<()>,
 }
 
-
 impl Default for LogisticRegression {
     fn default() -> Self {
         Self::new()

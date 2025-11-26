@@ -4,8 +4,8 @@
  * Modify the docusaurus.config.js file at your site's root instead.
  */
 export default {
-  "title": "Veloxx",
-  "tagline": "Lightning-fast data processing for Rust, Python & JavaScript",
+  "title": "VELOXX",
+  "tagline": "LIGHTNING-FAST DATA PROCESSING FOR RUST, PYTHON & JAVASCRIPT",
   "favicon": "img/favicon.ico",
   "url": "https://conqxeror.github.io",
   "baseUrl": "/veloxx/",
@@ -47,115 +47,107 @@ export default {
       "respectPrefersColorScheme": true
     },
     "navbar": {
-      "title": "Veloxx",
+      "title": "VELOXX",
       "logo": {
         "alt": "Veloxx Logo",
         "src": "img/veloxx_logo.png"
       },
-      "hideOnScroll": false,
       "items": [
         {
           "type": "docSidebar",
           "sidebarId": "tutorialSidebar",
           "position": "left",
-          "label": "Docs"
+          "label": "DOCS"
         },
         {
           "type": "dropdown",
-          "label": "API Reference",
+          "label": "API",
           "position": "left",
           "items": [
             {
               "to": "/docs/api/rust",
-              "label": "Rust API"
+              "label": "RUST"
             },
             {
               "to": "/docs/api/python",
-              "label": "Python API"
+              "label": "PYTHON"
             },
             {
               "to": "/docs/api/javascript",
-              "label": "JavaScript API"
+              "label": "JAVASCRIPT"
             }
           ]
         },
         {
           "to": "/docs/performance/benchmarks",
-          "label": "Benchmarks",
+          "label": "BENCHMARKS",
           "position": "left"
         },
         {
           "href": "https://github.com/conqxeror/veloxx",
-          "label": "GitHub",
+          "label": "GITHUB",
           "position": "right"
         },
         {
           "href": "https://crates.io/crates/veloxx",
-          "label": "Crates.io",
+          "label": "CRATES.IO",
           "position": "right"
         }
-      ]
+      ],
+      "hideOnScroll": false
     },
     "footer": {
       "style": "light",
       "links": [
         {
-          "title": "Docs",
+          "title": "DOCS",
           "items": [
             {
-              "label": "Getting Started",
+              "label": "GETTING STARTED",
               "to": "/docs/getting-started/installation"
             },
             {
-              "label": "Rust API",
+              "label": "RUST API",
               "to": "/docs/api/rust"
             },
             {
-              "label": "Python API",
+              "label": "PYTHON API",
               "to": "/docs/api/python"
             },
             {
-              "label": "JavaScript API",
+              "label": "JAVASCRIPT API",
               "to": "/docs/api/javascript"
-            },
-            {
-              "label": "Examples",
-              "to": "/docs/intro"
             }
           ]
         },
         {
-          "title": "Community",
+          "title": "COMMUNITY",
           "items": [
             {
-              "label": "GitHub Discussions",
+              "label": "GITHUB DISCUSSIONS",
               "href": "https://github.com/conqxeror/veloxx/discussions"
             },
             {
-              "label": "Issues",
+              "label": "ISSUES",
               "href": "https://github.com/conqxeror/veloxx/issues"
             }
           ]
         },
         {
-          "title": "More",
+          "title": "MORE",
           "items": [
             {
-              "label": "Blog",
+              "label": "BLOG",
               "to": "/docs/intro"
             },
             {
-              "label": "GitHub",
+              "label": "GITHUB",
               "href": "https://github.com/conqxeror/veloxx"
-            },
-            {
-              "label": "Crates.io",
-              "href": "https://crates.io/crates/veloxx"
             }
           ]
         }
       ],
-      "copyright": "Copyright © 2025 Veloxx. Built with Docusaurus."
+      "copyright": "COPYRIGHT © 2025 VELOXX. BUILT WITH DOCUSAURUS."
     },
     "prism": {
       "theme": {
@@ -421,19 +413,6 @@ export default {
           }
         }
       ]
-    },
-    "algolia": {
-      "appId": "YOUR_APP_ID",
-      "apiKey": "YOUR_SEARCH_API_KEY",
-      "indexName": "veloxx",
-      "contextualSearch": true,
-      "externalUrlRegex": "external\\.com|domain\\.com",
-      "replaceSearchResultPathname": {
-        "from": "/docs/",
-        "to": "/"
-      },
-      "searchParameters": {},
-      "searchPagePath": "search"
     },
     "docs": {
       "versionPersistence": "localStorage",

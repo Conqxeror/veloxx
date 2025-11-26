@@ -1,13 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-#[cfg(all(feature = "polars", feature = "arrow"))]
+#[cfg(feature = "arrow")]
 use polars::prelude::*;
 
-use arrow::array::Float64Array;
-use std::sync::Arc;
-use veloxx::arrow::series::ArrowSeries;
 use veloxx::performance::{
-use indexmap::IndexMap;
     advanced_parallel::{
         parallel_fused_add_mul_advanced, parallel_simd_add_advanced, parallel_simd_sum_advanced,
     },
@@ -54,19 +50,8 @@ fn bench_optimization_layers(c: &mut Criterion) {
     });
 
     // 4. ArrowSeries with aligned memory pools
-    group.bench_function("arrow_series_aligned", |b| {
-        let array_a = Arc::new(Float64Array::from_iter_values(data_a.clone()));
-        let array_b = Arc::new(Float64Array::from_iter_values(data_b.clone()));
-        let series_a = ArrowSeries::F64("a".to_string(), array_a, None);
-        let series_b = ArrowSeries::F64("b".to_string(), array_b, None);
 
-        b.iter(|| {
-            let result = series_a.simd_add_raw(&series_b).unwrap();
-            let _ = black_box(result);
-        })
-    });
-
-    #[cfg(all(feature = "polars", feature = "arrow"))]
+    #[cfg(feature = "arrow")]
     {
         // 5. Polars baseline
         group.bench_function("polars_baseline", |b| {
@@ -137,7 +122,7 @@ fn bench_memory_optimization(c: &mut Criterion) {
         })
     });
 
-    #[cfg(all(feature = "polars", feature = "arrow"))]
+    #[cfg(feature = "arrow")]
     {
         // Polars sum
         group.bench_function("polars_sum", |b| {
@@ -170,7 +155,7 @@ fn bench_scalability(c: &mut Criterion) {
             })
         });
 
-        #[cfg(all(feature = "polars", feature = "arrow"))]
+        #[cfg(feature = "arrow")]
         group.bench_function("polars", |b| {
             let series_a = Series::new("a", &data_a);
             let series_b = Series::new("b", &data_b);
@@ -210,7 +195,7 @@ fn bench_final_comparison(c: &mut Criterion) {
         })
     });
 
-    #[cfg(all(feature = "polars", feature = "arrow"))]
+    #[cfg(feature = "arrow")]
     {
         // Polars sum
         group.bench_function("polars_sum", |b| {

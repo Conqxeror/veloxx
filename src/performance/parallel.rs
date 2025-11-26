@@ -39,7 +39,7 @@ impl ParallelAggregations {
                             return Ok(Value::I32(sum));
                         }
                     }
-                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))] 
+                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))]
                     {
                         let sum: i32 = values.par_iter().sum();
                         return Ok(Value::I32(sum));
@@ -70,7 +70,7 @@ impl ParallelAggregations {
                             return Ok(Value::F64(sum));
                         }
                     }
-                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))] 
+                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))]
                     {
                         let sum: f64 = values.par_iter().sum();
                         return Ok(Value::F64(sum));
