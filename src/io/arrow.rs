@@ -10,17 +10,25 @@ use crate::VeloxxError;
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
 use arrow::csv::reader::Format;
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+use arrow::csv::reader::ReaderBuilder;
+#[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+use arrow::datatypes::{DataType as ArrowDataType, Field, Schema, TimeUnit};
+#[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
 use arrow::record_batch::RecordBatch;
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
-use arrow_csv::ReaderBuilder;
+use indexmap::IndexMap;
 #[cfg(all(
     feature = "advanced_io",
     feature = "arrow",
     not(target_arch = "wasm32")
 ))]
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
-#[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
-use std::collections::HashMap;
+#[cfg(all(
+    feature = "advanced_io",
+    feature = "arrow",
+    not(target_arch = "wasm32")
+))]
+use parquet::arrow::arrow_writer::ArrowWriter;
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
 use std::fs::File;
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
@@ -43,11 +51,11 @@ pub fn read_csv_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxError> 
     }
 
     if record_batches.is_empty() {
-        return DataFrame::new(HashMap::new());
+        return Ok(DataFrame::new(IndexMap::new()));
     }
 
     let schema = record_batches[0].schema();
-    let mut columns: HashMap<String, Series> = HashMap::new();
+    let mut columns: IndexMap<String, Series> = IndexMap::new();
 
     for i in 0..schema.fields().len() {
         let field = schema.field(i);
@@ -62,10 +70,14 @@ pub fn read_csv_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxError> 
         columns.insert(field.name().clone(), Series::concat(series_data)?);
     }
 
-    DataFrame::new(columns)
+    Ok(DataFrame::new(columns))
 }
 
-#[cfg(feature = "advanced_io")]
+#[cfg(all(
+    feature = "advanced_io",
+    feature = "arrow",
+    not(target_arch = "wasm32")
+))]
 pub fn read_parquet_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxError> {
     let file = File::open(file_path)?;
     let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
@@ -77,11 +89,11 @@ pub fn read_parquet_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxErr
     }
 
     if record_batches.is_empty() {
-        return DataFrame::new(std::collections::HashMap::new());
+        return Ok(DataFrame::new(indexmap::IndexMap::new()));
     }
 
     let schema = record_batches[0].schema();
-    let mut columns: std::collections::HashMap<String, Series> = std::collections::HashMap::new();
+    let mut columns: indexmap::IndexMap<String, Series> = indexmap::IndexMap::new();
 
     for i in 0..schema.fields().len() {
         let field = schema.field(i);
@@ -96,5 +108,50 @@ pub fn read_parquet_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxErr
         columns.insert(field.name().clone(), Series::concat(series_data)?);
     }
 
-    DataFrame::new(columns)
+    Ok(DataFrame::new(columns))
+}
+
+#[cfg(all(
+    feature = "advanced_io",
+    feature = "arrow",
+    not(target_arch = "wasm32")
+))]
+pub fn write_parquet_from_dataframe(
+    dataframe: &DataFrame,
+    file_path: &str,
+) -> Result<(), VeloxxError> {
+    let file = File::create(file_path)?;
+
+    // Convert DataFrame schema to Arrow Schema
+    let mut fields = Vec::new();
+    let column_names = dataframe.column_names();
+    for name in &column_names {
+        let series = dataframe.get_column(name).unwrap();
+        let arrow_type = match series.data_type() {
+            crate::types::DataType::I32 => ArrowDataType::Int32,
+            crate::types::DataType::F64 => ArrowDataType::Float64,
+            crate::types::DataType::Bool => ArrowDataType::Boolean,
+            crate::types::DataType::String => ArrowDataType::Utf8,
+            crate::types::DataType::DateTime => {
+                ArrowDataType::Timestamp(TimeUnit::Nanosecond, None)
+            }
+        };
+        fields.push(Field::new(name.as_str(), arrow_type, true));
+    }
+    let schema = Arc::new(Schema::new(fields));
+
+    // Create RecordBatch
+    let mut columns = Vec::new();
+    for name in column_names {
+        let series = dataframe.get_column(&name).unwrap();
+        columns.push(series.to_arrow_array());
+    }
+    let batch = RecordBatch::try_new(schema.clone(), columns)?;
+
+    // Write to Parquet
+    let mut writer = ArrowWriter::try_new(file, schema, None)?;
+    writer.write(&batch)?;
+    writer.close()?;
+
+    Ok(())
 }

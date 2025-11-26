@@ -22,13 +22,13 @@ use regex::Regex;
 // ```rust
 // use veloxx::dataframe::DataFrame;
 // use veloxx::series::Series;
-// use std::collections::HashMap;
+// use indexmap::IndexMap;
 //
 // # #[cfg(feature = "data_quality")]
 // # {
 // use veloxx::data_quality::{SchemaValidator, DataProfiler, AnomalyDetector};
 //
-// let mut columns = HashMap::new();
+// let mut columns = IndexMap::new();
 // columns.insert(
 //     "age".to_string(),
 //     Series::new_i32("age", vec![Some(25), Some(30), Some(35), Some(1000)]), // 1000 is an outlier
@@ -75,7 +75,9 @@ use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::types::{DataType, Value};
 use crate::VeloxxError;
-use std::collections::{BTreeMap, HashMap};
+use indexmap::IndexMap;
+use std::collections::BTreeMap;
+
 
 /// Data validation constraints
 #[derive(Debug, Clone)]
@@ -102,7 +104,7 @@ pub struct ColumnSchema {
 /// Schema definition for data validation
 #[derive(Debug, Clone)]
 pub struct Schema {
-    pub columns: HashMap<String, ColumnSchema>,
+    pub columns: IndexMap<String, ColumnSchema>,
 }
 
 /// Schema validator for enforcing data structure and constraints
@@ -146,9 +148,8 @@ impl SchemaValidator {
     /// use veloxx::series::Series;
     /// use veloxx::data_quality::{SchemaValidator, Schema, ColumnSchema, Constraint};
     /// use veloxx::types::DataType;
-    /// use std::collections::HashMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "age".to_string(),
     ///     Series::new_i32("age", vec![Some(25), Some(30)]),
@@ -214,7 +215,7 @@ impl SchemaValidator {
 
         // Check for unexpected columns
         for column_name in dataframe.column_names() {
-            if !schema.columns.contains_key(column_name) {
+            if !schema.columns.contains_key(&column_name) {
                 warnings.push(ValidationError {
                     column: column_name.clone(),
                     row: None,
@@ -364,10 +365,10 @@ impl SchemaValidator {
     ///
     /// Inferred schema
     pub fn infer_schema(&self, dataframe: &DataFrame, nullable: bool) -> Schema {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
 
         for column_name in dataframe.column_names() {
-            if let Some(series) = dataframe.get_column(column_name) {
+            if let Some(series) = dataframe.get_column(&column_name) {
                 let column_schema = ColumnSchema {
                     name: column_name.clone(),
                     data_type: series.data_type(),
@@ -457,9 +458,8 @@ impl DataProfiler {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::data_quality::DataProfiler;
-    /// use std::collections::HashMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "age".to_string(),
     ///     Series::new_i32("age", vec![Some(25), Some(30), Some(35)]),
@@ -473,7 +473,7 @@ impl DataProfiler {
         let mut column_profiles = BTreeMap::new();
 
         for column_name in dataframe.column_names() {
-            if let Some(series) = dataframe.get_column(column_name) {
+            if let Some(series) = dataframe.get_column(&column_name) {
                 let column_profile = self.profile_series(series)?;
                 column_profiles.insert(column_name.clone(), column_profile);
             }
@@ -534,7 +534,7 @@ impl DataProfiler {
         let mut column_count = 0;
 
         for column_name in dataframe.column_names() {
-            if let Some(series) = dataframe.get_column(column_name) {
+            if let Some(series) = dataframe.get_column(&column_name) {
                 let null_count = (0..series.len())
                     .filter(|&i| series.get_value(i).is_none())
                     .count();
@@ -631,9 +631,8 @@ impl AnomalyDetector {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::data_quality::AnomalyDetector;
-    /// use std::collections::HashMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "values".to_string(),
     ///     Series::new_f64("values", vec![Some(1.0), Some(2.0), Some(3.0), Some(100.0)]), // 100.0 is an outlier
@@ -793,7 +792,7 @@ impl AnomalyDetector {
         for i in 0..dataframe.row_count() {
             let mut row_values = Vec::new();
             for column_name in dataframe.column_names() {
-                if let Some(series) = dataframe.get_column(column_name) {
+                if let Some(series) = dataframe.get_column(&column_name) {
                     row_values.push(series.get_value(i));
                 }
             }
@@ -875,11 +874,11 @@ impl ConsistencyChecker {
     /// Map of column names to inconsistent value indices
     pub fn check_type_consistency(
         dataframe: &DataFrame,
-    ) -> Result<HashMap<String, Vec<usize>>, VeloxxError> {
-        let mut inconsistencies = HashMap::new();
+    ) -> Result<IndexMap<String, Vec<usize>>, VeloxxError> {
+        let mut inconsistencies = IndexMap::new();
 
         for column_name in dataframe.column_names() {
-            if let Some(series) = dataframe.get_column(column_name) {
+            if let Some(series) = dataframe.get_column(&column_name) {
                 let expected_type = series.data_type();
                 let mut inconsistent_rows = Vec::new();
 
@@ -905,8 +904,6 @@ impl ConsistencyChecker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::series::Series;
-    use std::collections::HashMap;
 
     #[test]
     fn test_schema_validator_creation() {
@@ -937,7 +934,7 @@ mod tests {
 
     #[test]
     fn test_schema_inference() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "age".to_string(),
             Series::new_i32("age", vec![Some(25), Some(30)]),
@@ -950,7 +947,7 @@ mod tests {
             ),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let validator = SchemaValidator::new();
         let schema = validator.infer_schema(&df, true);
 
@@ -961,13 +958,13 @@ mod tests {
 
     #[test]
     fn test_data_profiling() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), None, Some(4)]),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let profiler = DataProfiler::new();
         let profile = profiler.profile_dataframe(&df).unwrap();
 
@@ -982,13 +979,13 @@ mod tests {
 
     #[test]
     fn test_outlier_detection() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_f64("values", vec![Some(1.0), Some(2.0), Some(3.0), Some(100.0)]),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let detector = AnomalyDetector::new();
         let outliers = detector.detect_outliers(&df, "values").unwrap();
 
@@ -999,7 +996,7 @@ mod tests {
 
     #[test]
     fn test_duplicate_detection() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "id".to_string(),
             Series::new_i32("id", vec![Some(1), Some(2), Some(1)]), // Duplicate: 1
@@ -1016,7 +1013,7 @@ mod tests {
             ),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let detector = AnomalyDetector::new();
         let duplicates = detector.detect_duplicate_rows(&df).unwrap();
 

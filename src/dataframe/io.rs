@@ -2,26 +2,26 @@ use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::VeloxxError;
 use csv_core::{ReadFieldResult, Reader};
+use indexmap::IndexMap;
 use microjson::JSONValue;
-use std::collections::HashMap;
 use std::io::Read;
 
 impl DataFrame {
-    #[cfg(all(feature = "arrow-io", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
     pub fn from_arrow_csv(path: &str) -> Result<Self, crate::error::VeloxxError> {
         crate::io::arrow::read_csv_to_dataframe(path)
     }
 
-    #[cfg(not(all(feature = "arrow-io", not(target_arch = "wasm32"))))]
+    #[cfg(not(all(feature = "arrow", not(target_arch = "wasm32"))))]
     pub fn from_arrow_csv(_path: &str) -> Result<Self, crate::error::VeloxxError> {
         Err(crate::error::VeloxxError::Unsupported(
-            "Arrow IO not enabled or not available on WASM. Rebuild with --features arrow-io on native targets".to_string(),
+            "Arrow IO not enabled or not available on WASM. Rebuild with --features arrow on native targets".to_string(),
         ))
     }
 
     #[cfg(all(
         feature = "advanced_io",
-        feature = "arrow-io",
+        feature = "arrow",
         not(target_arch = "wasm32")
     ))]
     pub fn from_arrow_parquet(path: &str) -> Result<Self, crate::error::VeloxxError> {
@@ -30,13 +30,12 @@ impl DataFrame {
 
     #[cfg(not(all(
         feature = "advanced_io",
-        feature = "arrow-io",
+        feature = "arrow",
         not(target_arch = "wasm32")
     )))]
     pub fn from_arrow_parquet(_path: &str) -> Result<Self, crate::error::VeloxxError> {
         Err(crate::error::VeloxxError::Unsupported(
-            "Parquet support requires advanced_io and arrow-io features on native targets"
-                .to_string(),
+            "Parquet support requires advanced_io and arrow features on native targets".to_string(),
         ))
     }
     pub fn from_csv(path: &str) -> Result<Self, VeloxxError> {
@@ -54,7 +53,7 @@ impl DataFrame {
         }
 
         if trimmed_bytes.is_empty() {
-            return DataFrame::new(HashMap::new());
+            return Ok(DataFrame::new(IndexMap::new()));
         }
 
         let mut rdr = Reader::new();
@@ -117,7 +116,7 @@ impl DataFrame {
         }
 
         if column_names.is_empty() {
-            return DataFrame::new(HashMap::new());
+            return Ok(DataFrame::new(IndexMap::new()));
         }
 
         let header = column_names;
@@ -137,11 +136,11 @@ impl DataFrame {
 
         if data_rows.is_empty() {
             // If only header exists, create an empty DataFrame with correct columns
-            let mut columns: HashMap<String, Series> = HashMap::new();
+            let mut columns: IndexMap<String, Series> = IndexMap::new();
             for col_name in header {
                 columns.insert(col_name.clone(), Series::new_string(&col_name, Vec::new()));
             }
-            return DataFrame::new(columns);
+            return Ok(DataFrame::new(columns));
         }
 
         DataFrame::from_vec_of_vec(data_rows, header)
@@ -152,7 +151,7 @@ impl DataFrame {
         column_names: Vec<String>,
     ) -> Result<Self, VeloxxError> {
         if data.is_empty() {
-            return DataFrame::new(HashMap::new());
+            return Ok(DataFrame::new(IndexMap::new()));
         }
 
         if data[0].len() != column_names.len() {
@@ -164,7 +163,7 @@ impl DataFrame {
         let num_rows = data.len();
         let num_cols = column_names.len();
 
-        let mut columns: HashMap<String, Series> = HashMap::new();
+        let mut columns: IndexMap<String, Series> = IndexMap::new();
 
         for (col_idx, column_name) in column_names.iter().enumerate().take(num_cols) {
             let col_name = &column_name;
@@ -272,7 +271,7 @@ impl DataFrame {
             }
         }
 
-        DataFrame::new(columns)
+        Ok(DataFrame::new(columns))
     }
 
     pub fn to_csv(&self, path: &str) -> Result<(), VeloxxError> {
@@ -284,7 +283,8 @@ impl DataFrame {
             return Ok(());
         }
 
-        let mut column_names: Vec<&str> = self.column_names().iter().map(|s| s.as_str()).collect();
+        let header_names = self.column_names();
+        let mut column_names: Vec<&str> = header_names.iter().map(|s| s.as_str()).collect();
         // Sort column names to ensure consistent ordering
         column_names.sort();
         writeln!(file, "{}", column_names.join(","))
@@ -334,7 +334,7 @@ impl DataFrame {
                     ))
                 }
             };
-            let mut row = std::collections::HashMap::new();
+            let mut row = indexmap::IndexMap::new();
             for entry in obj_iter {
                 let (k, v) = match entry {
                     Ok((k, v)) => (k, v),
@@ -365,8 +365,8 @@ impl DataFrame {
             return Err(VeloxxError::Parsing("JSON array is empty".to_string()));
         }
         let column_names: Vec<String> = rows[0].keys().cloned().collect();
-        let mut columns: std::collections::HashMap<String, Vec<Option<crate::types::Value>>> =
-            std::collections::HashMap::new();
+        let mut columns: indexmap::IndexMap<String, Vec<Option<crate::types::Value>>> =
+            indexmap::IndexMap::new();
         for name in &column_names {
             columns.insert(name.clone(), Vec::new());
         }
@@ -378,7 +378,7 @@ impl DataFrame {
                     .push(row.get(name).cloned().unwrap_or(None));
             }
         }
-        let mut series_map = std::collections::HashMap::new();
+        let mut series_map = indexmap::IndexMap::new();
         for (name, values) in columns {
             let series = if let Some(Some(crate::types::Value::F64(_))) =
                 values.iter().find(|v| v.is_some())
@@ -446,6 +446,6 @@ impl DataFrame {
             };
             series_map.insert(name, series);
         }
-        DataFrame::new(series_map)
+        Ok(DataFrame::new(series_map))
     }
 }

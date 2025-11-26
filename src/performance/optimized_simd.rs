@@ -1,4 +1,11 @@
 #[cfg(target_arch = "x86_64")]
+use std::arch::x86_64::{
+    __m256d, _mm256_add_pd, _mm256_castpd256_pd128, _mm256_div_pd, _mm256_extractf128_pd,
+    _mm256_loadu_pd, _mm256_mul_pd, _mm256_setzero_pd, _mm256_storeu_pd, _mm256_sub_pd, _mm_add_pd,
+    _mm_cvtsd_f64, _mm_hadd_pd,
+};
+
+#[cfg(target_arch = "x86_64")]
 #[inline]
 fn avx2_simd_add_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
     use std::arch::x86_64::*;
@@ -28,7 +35,6 @@ fn avx2_simd_add_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
 #[cfg(target_arch = "x86_64")]
 #[inline]
 fn avx2_simd_sub_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
-    use std::arch::x86_64::*;
     if !is_x86_feature_detected!("avx2") {
         return false;
     }
@@ -55,7 +61,6 @@ fn avx2_simd_sub_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
 #[cfg(target_arch = "x86_64")]
 #[inline]
 fn avx2_simd_mul_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
-    use std::arch::x86_64::*;
     if !is_x86_feature_detected!("avx2") {
         return false;
     }
@@ -82,7 +87,6 @@ fn avx2_simd_mul_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
 #[cfg(target_arch = "x86_64")]
 #[inline]
 fn avx2_simd_div_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
-    use std::arch::x86_64::*;
     if !is_x86_feature_detected!("avx2") {
         return false;
     }
@@ -109,7 +113,6 @@ fn avx2_simd_div_f64(a: &[f64], b: &[f64], result: &mut [f64]) -> bool {
 #[cfg(target_arch = "x86_64")]
 #[inline]
 fn avx2_simd_sum_f64(a: &[f64]) -> Option<f64> {
-    use std::arch::x86_64::*;
     if !is_x86_feature_detected!("avx2") {
         return None;
     }

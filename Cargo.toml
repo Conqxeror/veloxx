@@ -14,7 +14,7 @@ manual_map = "allow"
 
 [package]
 name = "veloxx"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2021"
 autotests = true
 authors = ["Conqxeror <conqxeror@gmail.com>"]
@@ -61,9 +61,12 @@ plotters-svg = { version = "0.3", optional = true }
 ndarray = { version = "0.15", optional = true }
 linfa = { version = "0.7", optional = true }
 linfa-linear = { version = "0.7", optional = true }
-polars = { version = "0.40", default-features = false, features = ["lazy"], optional = true }
+linfa-clustering = { version = "0.7", optional = true }
+linfa-nn = { version = "0.7", optional = true }
+linfa-logistic = { version = "0.7", optional = true }
 # Fast hashing
 fxhash = "0.2"
+indexmap = { version = "2.2", features = ["serde"] }
 # Explicit getrandom with js feature for WASM compatibility - both versions
 getrandom = { version = "=0.2.16", features = ["js"] }
 rand = "0.8.5"
@@ -77,6 +80,7 @@ ahash = "=0.8.11"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # Advanced I/O dependencies - exclude from WASM targets
 parquet = { version = "53.0", optional = true }
+arrow = { version = "53.0", optional = true }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "sqlite", "postgres"], optional = true }
 tokio = { version = "1.0", features = ["full"], optional = true }
 # Data Quality dependencies
@@ -84,21 +88,7 @@ regex = { version = "1.0", optional = true }
 # Window Functions dependencies
 chrono = { version = "0.4.31", features = ["serde"], optional = true }
 # Distributed Computing dependencies
-arrow = { version = "53.4.1", optional = true }
-arrow-csv = { version = "53.4.1", optional = true }
-arrow-flight = { version = "53.4.1", optional = true }
-arrow-array = { version = "53.4.1", optional = true }
-arrow-buffer = { version = "53.4.1", optional = true }
-arrow-cast = { version = "53.4.1", optional = true }
-arrow-data = { version = "53.4.1", optional = true }
-arrow-ipc = { version = "53.4.1", optional = true }
-arrow-json = { version = "53.4.1", optional = true }
-arrow-ord = { version = "53.4.1", optional = true }
-arrow-row = { version = "53.4.1", optional = true }
-arrow-schema = { version = "53.4.1", optional = true }
-arrow-select = { version = "53.4.1", optional = true }
-arrow-string = { version = "53.4.1", optional = true }
-arrow-arith = { version = "53.4.1", optional = true }
+
 linfa-trees = { version = "0.7", optional = true }
 # SIMD dependencies
 wide = { version = "0.7", optional = true }
@@ -119,27 +109,29 @@ criterion = "0.5"
 tokio = { version = "1.0", features = ["full"] }
 serde_json = "1.0"
 tempfile = "3.0"
+polars = { version = "0.40", default-features = false, features = ["lazy"] }
+proptest = "1.0"
 # Force getrandom js feature in dev dependencies for WASM builds
 getrandom = { version = "0.2", features = ["js"] }
 
 [features]
 default = ["full"]
-full = ["visualization", "ml", "advanced_io", "data_quality", "window_functions", "distributed", "arrow-io", "simd"]
+full = ["visualization", "ml", "advanced_io", "data_quality", "window_functions", "distributed", "simd"]
 python = ["pyo3", "full"]
 # Minimal WASM feature without problematic dependencies  
 wasm = ["wasm-bindgen", "js-sys", "serde_json", "serde-wasm-bindgen"]
 # Optional WASM features - disable simd for WASM
 wasm-full = ["wasm", "visualization", "data_quality", "window_functions", "getrandom/js"]
 visualization = ["plotters", "plotters-svg"]
-ml = ["ndarray", "linfa", "linfa-linear", "linfa-trees"]
-advanced_io = ["parquet", "tokio", "sqlx"]
+ml = ["ndarray", "linfa", "linfa-linear", "linfa-trees", "linfa-clustering", "linfa-logistic", "linfa-nn"]
+advanced_io = ["parquet", "tokio", "sqlx", "arrow"]
+arrow = ["dep:arrow"]
 data_quality = ["regex"]
 window_functions = ["chrono"]
-distributed = ["arrow", "arrow-flight"]
-arrow-io = ["arrow", "arrow-csv"]
+distributed = []
+
 simd = ["wide"]
-arrow = ["dep:arrow", "arrow-array", "arrow-buffer", "arrow-data", "arrow-schema", "arrow-arith", "arrow-select", "arrow-ord", "arrow-string"]
-polars = ["dep:polars"]
+
 
 # Enable portable SIMD feature
 [package.metadata.docs.rs]
@@ -227,7 +219,19 @@ harness = false
 [[bench]]
 name = "arrow_series_comparison"
 harness = false
-required-features = ["polars", "arrow"]
+
+[[bench]]
+name = "io_benchmarks"
+harness = false
+
+[[bench]]
+name = "parquet_benchmarks"
+harness = false
+
+[[bench]]
+name = "tpch_benchmarks"
+harness = false
+
 
 [package.metadata.maturin]
 name = "veloxx"

@@ -1,9 +1,7 @@
 //! Tests for Arrow string operations
 
 #[cfg(feature = "arrow")]
-use arrow_array::Array;
-#[cfg(feature = "arrow")]
-use veloxx::arrow::{ArrowSeries, ArrowStringOps};
+use veloxx::series::Series;
 
 #[cfg(feature = "arrow")]
 #[test]
@@ -14,23 +12,23 @@ fn test_arrow_string_to_uppercase() {
         None,
         Some("rust".to_string()),
     ];
-    let series = ArrowSeries::new_string("test", data);
+    let series = Series::new_string("test", data);
 
     let uppercase_series = series.to_uppercase().unwrap();
 
-    match uppercase_series {
-        ArrowSeries::String(_, array, _) => {
-            let arr = array
-                .as_any()
-                .downcast_ref::<arrow_array::StringArray>()
-                .unwrap();
-            assert_eq!(arr.value(0), "HELLO");
-            assert_eq!(arr.value(1), "WORLD");
-            assert!(arr.is_null(2));
-            assert_eq!(arr.value(3), "RUST");
-        }
-        _ => panic!("Expected String series"),
-    }
+    assert_eq!(
+        uppercase_series.get_value(0),
+        Some(veloxx::types::Value::String("HELLO".to_string()))
+    );
+    assert_eq!(
+        uppercase_series.get_value(1),
+        Some(veloxx::types::Value::String("WORLD".to_string()))
+    );
+    assert_eq!(uppercase_series.get_value(2), None);
+    assert_eq!(
+        uppercase_series.get_value(3),
+        Some(veloxx::types::Value::String("RUST".to_string()))
+    );
 }
 
 #[cfg(feature = "arrow")]
@@ -42,21 +40,21 @@ fn test_arrow_string_to_lowercase() {
         None,
         Some("RUST".to_string()),
     ];
-    let series = ArrowSeries::new_string("test", data);
+    let series = Series::new_string("test", data);
 
     let lowercase_series = series.to_lowercase().unwrap();
 
-    match lowercase_series {
-        ArrowSeries::String(_, array, _) => {
-            let arr = array
-                .as_any()
-                .downcast_ref::<arrow_array::StringArray>()
-                .unwrap();
-            assert_eq!(arr.value(0), "hello");
-            assert_eq!(arr.value(1), "world");
-            assert!(arr.is_null(2));
-            assert_eq!(arr.value(3), "rust");
-        }
-        _ => panic!("Expected String series"),
-    }
+    assert_eq!(
+        lowercase_series.get_value(0),
+        Some(veloxx::types::Value::String("hello".to_string()))
+    );
+    assert_eq!(
+        lowercase_series.get_value(1),
+        Some(veloxx::types::Value::String("world".to_string()))
+    );
+    assert_eq!(lowercase_series.get_value(2), None);
+    assert_eq!(
+        lowercase_series.get_value(3),
+        Some(veloxx::types::Value::String("rust".to_string()))
+    );
 }

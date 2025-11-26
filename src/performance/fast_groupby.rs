@@ -227,7 +227,7 @@ impl FastGroupBy {
             ),
         );
 
-        DataFrame::new(result)
+        Ok(DataFrame::new(result.into_iter().collect()))
     }
 
     /// SIMD-accelerated accumulation for dense arrays
@@ -304,8 +304,6 @@ impl FastGroupBy {
         group_col_name: &str,
         value_col_name: &str,
     ) -> Result<DataFrame, VeloxxError> {
-        use std::collections::HashMap;
-
         // Use parallel reduction for hash table construction
         let map = (0..group_values.len())
             .into_par_iter()
@@ -358,7 +356,7 @@ impl FastGroupBy {
             ),
         );
 
-        DataFrame::new(result)
+        Ok(DataFrame::new(result.into_iter().collect()))
     }
 
     /// Helper to create empty result DataFrame
@@ -375,7 +373,7 @@ impl FastGroupBy {
             value_col_name.to_string(),
             Series::F64(value_col_name.to_string(), vec![], vec![]),
         );
-        DataFrame::new(result)
+        Ok(DataFrame::new(result.into_iter().collect()))
     }
 
     /// Helper function to expand byte mask to i32 mask for AVX2

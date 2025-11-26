@@ -1,7 +1,7 @@
 //! Direct SIMD operations on Arrow arrays
 
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
-use arrow_array::{Float64Array, Int32Array};
+use arrow::array::{Float64Array, Int32Array};
 
 #[cfg(all(feature = "simd", target_arch = "aarch64"))]
 use std::arch::aarch64::*;
@@ -13,12 +13,14 @@ use wide::{f64x4, i32x4};
 #[cfg(feature = "simd")]
 pub fn simd_add_f64_arrays(arr1: &Float64Array, arr2: &Float64Array) -> Float64Array {
     #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
-    use arrow_arith::numeric;
-    #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
-    use arrow_array::Float64Array;
-    let result = numeric::add(arr1, arr2).unwrap();
-    let array = result.as_any().downcast_ref::<Float64Array>().unwrap();
-    array.clone()
+    // Fallback implementation that performs elementwise addition
+    // without relying on arrow_arith to avoid an extra dependency.
+    let len = arr1.len();
+    let mut result_vec: Vec<f64> = Vec::with_capacity(len);
+    for i in 0..len {
+        result_vec.push(arr1.value(i) + arr2.value(i));
+    }
+    Float64Array::from(result_vec)
 }
 
 /// Perform SIMD addition directly on Arrow Int32Array
@@ -134,8 +136,8 @@ pub fn simd_sum_i32_array(arr: &Int32Array) -> i32 {
 #[cfg(all(test, feature = "arrow", feature = "simd"))]
 mod tests {
     use super::*;
-    use arrow_array::Float64Array;
-    use arrow_array::Int32Array;
+    use arrow::array::Float64Array;
+    use arrow::array::Int32Array;
 
     #[test]
     fn test_simd_add_f64_arrays() {

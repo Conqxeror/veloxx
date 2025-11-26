@@ -4,7 +4,7 @@ use crate::conditions::Condition;
 use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::types::Value;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -21,8 +21,8 @@ pub struct WasmDataFrame {
 impl WasmDataFrame {
     #[wasm_bindgen(constructor)]
     pub fn new() -> WasmDataFrame {
-        let rust_columns: HashMap<String, Series> = HashMap::new();
-        let df = DataFrame::new(rust_columns).unwrap();
+        let rust_columns: IndexMap<String, Series> = IndexMap::new();
+        let df = DataFrame::new(rust_columns);
         WasmDataFrame { df }
     }
 
@@ -30,7 +30,7 @@ impl WasmDataFrame {
     /// Static method exported on the WasmDataFrame class
     #[wasm_bindgen(js_name = fromObject, static_method_of = WasmDataFrame)]
     pub fn from_object(data: &js_sys::Object) -> Result<WasmDataFrame, JsValue> {
-        let mut rust_columns: HashMap<String, Series> = HashMap::new();
+        let mut rust_columns: IndexMap<String, Series> = IndexMap::new();
 
         // Parse the JavaScript object into Rust data structures
         let entries = js_sys::Object::entries(data);
@@ -88,7 +88,7 @@ impl WasmDataFrame {
             rust_columns.insert(name, series);
         }
 
-        let df = DataFrame::new(rust_columns).map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let df = DataFrame::new(rust_columns);
         Ok(WasmDataFrame { df })
     }
 
@@ -163,7 +163,7 @@ impl WasmDataFrame {
         s.set_name(name);
         new_columns.insert(name.to_string(), s);
         // Rebuild the DataFrame to validate lengths and invariants
-        self.df = DataFrame::new(new_columns).map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.df = DataFrame::new(new_columns);
         Ok(())
     }
 

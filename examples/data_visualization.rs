@@ -3,7 +3,7 @@
 //! This example shows how to create various types of plots from DataFrame data,
 //! including line plots, scatter plots, and bar charts.
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
@@ -35,7 +35,7 @@ fn create_line_plot_example() -> Result<(), Box<dyn std::error::Error>> {
     println!("-------------------");
 
     // Create time series data
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "time".to_string(),
         Series::new_f64(
@@ -73,7 +73,7 @@ fn create_line_plot_example() -> Result<(), Box<dyn std::error::Error>> {
         ),
     );
 
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("Created DataFrame with time series data:");
     println!("{}", df);
 
@@ -107,7 +107,7 @@ fn create_scatter_plot_example() -> Result<(), Box<dyn std::error::Error>> {
     println!("----------------------");
 
     // Create correlation data
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "x".to_string(),
         Series::new_f64(
@@ -145,7 +145,7 @@ fn create_scatter_plot_example() -> Result<(), Box<dyn std::error::Error>> {
         ),
     );
 
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("Created DataFrame with correlation data:");
     println!("{}", df);
 
@@ -179,7 +179,7 @@ fn create_bar_chart_example() -> Result<(), Box<dyn std::error::Error>> {
     println!("-------------------");
 
     // Create categorical data
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "category".to_string(),
         Series::new_string(
@@ -207,7 +207,7 @@ fn create_bar_chart_example() -> Result<(), Box<dyn std::error::Error>> {
         ),
     );
 
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("Created DataFrame with sales data:");
     println!("{}", df);
 

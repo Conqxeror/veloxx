@@ -1,0 +1,22 @@
+    Checking veloxx v0.3.2 (D:\Projects\Veloxx\veloxx)
+error[E0277]: the trait bound `&&std::string::String: Into<std::string::String>` is not satisfied
+   --> src\io\arrow.rs:131:32
+    |
+131 |         fields.push(Field::new(name, arrow_type, true));
+    |                     ---------- ^^^^ the trait `From<&&std::string::String>` is not implemented for `std::string::String`
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+    = note: required for `&&std::string::String` to implement `Into<std::string::String>`
+note: required by a bound in `arrow::datatypes::Field::new`
+   --> C:\Users\MSI\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\arrow-schema-53.4.1\src\field.rs:121:27
+    |
+121 |     pub fn new(name: impl Into<String>, data_type: DataType, nullable: bool) -> Self {
+    |                           ^^^^^^^^^^^^ required by this bound in `Field::new`
+help: consider dereferencing here
+    |
+131 |         fields.push(Field::new(*name, arrow_type, true));
+    |                                +
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `veloxx` (lib) due to 1 previous error

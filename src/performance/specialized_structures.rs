@@ -56,7 +56,7 @@ impl BitPackedArray {
     }
 
     /// Iterator over the bits in the array
-    pub fn iter(&self) -> BitPackedIterator {
+    pub fn iter(&self) -> BitPackedIterator<'_> {
         BitPackedIterator {
             array: self,
             index: 0,

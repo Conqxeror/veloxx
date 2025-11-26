@@ -11,7 +11,6 @@ pub mod distributed; // Only available for non-WASM targets
 
 // Core exports
 pub use crate::conditions::Condition;
-pub use crate::dataframe::DataFrame;
 pub use crate::series::Series;
 pub use crate::types::{DataType, Value};
 
@@ -20,12 +19,11 @@ pub use crate::types::{DataType, Value};
 pub use wasm_bindings::{WasmDataFrame, WasmGroupedDataFrame, WasmSeries};
 
 // Core modules
-#[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
-pub mod arrow;
 pub mod conditions;
 #[cfg(feature = "data_quality")]
 pub mod data_quality;
 pub mod dataframe;
+
 pub mod error;
 pub mod io;
 #[cfg(feature = "ml")]

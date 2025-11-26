@@ -2,6 +2,7 @@
 //!
 //! This module provides performance-optimized methods for Series operations
 
+use crate::performance::{MemoryAnalyzer, ParallelAggregations};
 use crate::series::Series;
 use crate::types::Value;
 use crate::VeloxxError;
@@ -34,7 +35,7 @@ impl SeriesPerformanceExt for Series {
     fn simd_add(&self, other: &Series) -> Result<Series, VeloxxError> {
         #[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
         {
-            use crate::performance::simd::SimdOps;
+            use crate::performance::optimized_simd::OptimizedSimdOps;
 
             if self.len() != other.len() {
                 return Err(VeloxxError::InvalidOperation(
@@ -44,93 +45,41 @@ impl SeriesPerformanceExt for Series {
 
             match (self, other) {
                 (Series::F64(name, a, a_bitmap), Series::F64(_, b, b_bitmap)) => {
-                    // For SIMD operations, we need to handle the bitmap correctly
-                    // We'll create vectors with only valid values for SIMD processing
+                    let len = a.len();
+                    let mut result_values = vec![0.0; len];
+                    let mut result_bitmap = vec![false; len];
 
-                    // First, count valid values to pre-allocate correctly
-                    let valid_count = a_bitmap
-                        .iter()
-                        .zip(b_bitmap.iter())
-                        .filter(|&(&a, &b)| a && b)
-                        .count();
-
-                    // Pre-allocate vectors with exact capacity
-                    let mut a_values: Vec<f64> = Vec::with_capacity(valid_count);
-                    let mut b_values: Vec<f64> = Vec::with_capacity(valid_count);
-                    let mut result_bitmap = vec![false; a_bitmap.len()];
-
-                    // Fill vectors more efficiently
-                    for i in 0..a.len() {
-                        if a_bitmap[i] && b_bitmap[i] {
-                            a_values.push(a[i]);
-                            b_values.push(b[i]);
-                            result_bitmap[i] = true;
-                        }
+                    // Masking (can be optimized further but this is O(N))
+                    for i in 0..len {
+                        result_bitmap[i] = a_bitmap[i] & b_bitmap[i];
                     }
 
-                    let simd_result = a_values.simd_add(&b_values);
+                    // Zero-copy SIMD addition on full arrays
+                    // We use optimized_simd_add from OptimizedSimdOps trait
+                    a.optimized_simd_add(b, &mut result_values);
 
-                    // Create the result series with correct values and bitmap
-                    let mut result_values = Vec::with_capacity(simd_result.len());
-
-                    let mut simd_idx = 0;
-                    for &is_valid in &result_bitmap {
-                        if is_valid {
-                            result_values.push(Some(simd_result[simd_idx]));
-                            simd_idx += 1;
-                        } else {
-                            result_values.push(None);
-                        }
-                    }
-
-                    Ok(Series::new_f64(
-                        &format!("{}_simd_add", name),
+                    // Use Series::F64 constructor directly to avoid Vec<Option<T>> conversion overhead
+                    Ok(Series::F64(
+                        format!("{}_simd_add", name),
                         result_values,
+                        result_bitmap,
                     ))
                 }
                 (Series::I32(name, a, a_bitmap), Series::I32(_, b, b_bitmap)) => {
-                    // For SIMD operations, we need to handle the bitmap correctly
-                    // We'll create vectors with only valid values for SIMD processing
+                    let len = a.len();
+                    let mut result_values = vec![0; len];
+                    let mut result_bitmap = vec![false; len];
 
-                    // First, count valid values to pre-allocate correctly
-                    let valid_count = a_bitmap
-                        .iter()
-                        .zip(b_bitmap.iter())
-                        .filter(|&(&a, &b)| a && b)
-                        .count();
-
-                    // Pre-allocate vectors with exact capacity
-                    let mut a_values: Vec<i32> = Vec::with_capacity(valid_count);
-                    let mut b_values: Vec<i32> = Vec::with_capacity(valid_count);
-                    let mut result_bitmap = vec![false; a_bitmap.len()];
-
-                    // Fill vectors more efficiently
-                    for i in 0..a.len() {
-                        if a_bitmap[i] && b_bitmap[i] {
-                            a_values.push(a[i]);
-                            b_values.push(b[i]);
-                            result_bitmap[i] = true;
-                        }
+                    for i in 0..len {
+                        result_bitmap[i] = a_bitmap[i] & b_bitmap[i];
                     }
 
-                    let simd_result = a_values.simd_add(&b_values);
+                    a.optimized_simd_add(b, &mut result_values);
 
-                    // Create the result series with correct values and bitmap
-                    let mut result_values = Vec::with_capacity(simd_result.len());
-
-                    let mut simd_idx = 0;
-                    for &is_valid in &result_bitmap {
-                        if is_valid {
-                            result_values.push(Some(simd_result[simd_idx]));
-                            simd_idx += 1;
-                        } else {
-                            result_values.push(None);
-                        }
-                    }
-
-                    Ok(Series::new_i32(
-                        &format!("{}_simd_add", name),
+                    Ok(Series::I32(
+                        format!("{}_simd_add", name),
                         result_values,
+                        result_bitmap,
                     ))
                 }
                 _ => Err(VeloxxError::InvalidOperation(
@@ -184,17 +133,14 @@ impl SeriesPerformanceExt for Series {
     }
 
     fn par_mean(&self) -> Result<Value, VeloxxError> {
-        use crate::performance::parallel::ParallelAggregations;
         ParallelAggregations::par_mean(self)
     }
 
     fn par_min(&self) -> Result<Value, VeloxxError> {
-        use crate::performance::parallel::ParallelAggregations;
         ParallelAggregations::par_min(self)
     }
 
     fn par_max(&self) -> Result<Value, VeloxxError> {
-        use crate::performance::parallel::ParallelAggregations;
         ParallelAggregations::par_max(self)
     }
 
@@ -204,7 +150,6 @@ impl SeriesPerformanceExt for Series {
     }
 
     fn compression_suggestions(&self) -> Vec<&'static str> {
-        use crate::performance::memory::MemoryAnalyzer;
         MemoryAnalyzer::suggest_compression(self)
     }
 }

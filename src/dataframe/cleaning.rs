@@ -1,6 +1,6 @@
 use crate::VeloxxError;
 use crate::{dataframe::DataFrame, series::Series, types::Value};
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 impl DataFrame {
     /// Removes rows from the `DataFrame` that contain any null values.
@@ -19,13 +19,13 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2), Some(3.3)]));
-    /// let df = DataFrame::new(columns).unwrap();
+    /// let df = DataFrame::new(columns);
     ///
     /// // Row 1 (index 0): [1, 1.1]
     /// // Row 2 (index 1): [None, 2.2] - will be dropped
@@ -46,7 +46,7 @@ impl DataFrame {
             self.columns.values().collect()
         };
 
-        let row_indices_to_keep: Vec<usize> = (0..self.row_count)
+        let row_indices_to_keep: Vec<usize> = (0..self.row_count())
             .filter(|&i| {
                 columns_to_check
                     .iter()
@@ -54,13 +54,13 @@ impl DataFrame {
             })
             .collect();
 
-        let mut new_columns: HashMap<String, Series> = HashMap::new();
+        let mut new_columns: IndexMap<String, Series> = IndexMap::new();
         for (col_name, series) in self.columns.iter() {
             let new_series = series.filter(&row_indices_to_keep)?;
             new_columns.insert(col_name.clone(), new_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Fills null values in the `DataFrame` with a specified `Value`.
@@ -84,13 +84,13 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
     /// columns.insert("B".to_string(), Series::new_string("B", vec![Some("x".to_string()), None, Some("z".to_string())]));
-    /// let df = DataFrame::new(columns).unwrap();
+    /// let df = DataFrame::new(columns);
     ///
     /// // Fill integer nulls with 99
     /// let filled_df_i32 = df.fill_nulls(Value::I32(99)).unwrap();
@@ -103,7 +103,7 @@ impl DataFrame {
     /// assert_eq!(filled_df_string.get_column("B").unwrap().get_value(1), Some(Value::String("missing".to_string())));
     /// ```
     pub fn fill_nulls(&self, value: Value) -> Result<Self, VeloxxError> {
-        let mut new_columns: HashMap<String, Series> = HashMap::new();
+        let mut new_columns: IndexMap<String, Series> = IndexMap::new();
 
         for (col_name, series) in self.columns.iter() {
             let new_series = if series.data_type() == value.data_type() {
@@ -114,7 +114,7 @@ impl DataFrame {
             new_columns.insert(col_name.clone(), new_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Interpolates null values in a specific column using linear interpolation.
@@ -137,12 +137,12 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("A".to_string(), Series::new_f64("A", vec![Some(1.0), None, Some(3.0)]));
-    /// let df = DataFrame::new(columns).unwrap();
+    /// let df = DataFrame::new(columns);
     ///
     /// let interpolated_df = df.interpolate_nulls("A").unwrap();
     /// assert_eq!(interpolated_df.get_column("A").unwrap().get_value(1), Some(Value::F64(2.0)));
@@ -154,6 +154,6 @@ impl DataFrame {
         let interpolated = series.interpolate_nulls()?;
         let mut new_columns = self.columns.clone();
         new_columns.insert(column_name.to_string(), interpolated);
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 }

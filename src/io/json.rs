@@ -1,9 +1,10 @@
 use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::VeloxxError;
+
 use memmap2::Mmap;
-use std::collections::HashMap;
 // ...existing code...
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -631,7 +632,7 @@ impl UltraFastJsonParser {
             columns.insert(key_string, series);
         }
 
-        DataFrame::new(columns)
+        Ok(DataFrame::new(columns.into_iter().collect()))
     }
 
     /// Convert single JSON object to single-row DataFrame

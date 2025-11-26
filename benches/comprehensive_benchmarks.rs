@@ -9,6 +9,7 @@ use veloxx::lazy::{col, lit, BinaryOperator, LazyDataFrame};
 use veloxx::performance::series_ext::SeriesPerformanceExt;
 use veloxx::series::Series;
 use veloxx::types::Value;
+use indexmap::IndexMap;
 
 fn create_test_series(size: usize) -> (Series, Series) {
     let data1: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
@@ -24,11 +25,11 @@ fn create_test_dataframe(size: usize) -> DataFrame {
     let data1: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
     let data2: Vec<Option<i32>> = (0..size).map(|i| Some(i as i32)).collect();
 
-    let mut columns = std::collections::HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert("col1".to_string(), Series::new_f64("col1", data1));
     columns.insert("col2".to_string(), Series::new_i32("col2", data2));
 
-    DataFrame::new(columns).unwrap()
+    DataFrame::new(columns)
 }
 
 fn bench_traditional_add(c: &mut Criterion) {

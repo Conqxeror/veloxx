@@ -2,7 +2,8 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
 #[cfg(feature = "arrow")]
-use veloxx::arrow::{ArrowOps, ArrowSeries};
+use veloxx::series::Series;
+use indexmap::IndexMap;
 
 fn bench_arrow_math_ops(c: &mut Criterion) {
     let size = 100_000;
@@ -26,49 +27,49 @@ fn bench_arrow_math_ops(c: &mut Criterion) {
         c.bench_with_input(
             BenchmarkId::new("arrow_f64_add", size),
             &(&arrow_series1_f64, &arrow_series2_f64),
-            |b, (s1, s2)| b.iter(|| s1.arrow_add(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_add(s2).unwrap()),
         );
 
         c.bench_with_input(
             BenchmarkId::new("arrow_f64_sub", size),
             &(&arrow_series1_f64, &arrow_series2_f64),
-            |b, (s1, s2)| b.iter(|| s1.arrow_sub(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_sub(s2).unwrap()),
         );
 
         c.bench_with_input(
             BenchmarkId::new("arrow_f64_mul", size),
             &(&arrow_series1_f64, &arrow_series2_f64),
-            |b, (s1, s2)| b.iter(|| s1.arrow_mul(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_mul(s2).unwrap()),
         );
 
         c.bench_with_input(
             BenchmarkId::new("arrow_f64_div", size),
             &(&arrow_series1_f64, &arrow_series2_f64),
-            |b, (s1, s2)| b.iter(|| s1.arrow_div(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_div(s2).unwrap()),
         );
 
         c.bench_with_input(
             BenchmarkId::new("arrow_i32_add", size),
             &(&arrow_series1_i32, &arrow_series2_i32),
-            |b, (s1, s2)| b.iter(|| s1.arrow_add(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_add(s2).unwrap()),
         );
 
         c.bench_with_input(
             BenchmarkId::new("arrow_i32_sub", size),
             &(&arrow_series1_i32, &arrow_series2_i32),
-            |b, (s1, s2)| b.iter(|| s1.arrow_sub(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_sub(s2).unwrap()),
         );
 
         c.bench_with_input(
             BenchmarkId::new("arrow_i32_mul", size),
             &(&arrow_series1_i32, &arrow_series2_i32),
-            |b, (s1, s2)| b.iter(|| s1.arrow_mul(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_mul(s2).unwrap()),
         );
 
         c.bench_with_input(
             BenchmarkId::new("arrow_i32_div", size),
             &(&arrow_series1_i32, &arrow_series2_i32),
-            |b, (s1, s2)| b.iter(|| s1.arrow_div(s2).unwrap()),
+            |b, (s1, s2): &(_, _)| b.iter(|| s1.arrow_div(s2).unwrap()),
         );
     }
 

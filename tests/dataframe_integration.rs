@@ -1,5 +1,5 @@
 mod tests {
-    use std::collections::HashMap;
+    use indexmap::IndexMap;
     use veloxx::dataframe::join::JoinType;
     use veloxx::dataframe::DataFrame;
     use veloxx::error::VeloxxError;
@@ -9,7 +9,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_with_column() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "a".to_string(),
             Series::new_i32("a", vec![Some(1), Some(2), Some(3)]),
@@ -18,7 +18,7 @@ mod tests {
             "b".to_string(),
             Series::new_i32("b", vec![Some(4), Some(5), Some(6)]),
         );
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
 
         // Create a new column "c" as a + b
         let expr = Expr::Add(
@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn test_dataframe_join() {
         // Create left DataFrame
-        let mut left_cols = HashMap::new();
+        let mut left_cols = IndexMap::new();
         left_cols.insert(
             "id".to_string(),
             Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -76,10 +76,10 @@ mod tests {
                 ],
             ),
         );
-        let left_df = DataFrame::new(left_cols).unwrap();
+        let left_df = DataFrame::new(left_cols);
 
         // Create right DataFrame
-        let mut right_cols = HashMap::new();
+        let mut right_cols = IndexMap::new();
         right_cols.insert(
             "id".to_string(),
             Series::new_i32("id", vec![Some(2), Some(3), Some(4)]),
@@ -95,7 +95,7 @@ mod tests {
                 ],
             ),
         );
-        let right_df = DataFrame::new(right_cols).unwrap();
+        let right_df = DataFrame::new(right_cols);
 
         // Test Inner Join
         let inner_join_df = left_df.join(&right_df, "id", JoinType::Inner).unwrap();
@@ -129,7 +129,7 @@ mod tests {
     #[test]
     fn test_dataframe_append() {
         // Create columns ensuring same insertion order
-        let mut df1_cols = HashMap::new();
+        let mut df1_cols = IndexMap::new();
         df1_cols.insert(
             "col1".to_string(),
             Series::new_i32("col1", vec![Some(1), Some(2)]),
@@ -138,10 +138,10 @@ mod tests {
             "col2".to_string(),
             Series::new_string("col2", vec![Some("a".to_string()), Some("b".to_string())]),
         );
-        let df1 = DataFrame::new(df1_cols).unwrap();
+        let df1 = DataFrame::new(df1_cols);
 
         // Create second DataFrame with the same column order
-        let mut df2_cols = HashMap::new();
+        let mut df2_cols = IndexMap::new();
         // Insert in the same order as df1
         df2_cols.insert(
             "col1".to_string(),
@@ -151,7 +151,7 @@ mod tests {
             "col2".to_string(),
             Series::new_string("col2", vec![Some("c".to_string()), Some("d".to_string())]),
         );
-        let df2 = DataFrame::new(df2_cols).unwrap();
+        let df2 = DataFrame::new(df2_cols);
 
         // Check column order matches before append
         let df1_cols = df1.column_names();

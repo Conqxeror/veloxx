@@ -38,7 +38,7 @@ pub use errors::VeloxxError;
 #[cfg(feature = "wasm")]
 pub mod wasm {
     use crate::{DataFrame, Series, Value, DataType, Condition};
-    use std::collections::HashMap;
+    use indexmap::IndexMap;
     use wasm_bindgen::prelude::*;
 
     #[wasm_bindgen]
@@ -53,7 +53,7 @@ pub mod wasm {
             let data: serde_json::Value = serde_wasm_bindgen::from_value(data)
                 .map_err(|e| JsValue::from_str(&format!("Failed to parse data: {}", e)))?;
             
-            let mut columns = HashMap::new();
+            let mut columns = IndexMap::new();
             
             if let Some(obj) = data.as_object() {
                 for (name, values) in obj {
@@ -101,7 +101,7 @@ pub mod wasm {
         #[wasm_bindgen]
         pub fn select(&self, columns: Vec<String>) -> Result<WasmDataFrame, JsValue> {
             // For now, create a new DataFrame with selected columns
-            let mut new_columns = HashMap::new();
+            let mut new_columns = IndexMap::new();
             for col_name in columns {
                 if let Some(column) = self.inner.get_column(&col_name) {
                     new_columns.insert(col_name, column.clone());

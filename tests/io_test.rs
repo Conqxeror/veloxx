@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::error::VeloxxError;
 use veloxx::io::{CsvReader, JsonWriter};
@@ -56,12 +56,12 @@ fn test_json_reader_stream_string() {
 #[test]
 fn test_json_writer_write_file() {
     let _writer = JsonWriter::new();
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "test".to_string(),
         Series::new_i32("test", vec![Some(1), Some(2)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let result = _writer.write_file(&df, "test_output.json");
     assert!(result.is_ok());
@@ -70,12 +70,12 @@ fn test_json_writer_write_file() {
 #[test]
 fn test_json_writer_write_string() {
     let _writer = JsonWriter::new();
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "test".to_string(),
         Series::new_i32("test", vec![Some(1), Some(2)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let result = _writer.write_string(&df);
     assert!(result.is_some());
@@ -104,7 +104,7 @@ fn test_from_csv() {
 
 #[test]
 fn test_to_csv() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "name".to_string(),
         Series::new_string(
@@ -116,7 +116,7 @@ fn test_to_csv() {
         "age".to_string(),
         Series::new_i32("age", vec![Some(30), Some(24)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
     df.to_csv("test_output.csv").unwrap();
 
     let read_df = DataFrame::from_csv("test_output.csv").unwrap();
@@ -145,7 +145,7 @@ fn test_from_csv_nonexistent_file() {
 
 #[test]
 fn test_empty_dataframe_to_from_csv() {
-    let df = DataFrame::new(HashMap::new()).unwrap();
+    let df = DataFrame::new(IndexMap::new());
     df.to_csv("empty.csv").unwrap();
     let read_df = DataFrame::from_csv("empty.csv").unwrap();
     assert_eq!(read_df.row_count(), 0);

@@ -1,0 +1,940 @@
+    Checking smallvec v1.15.1
+    Checking futures-sink v0.3.31
+    Checking parking_lot_core v0.9.11
+    Checking icu_normalizer v2.0.0
+    Checking sprs v0.11.1
+    Checking futures-util v0.3.31
+    Checking itertools v0.10.5
+    Checking noisy_float v0.2.0
+    Checking futures-channel v0.3.31
+    Checking flume v0.11.1
+    Checking parking_lot v0.12.4
+    Checking kdtree v0.7.0
+    Checking order-stat v0.1.3
+    Checking space v0.12.1
+    Checking tokio v1.47.1
+    Checking futures-intrusive v0.5.0
+    Checking ndarray-stats v0.5.1
+    Checking idna_adapter v1.2.1
+    Checking idna v1.1.0
+    Checking url v2.5.7
+    Checking linfa v0.7.1
+    Checking linfa-nn v0.7.2
+    Checking linfa-logistic v0.7.1
+    Checking linfa-trees v0.7.1
+    Checking linfa-linear v0.7.1
+    Checking linfa-clustering v0.7.1
+    Checking futures-executor v0.3.31
+    Checking tokio-stream v0.1.17
+    Checking sqlx-core v0.8.6
+    Checking sqlx-sqlite v0.8.6
+    Checking sqlx-postgres v0.8.6
+    Checking sqlx v0.8.6
+    Checking veloxx v0.3.2 (D:\Projects\Veloxx\veloxx)
+error[E0428]: the name `data_quality` is defined multiple times
+  --> src\lib.rs:27:1
+   |
+24 | pub mod data_quality;
+   | --------------------- previous definition of the module `data_quality` here
+...
+27 | pub mod data_quality;
+   | ^^^^^^^^^^^^^^^^^^^^^ `data_quality` redefined here
+   |
+   = note: `data_quality` must be defined only once in the type namespace of this module
+
+error[E0428]: the name `dataframe` is defined multiple times
+  --> src\lib.rs:28:1
+   |
+25 | pub mod dataframe;
+   | ------------------ previous definition of the module `dataframe` here
+...
+28 | pub mod dataframe;
+   | ^^^^^^^^^^^^^^^^^^ `dataframe` redefined here
+   |
+   = note: `dataframe` must be defined only once in the type namespace of this module
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `arrow`
+  --> src\distributed.rs:60:5
+   |
+60 | use arrow::array::{Array, BooleanArray, Float64Array, Int32Array, StringArray};
+   |     ^^^^^ use of unresolved module or unlinked crate `arrow`
+   |
+   = help: if you wanted to use a crate named `arrow`, use `cargo add arrow` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `arrow`
+  --> src\distributed.rs:62:5
+   |
+62 | use arrow::datatypes::{DataType as ArrowDataType, Field, Schema};
+   |     ^^^^^ use of unresolved module or unlinked crate `arrow`
+   |
+   = help: if you wanted to use a crate named `arrow`, use `cargo add arrow` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `arrow`
+  --> src\distributed.rs:64:5
+   |
+64 | use arrow::record_batch::RecordBatch;
+   |     ^^^^^ use of unresolved module or unlinked crate `arrow`
+   |
+   = help: if you wanted to use a crate named `arrow`, use `cargo add arrow` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `crate::dataframe::join`
+  --> src\distributed.rs:49:23
+   |
+49 | use crate::dataframe::join::JoinType;
+   |                       ^^^^ could not find `join` in `dataframe`
+
+error[E0433]: failed to resolve: could not find `arrow` in `io`
+   --> src\advanced_io.rs:110:56
+    |
+110 |         tokio::task::spawn_blocking(move || crate::io::arrow::read_parquet_to_dataframe(&path_str))
+    |                                                        ^^^^^ could not find `arrow` in `io`
+    |
+note: found an item that was configured out
+   --> src\io\mod.rs:2:9
+    |
+  1 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+    |           ----------------- the item is gated behind the `arrow` feature
+  2 | pub mod arrow;
+    |         ^^^^^
+
+error[E0433]: failed to resolve: could not find `arrow` in `io`
+   --> src\advanced_io.rs:224:24
+    |
+224 |             crate::io::arrow::write_parquet_from_dataframe(&df_clone, &path_str)
+    |                        ^^^^^ could not find `arrow` in `io`
+    |
+note: found an item that was configured out
+   --> src\io\mod.rs:2:9
+    |
+  1 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+    |           ----------------- the item is gated behind the `arrow` feature
+  2 | pub mod arrow;
+    |         ^^^^^
+
+warning: unused import: `crate::VeloxxError`
+ --> src\dataframe\mod.rs:4:5
+  |
+4 | use crate::VeloxxError;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unexpected `cfg` condition value: `arrow`
+   --> src\error.rs:105:11
+    |
+105 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+    |           ^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+    = help: consider adding `arrow` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `arrow`
+ --> src\io\mod.rs:1:11
+  |
+1 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+  |           ^^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+  = help: consider adding `arrow` as a feature in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+  --> src\io\mod.rs:26:19
+   |
+26 |         #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+   |                   ^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+  --> src\io\mod.rs:30:47
+   |
+30 |         #[cfg(any(target_arch = "wasm32", not(feature = "arrow")))]
+   |                                               ^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+  --> src\io\mod.rs:59:19
+   |
+59 |         #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+   |                   ^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+  --> src\io\mod.rs:63:47
+   |
+63 |         #[cfg(any(target_arch = "wasm32", not(feature = "arrow")))]
+   |                                               ^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `crate::types::Value`
+  --> src\ml.rs:55:5
+   |
+55 | use crate::types::Value;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: `arrow`
+ --> src\performance\mod.rs:7:11
+  |
+7 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+  |           ^^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+  = help: consider adding `arrow` as a feature in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+  --> src\performance\mod.rs:37:11
+   |
+37 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+   |           ^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+ --> src\series\mod.rs:5:11
+  |
+5 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+  |           ^^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+  = help: consider adding `arrow` as a feature in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+ --> src\series\mod.rs:9:11
+  |
+9 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+  |           ^^^^^^^^^^^^^^^^^
+  |
+  = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+  = help: consider adding `arrow` as a feature in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+  --> src\series\mod.rs:11:11
+   |
+11 | #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+   |           ^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+   --> src\series\mod.rs:333:15
+    |
+333 |     #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+    |               ^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+    = help: consider adding `arrow` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow`
+   --> src\series\mod.rs:398:15
+    |
+398 |     #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+    |               ^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` are: `advanced_io`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+    = help: consider adding `arrow` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `DataType`
+ --> src\series\arithmetic.rs:2:20
+  |
+2 | use crate::types::{DataType, Value};
+  |                    ^^^^^^^^
+
+warning: unused import: `arithmetic::*`
+   --> src\series\mod.rs:934:9
+    |
+934 | pub use arithmetic::*;
+    |         ^^^^^^^^^^^^^
+
+warning: unused import: `aggregations::*`
+   --> src\series\mod.rs:935:9
+    |
+935 | pub use aggregations::*;
+    |         ^^^^^^^^^^^^^^^
+
+error[E0107]: struct takes 2 generic arguments but 1 generic argument was supplied
+   --> src\ml.rs:345:37
+    |
+345 |     model: Option<linfa_clustering::KMeans<f64>>,
+    |                                     ^^^^^^ --- supplied 1 generic argument
+    |                                     |
+    |                                     expected 2 generic arguments
+    |
+note: struct defined here, with 2 generic parameters: `F`, `D`
+   --> C:\Users\MSI\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\linfa-clustering-0.7.1\src\k_means\algorithm.rs:178:12
+    |
+178 | pub struct KMeans<F: Float, D: Distance<F>> {
+    |            ^^^^^^ -         -
+help: add missing generic argument
+    |
+345 |     model: Option<linfa_clustering::KMeans<f64, D>>,
+    |                                               +++
+
+error[E0107]: struct takes 2 generic arguments but 1 generic argument was supplied
+   --> src\ml.rs:423:30
+    |
+423 |     model: linfa_clustering::KMeans<f64>,
+    |                              ^^^^^^ --- supplied 1 generic argument
+    |                              |
+    |                              expected 2 generic arguments
+    |
+note: struct defined here, with 2 generic parameters: `F`, `D`
+   --> C:\Users\MSI\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\linfa-clustering-0.7.1\src\k_means\algorithm.rs:178:12
+    |
+178 | pub struct KMeans<F: Float, D: Distance<F>> {
+    |            ^^^^^^ -         -
+help: add missing generic argument
+    |
+423 |     model: linfa_clustering::KMeans<f64, D>,
+    |                                        +++
+
+error[E0277]: the `?` operator can only be applied to values that implement `Try`
+   --> src\advanced_io.rs:370:18
+    |
+370 |         let df = DataFrame::new(columns)?;
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^ the `?` operator cannot be applied to type `dataframe::DataFrame`
+    |
+help: the trait `Try` is not implemented for `dataframe::DataFrame`
+   --> src\dataframe\mod.rs:7:1
+    |
+  7 | pub struct DataFrame {
+    | ^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\advanced_io.rs:460:9
+    |
+446 |     pub async fn query(&self, query: &str) -> Result<DataFrame, VeloxxError> {
+    |                                               ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+460 |         DataFrame::new(columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+460 |         Ok(DataFrame::new(columns))
+    |         +++                       +
+
+error[E0599]: no function or associated item named `from_json` found for struct `dataframe::DataFrame` in the current scope
+   --> src\advanced_io.rs:716:20
+    |
+716 |         DataFrame::from_json(&content)
+    |                    ^^^^^^^^^ function or associated item not found in `dataframe::DataFrame`
+    |
+   ::: src\dataframe\mod.rs:7:1
+    |
+  7 | pub struct DataFrame {
+    | -------------------- function or associated item `from_json` not found for this struct
+    |
+note: if you're trying to build a new `dataframe::DataFrame`, consider using `dataframe::DataFrame::new` which returns `dataframe::DataFrame`
+   --> src\dataframe\mod.rs:12:5
+    |
+ 12 |     pub fn new(columns: HashMap<String, Series>) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\distributed.rs:154:9
+    |
+146 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+154 |         DataFrame::new(partition_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+154 |         Ok(DataFrame::new(partition_columns))
+    |         +++                                 +
+
+error[E0599]: no method named `append` found for struct `dataframe::DataFrame` in the current scope
+   --> src\distributed.rs:239:29
+    |
+239 |             result = result.append(partition)?;
+    |                             ^^^^^^ method not found in `dataframe::DataFrame`
+    |
+   ::: src\dataframe\mod.rs:7:1
+    |
+  7 | pub struct DataFrame {
+    | -------------------- method `append` not found for this struct
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `append`, perhaps you need to implement it:
+            candidate #1: `generic_array::sequence::Lengthen`
+
+error[E0599]: no method named `join` found for reference `&dataframe::DataFrame` in the current scope
+   --> src\distributed.rs:490:36
+    |
+490 |                     left_partition.join(right_partition, left_key, JoinType::Inner)
+    |                                    ^^^^ method not found in `&dataframe::DataFrame`
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `join`, perhaps you need to implement it:
+            candidate #1: `brotli::enc::threading::Joinable`
+
+error[E0599]: no method named `sort` found for reference `&dataframe::DataFrame` in the current scope
+   --> src\distributed.rs:527:40
+    |
+527 |             .map(|partition| partition.sort(vec![column_name.to_string()], ascending))
+    |                                        ^^^^ method not found in `&dataframe::DataFrame`
+
+error[E0308]: mismatched types
+   --> src\distributed.rs:768:9
+    |
+660 |     pub fn arrow_to_dataframe(record_batch: &RecordBatch) -> Result<DataFrame, VeloxxError> {
+    |                                                              ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+768 |         DataFrame::new(columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+768 |         Ok(DataFrame::new(columns))
+    |         +++                       +
+
+error[E0277]: the `?` operator can only be applied to values that implement `Try`
+   --> src\distributed.rs:810:18
+    |
+810 |         let df = DataFrame::new(columns)?;
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^ the `?` operator cannot be applied to type `dataframe::DataFrame`
+    |
+help: the trait `Try` is not implemented for `dataframe::DataFrame`
+   --> src\dataframe\mod.rs:7:1
+    |
+  7 | pub struct DataFrame {
+    | ^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\data_quality.rs:217:45
+    |
+217 |             if !schema.columns.contains_key(column_name) {
+    |                                ------------ ^^^^^^^^^^^ expected `&_`, found `String`
+    |                                |
+    |                                arguments to this method are incorrect
+    |
+    = note: expected reference `&_`
+                  found struct `std::string::String`
+note: method defined here
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\std\src\collections\hash\map.rs:1143:12
+help: consider borrowing here
+    |
+217 |             if !schema.columns.contains_key(&column_name) {
+    |                                             +
+
+error[E0308]: mismatched types
+   --> src\data_quality.rs:370:56
+    |
+370 |             if let Some(series) = dataframe.get_column(column_name) {
+    |                                             ---------- ^^^^^^^^^^^ expected `&str`, found `String`
+    |                                             |
+    |                                             arguments to this method are incorrect
+    |
+note: method defined here
+   --> src\dataframe\mod.rs:36:12
+    |
+ 36 |     pub fn get_column(&self, name: &str) -> Option<&Series> {
+    |            ^^^^^^^^^^        ----------
+help: consider borrowing here
+    |
+370 |             if let Some(series) = dataframe.get_column(&column_name) {
+    |                                                        +
+
+error[E0308]: mismatched types
+   --> src\data_quality.rs:476:56
+    |
+476 |             if let Some(series) = dataframe.get_column(column_name) {
+    |                                             ---------- ^^^^^^^^^^^ expected `&str`, found `String`
+    |                                             |
+    |                                             arguments to this method are incorrect
+    |
+note: method defined here
+   --> src\dataframe\mod.rs:36:12
+    |
+ 36 |     pub fn get_column(&self, name: &str) -> Option<&Series> {
+    |            ^^^^^^^^^^        ----------
+help: consider borrowing here
+    |
+476 |             if let Some(series) = dataframe.get_column(&column_name) {
+    |                                                        +
+
+error[E0308]: mismatched types
+   --> src\data_quality.rs:537:56
+    |
+537 |             if let Some(series) = dataframe.get_column(column_name) {
+    |                                             ---------- ^^^^^^^^^^^ expected `&str`, found `String`
+    |                                             |
+    |                                             arguments to this method are incorrect
+    |
+note: method defined here
+   --> src\dataframe\mod.rs:36:12
+    |
+ 36 |     pub fn get_column(&self, name: &str) -> Option<&Series> {
+    |            ^^^^^^^^^^        ----------
+help: consider borrowing here
+    |
+537 |             if let Some(series) = dataframe.get_column(&column_name) {
+    |                                                        +
+
+error[E0308]: mismatched types
+   --> src\data_quality.rs:796:60
+    |
+796 |                 if let Some(series) = dataframe.get_column(column_name) {
+    |                                                 ---------- ^^^^^^^^^^^ expected `&str`, found `String`
+    |                                                 |
+    |                                                 arguments to this method are incorrect
+    |
+note: method defined here
+   --> src\dataframe\mod.rs:36:12
+    |
+ 36 |     pub fn get_column(&self, name: &str) -> Option<&Series> {
+    |            ^^^^^^^^^^        ----------
+help: consider borrowing here
+    |
+796 |                 if let Some(series) = dataframe.get_column(&column_name) {
+    |                                                            +
+
+error[E0308]: mismatched types
+   --> src\data_quality.rs:882:56
+    |
+882 |             if let Some(series) = dataframe.get_column(column_name) {
+    |                                             ---------- ^^^^^^^^^^^ expected `&str`, found `String`
+    |                                             |
+    |                                             arguments to this method are incorrect
+    |
+note: method defined here
+   --> src\dataframe\mod.rs:36:12
+    |
+ 36 |     pub fn get_column(&self, name: &str) -> Option<&Series> {
+    |            ^^^^^^^^^^        ----------
+help: consider borrowing here
+    |
+882 |             if let Some(series) = dataframe.get_column(&column_name) {
+    |                                                        +
+
+error[E0308]: mismatched types
+   --> src\io\json.rs:634:9
+    |
+601 |     fn objects_to_dataframe(&self, objects: Vec<JsonObject>) -> Result<DataFrame, VeloxxError> {
+    |                                                                 ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+634 |         DataFrame::new(columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+634 |         Ok(DataFrame::new(columns))
+    |         +++                       +
+
+error[E0308]: mismatched types
+   --> src\io\mmap_csv.rs:122:9
+    |
+ 58 |     fn parse_memory_mapped(&self, data: &[u8]) -> Result<DataFrame, VeloxxError> {
+    |                                                   ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+122 |         DataFrame::new(dataframe_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+122 |         Ok(DataFrame::new(dataframe_columns))
+    |         +++                                 +
+
+error[E0599]: no method named `unwrap` found for struct `dataframe::DataFrame` in the current scope
+  --> src\io\mod.rs:40:63
+   |
+40 |         Some(DataFrame::new(std::collections::HashMap::new()).unwrap())
+   |                                                               ^^^^^^ method not found in `dataframe::DataFrame`
+   |
+  ::: src\dataframe\mod.rs:7:1
+   |
+ 7 | pub struct DataFrame {
+   | -------------------- method `unwrap` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `unwrap`, perhaps you need to implement it:
+           candidate #1: `brotli::enc::threading::OwnedRetriever`
+
+error[E0599]: no method named `unwrap` found for struct `dataframe::DataFrame` in the current scope
+  --> src\io\mod.rs:45:63
+   |
+45 |         Some(DataFrame::new(std::collections::HashMap::new()).unwrap())
+   |                                                               ^^^^^^ method not found in `dataframe::DataFrame`
+   |
+  ::: src\dataframe\mod.rs:7:1
+   |
+ 7 | pub struct DataFrame {
+   | -------------------- method `unwrap` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `unwrap`, perhaps you need to implement it:
+           candidate #1: `brotli::enc::threading::OwnedRetriever`
+
+error[E0599]: no method named `ok_or_else` found for enum `types::Value` in the current scope
+   --> src\ml.rs:695:35
+    |
+695 |         let mean = series.mean()?.ok_or_else(|| VeloxxError::InvalidOperation("Mean not found for standardization".to_string()))?.as_f64()?;
+    |                                   ^^^^^^^^^^ method not found in `types::Value`
+    |
+   ::: src\types.rs:68:1
+    |
+ 68 | pub enum Value {
+    | -------------- method `ok_or_else` not found for this enum
+    |
+note: the method `ok_or_else` exists on the type `bool`
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\core\src\bool.rs:128:5
+
+error[E0599]: no method named `std` found for reference `&Series` in the current scope
+   --> src\ml.rs:696:30
+    |
+696 | ...   let std_dev = series.std()?.ok_or_else(|| VeloxxError::InvalidOperation("Standard deviation not found for standardization".to_strin...
+    |                            ^^^ method not found in `&Series`
+
+error[E0599]: no method named `ok_or_else` found for enum `types::Value` in the current scope
+   --> src\ml.rs:787:37
+    |
+787 |         let min_val = series.min()?.ok_or_else(|| VeloxxError::InvalidOperation("Min not found for normalization".to_string()))?.as_f64()?;
+    |                                     ^^^^^^^^^^ method not found in `types::Value`
+    |
+   ::: src\types.rs:68:1
+    |
+ 68 | pub enum Value {
+    | -------------- method `ok_or_else` not found for this enum
+    |
+note: the method `ok_or_else` exists on the type `bool`
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\core\src\bool.rs:128:5
+
+error[E0599]: no method named `ok_or_else` found for enum `types::Value` in the current scope
+   --> src\ml.rs:788:37
+    |
+788 |         let max_val = series.max()?.ok_or_else(|| VeloxxError::InvalidOperation("Max not found for normalization".to_string()))?.as_f64()?;
+    |                                     ^^^^^^^^^^ method not found in `types::Value`
+    |
+   ::: src\types.rs:68:1
+    |
+ 68 | pub enum Value {
+    | -------------- method `ok_or_else` not found for this enum
+    |
+note: the method `ok_or_else` exists on the type `bool`
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\core\src\bool.rs:128:5
+
+error[E0308]: mismatched types
+   --> src\performance\fast_groupby.rs:230:9
+    |
+185 |     fn dense_array_groupby_simd(params: DenseSimdGroupByParams) -> Result<DataFrame, VeloxxError> {
+    |                                                                    ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+230 |         DataFrame::new(result)
+    |         ^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+230 |         Ok(DataFrame::new(result))
+    |         +++                      +
+
+error[E0308]: mismatched types
+   --> src\performance\fast_groupby.rs:361:9
+    |
+306 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+361 |         DataFrame::new(result)
+    |         ^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+361 |         Ok(DataFrame::new(result))
+    |         +++                      +
+
+error[E0308]: mismatched types
+   --> src\performance\fast_groupby.rs:378:9
+    |
+368 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+378 |         DataFrame::new(result)
+    |         ^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+378 |         Ok(DataFrame::new(result))
+    |         +++                      +
+
+error[E0615]: attempted to take value of method `row_count` on type `&dataframe::DataFrame`
+   --> src\query\mod.rs:119:28
+    |
+119 |         let row_count = df.row_count;
+    |                            ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+119 |         let row_count = df.row_count();
+    |                                     ++
+
+error[E0560]: struct `dataframe::DataFrame` has no field named `row_count`
+   --> src\query\mod.rs:384:13
+    |
+384 |             row_count: new_row_count,
+    |             ^^^^^^^^^ `dataframe::DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0615]: attempted to take value of method `row_count` on type `dataframe::DataFrame`
+   --> src\query\mod.rs:393:15
+    |
+393 |         if df.row_count == 0 {
+    |               ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+393 |         if df.row_count() == 0 {
+    |                        ++
+
+error[E0615]: attempted to take value of method `row_count` on type `dataframe::DataFrame`
+   --> src\query\mod.rs:398:46
+    |
+398 |         let mut indices: Vec<usize> = (0..df.row_count).collect();
+    |                                              ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+398 |         let mut indices: Vec<usize> = (0..df.row_count()).collect();
+    |                                                       ++
+
+error[E0560]: struct `dataframe::DataFrame` has no field named `row_count`
+   --> src\query\mod.rs:511:13
+    |
+511 |             row_count: df.row_count,
+    |             ^^^^^^^^^ `dataframe::DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0615]: attempted to take value of method `row_count` on type `dataframe::DataFrame`
+   --> src\query\mod.rs:511:27
+    |
+511 |             row_count: df.row_count,
+    |                           ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+511 |             row_count: df.row_count(),
+    |                                    ++
+
+error[E0615]: attempted to take value of method `row_count` on type `dataframe::DataFrame`
+   --> src\query\mod.rs:520:24
+    |
+520 |         if limit >= df.row_count {
+    |                        ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+520 |         if limit >= df.row_count() {
+    |                                 ++
+
+error[E0560]: struct `dataframe::DataFrame` has no field named `row_count`
+   --> src\query\mod.rs:560:13
+    |
+560 |             row_count: limit,
+    |             ^^^^^^^^^ `dataframe::DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0560]: struct `dataframe::DataFrame` has no field named `row_count`
+   --> src\query\mod.rs:579:13
+    |
+579 |             row_count: df.row_count,
+    |             ^^^^^^^^^ `dataframe::DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0615]: attempted to take value of method `row_count` on type `dataframe::DataFrame`
+   --> src\query\mod.rs:579:27
+    |
+579 |             row_count: df.row_count,
+    |                           ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+579 |             row_count: df.row_count(),
+    |                                    ++
+
+error[E0560]: struct `dataframe::DataFrame` has no field named `row_count`
+   --> src\query\mod.rs:812:13
+    |
+812 |             row_count: 1,
+    |             ^^^^^^^^^ `dataframe::DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:243:9
+    |
+226 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+243 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+243 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:364:9
+    |
+346 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+364 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+364 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:519:9
+    |
+430 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+519 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+519 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:555:9
+    |
+537 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<dataframe::DataFrame, VeloxxError>` because of return type
+...
+555 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<dataframe::DataFrame, VeloxxError>`
+             found struct `dataframe::DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+555 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0599]: no method named `select_columns` found for struct `dataframe::DataFrame` in the current scope
+   --> src\lazy.rs:202:29
+    |
+202 |                     df = df.select_columns(columns.clone())?;
+    |                             ^^^^^^^^^^^^^^
+    |
+   ::: src\dataframe\mod.rs:7:1
+    |
+  7 | pub struct DataFrame {
+    | -------------------- method `select_columns` not found for this struct
+    |
+help: there is a method `get_column` with a similar name
+    |
+202 -                     df = df.select_columns(columns.clone())?;
+202 +                     df = df.get_column(columns.clone())?;
+    |
+
+error[E0599]: no method named `select_columns` found for struct `dataframe::DataFrame` in the current scope
+   --> src\lazy.rs:227:24
+    |
+227 |                     df.select_columns(column_names)
+    |                        ^^^^^^^^^^^^^^
+    |
+   ::: src\dataframe\mod.rs:7:1
+    |
+  7 | pub struct DataFrame {
+    | -------------------- method `select_columns` not found for this struct
+    |
+help: there is a method `get_column` with a similar name
+    |
+227 -                     df.select_columns(column_names)
+227 +                     df.get_column(column_names)
+    |
+
+error[E0599]: no function or associated item named `from_vec_of_vec` found for struct `dataframe::DataFrame` in the current scope
+   --> src\advanced_io.rs:624:20
+    |
+624 |         DataFrame::from_vec_of_vec(data_rows, column_names)
+    |                    ^^^^^^^^^^^^^^^ function or associated item not found in `dataframe::DataFrame`
+    |
+   ::: src\dataframe\mod.rs:7:1
+    |
+  7 | pub struct DataFrame {
+    | -------------------- function or associated item `from_vec_of_vec` not found for this struct
+    |
+note: if you're trying to build a new `dataframe::DataFrame`, consider using `dataframe::DataFrame::new` which returns `dataframe::DataFrame`
+   --> src\dataframe\mod.rs:12:5
+    |
+ 12 |     pub fn new(columns: HashMap<String, Series>) -> Self {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\advanced_io.rs:762:51
+    |
+762 |                 let series = dataframe.get_column(column_name).unwrap();
+    |                                        ---------- ^^^^^^^^^^^ expected `&str`, found `String`
+    |                                        |
+    |                                        arguments to this method are incorrect
+    |
+note: method defined here
+   --> src\dataframe\mod.rs:36:12
+    |
+ 36 |     pub fn get_column(&self, name: &str) -> Option<&Series> {
+    |            ^^^^^^^^^^        ----------
+help: consider borrowing here
+    |
+762 |                 let series = dataframe.get_column(&column_name).unwrap();
+    |                                                   +
+
+Some errors have detailed explanations: E0107, E0277, E0308, E0428, E0432, E0433, E0560, E0599, E0615.
+For more information about an error, try `rustc --explain E0107`.
+warning: `veloxx` (lib) generated 18 warnings
+error: could not compile `veloxx` (lib) due to 61 previous errors; 18 warnings emitted

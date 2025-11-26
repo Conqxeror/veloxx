@@ -3,7 +3,7 @@
 //! This example shows how to use Parquet files, JSON streaming,
 //! database connectivity, and async I/O operations.
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
@@ -47,7 +47,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn create_sample_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]),
@@ -92,7 +92,7 @@ fn create_sample_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
         ),
     );
 
-    Ok(DataFrame::new(columns)?)
+    Ok(DataFrame::new(columns))
 }
 
 async fn parquet_operations(

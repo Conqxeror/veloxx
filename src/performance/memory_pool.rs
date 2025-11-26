@@ -1,6 +1,7 @@
 //! Memory pool implementation for efficient memory management with SIMD optimization
 
 use crate::VeloxxError;
+
 use std::{
     alloc::{alloc_zeroed, dealloc, Layout},
     collections::HashMap,

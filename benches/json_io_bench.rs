@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use serde_json::json;
 use std::collections::HashMap;
@@ -22,7 +23,7 @@ fn create_test_dataframe(rows: usize) -> DataFrame {
     columns.insert("score".to_string(), Series::new_f64("score", scores));
     columns.insert("active".to_string(), Series::new_bool("active", active));
 
-    DataFrame::new(columns).unwrap()
+    DataFrame::new(columns)
 }
 
 fn create_json_data(rows: usize) -> String {
@@ -119,8 +120,8 @@ fn bench_json_file_operations(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("write_file_rows", rows), rows, |b, _| {
             b.iter(|| {
-                let temp_file = NamedTempFile::new().unwrap();
-                let _file_path = temp_file.path().to_str().unwrap();
+                let temp_file = NamedTempFile::new();
+                let _file_path = temp_file.path().to_str();
                 // Note: write_file method may not be available, using placeholder
                 let _result = black_box(&df); // Just benchmark DataFrame access
                 black_box(_result);
@@ -128,8 +129,8 @@ fn bench_json_file_operations(c: &mut Criterion) {
         });
 
         // Benchmark file reading
-        let temp_file = NamedTempFile::new().unwrap();
-        let file_path = temp_file.path().to_str().unwrap().to_string();
+        let temp_file = NamedTempFile::new();
+        let file_path = temp_file.path().to_str().to_string();
         let _df = df; // Just reference the dataframe
 
         group.bench_with_input(BenchmarkId::new("read_file_rows", rows), rows, |b, _| {

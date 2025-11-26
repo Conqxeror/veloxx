@@ -1,13 +1,13 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::distributed::DistributedDataFrame;
 use veloxx::series::Series;
 
 #[test]
 fn test_distributed_dataframe_creation() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -16,7 +16,7 @@ fn test_distributed_dataframe_creation() {
         "value".to_string(),
         Series::new_f64("value", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 2).unwrap();
     assert_eq!(distributed_df.partition_count(), 2);
@@ -24,12 +24,12 @@ fn test_distributed_dataframe_creation() {
 
 #[test]
 fn test_distributed_dataframe_single_partition() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 1).unwrap();
     assert_eq!(distributed_df.partition_count(), 1);
@@ -37,8 +37,8 @@ fn test_distributed_dataframe_single_partition() {
 
 #[test]
 fn test_distributed_dataframe_empty() {
-    let columns = HashMap::new();
-    let df = DataFrame::new(columns).unwrap();
+    let columns = IndexMap::new();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 2).unwrap();
     assert_eq!(distributed_df.partition_count(), 1); // Empty DF gets 1 partition
@@ -46,9 +46,9 @@ fn test_distributed_dataframe_empty() {
 
 #[test]
 fn test_distributed_dataframe_zero_partitions() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert("id".to_string(), Series::new_i32("id", vec![Some(1)]));
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let result = DistributedDataFrame::from_dataframe(df, 0);
     assert!(result.is_err());
@@ -56,12 +56,12 @@ fn test_distributed_dataframe_zero_partitions() {
 
 #[test]
 fn test_distributed_dataframe_collect() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df.clone(), 2).unwrap();
     let collected_df = distributed_df.collect().unwrap();
@@ -72,12 +72,12 @@ fn test_distributed_dataframe_collect() {
 
 #[test]
 fn test_distributed_dataframe_more_partitions_than_rows() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 5).unwrap();
     // Should create only as many partitions as there are rows
@@ -86,10 +86,10 @@ fn test_distributed_dataframe_more_partitions_than_rows() {
 
 #[test]
 fn test_distributed_dataframe_large_dataset() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     let data: Vec<Option<i32>> = (1..=1000).map(Some).collect();
     columns.insert("id".to_string(), Series::new_i32("id", data));
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 10).unwrap();
     assert_eq!(distributed_df.partition_count(), 10);
@@ -100,12 +100,12 @@ fn test_distributed_dataframe_large_dataset() {
 
 #[test]
 fn test_distributed_dataframe_clone() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 2).unwrap();
     let cloned_df = distributed_df.clone();
@@ -118,9 +118,9 @@ fn test_distributed_dataframe_clone() {
 
 #[test]
 fn test_distributed_dataframe_debug() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert("test".to_string(), Series::new_i32("test", vec![Some(1)]));
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let distributed_df = DistributedDataFrame::from_dataframe(df, 1).unwrap();
     let debug_str = format!("{:?}", distributed_df);

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::conditions::Condition;
 use veloxx::dataframe::DataFrame;
 use veloxx::expressions::Expr;
@@ -8,7 +8,7 @@ use veloxx::types::Value;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Initial DataFrame
     println!("--- 1. Initial DataFrame ---");
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]),
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ],
         ),
     );
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("{}", df);
     // 2. Select Columns
     println!("\n--- 2. Select Columns (name, age) ---");
@@ -98,7 +98,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", filtered_df);
     // 8. Append DataFrames
     println!("\n--- 8. Append DataFrames ---");
-    let mut new_columns = HashMap::new();
+    let mut new_columns = IndexMap::new();
     new_columns.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(6), Some(7)]),
@@ -125,7 +125,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "salary".to_string(),
         Series::new_f64("salary", vec![Some(45000.0), Some(70000.0)]),
     );
-    let df2 = DataFrame::new(new_columns)?;
+    let df2 = DataFrame::new(new_columns);
     println!("DataFrame 2:\n{}", df2);
     let appended_df = df.append(&df2)?;
     println!("Appended DataFrame:\n{}", appended_df);

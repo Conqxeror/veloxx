@@ -3,7 +3,7 @@
 //! This example shows the structure for data quality operations.
 //! The actual implementations are placeholders until the data_quality feature is fully implemented.
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn create_sample_data_with_issues() -> Result<DataFrame, Box<dyn std::error::Error>> {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
 
     // Employee ID column
     columns.insert(
@@ -161,7 +161,7 @@ fn create_sample_data_with_issues() -> Result<DataFrame, Box<dyn std::error::Err
         ),
     );
 
-    Ok(DataFrame::new(columns)?)
+    Ok(DataFrame::new(columns))
 }
 
 fn schema_validation_example(_df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {

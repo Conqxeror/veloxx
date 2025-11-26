@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 use veloxx::window_functions::{RankingFunction, WindowFunction, WindowSpec};
 
 #[test]
 fn test_rank() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -13,7 +13,7 @@ fn test_rank() {
             vec![Some(100.0), Some(200.0), Some(150.0), Some(300.0)],
         ),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
     let window_spec = WindowSpec::new().order_by(vec!["sales".to_string()]);
     let result = WindowFunction::apply_ranking(&df, &RankingFunction::Rank, &window_spec).unwrap();
     let rank_series = result.get_column("rank_rank").unwrap();
@@ -25,7 +25,7 @@ fn test_rank() {
 
 #[test]
 fn test_dense_rank() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -33,7 +33,7 @@ fn test_dense_rank() {
             vec![Some(100.0), Some(200.0), Some(150.0), Some(300.0)],
         ),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
     let window_spec = WindowSpec::new().order_by(vec!["sales".to_string()]);
     let result =
         WindowFunction::apply_ranking(&df, &RankingFunction::DenseRank, &window_spec).unwrap();
@@ -46,7 +46,7 @@ fn test_dense_rank() {
 
 #[test]
 fn test_row_number() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -54,7 +54,7 @@ fn test_row_number() {
             vec![Some(100.0), Some(200.0), Some(150.0), Some(300.0)],
         ),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
     let window_spec = WindowSpec::new().order_by(vec!["sales".to_string()]);
     let result =
         WindowFunction::apply_ranking(&df, &RankingFunction::RowNumber, &window_spec).unwrap();
@@ -67,7 +67,7 @@ fn test_row_number() {
 
 #[test]
 fn test_lag() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -75,7 +75,7 @@ fn test_lag() {
             vec![Some(100.0), Some(200.0), Some(150.0), Some(300.0)],
         ),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
     let window_spec = WindowSpec::new();
     let result = WindowFunction::apply_lag_lead(&df, "sales", 2, &window_spec).unwrap();
     let lag_series = result.get_column("lag_sales_2").unwrap();
@@ -93,7 +93,7 @@ fn test_lag() {
 
 #[test]
 fn test_lead() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "sales".to_string(),
         Series::new_f64(
@@ -101,7 +101,7 @@ fn test_lead() {
             vec![Some(100.0), Some(200.0), Some(150.0), Some(300.0)],
         ),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
     let window_spec = WindowSpec::new();
     let result = WindowFunction::apply_lag_lead(&df, "sales", -2, &window_spec).unwrap();
     let lead_series = result.get_column("lead_sales_2").unwrap();

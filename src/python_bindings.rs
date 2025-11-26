@@ -25,7 +25,7 @@ use crate::{
 };
 
 #[cfg(feature = "python")]
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 /// Python wrapper for DataType enum
 #[cfg(feature = "python")]
@@ -61,6 +61,7 @@ pub enum PyJoinType {
     Inner,
     Left,
     Right,
+    Outer,
 }
 
 /// Python wrapper for conditions
@@ -478,17 +479,23 @@ impl PyGroupedDataFrame {
     pub fn sum(&self) -> PyResult<PyDataFrame> {
         // Get all numeric columns for sum aggregation
         let column_names = self.dataframe.inner.column_names();
-        let mut sum_aggs = Vec::new();
+        // Build owned aggregation strings so references remain valid
+        let mut sum_aggs_owned: Vec<(String, String)> = Vec::new();
 
         for col_name in column_names {
-            if col_name != &self.group_columns[0] {
+            if col_name.as_str() != self.group_columns[0].as_str() {
                 // Skip group column
-                sum_aggs.push((col_name.as_str(), "sum"));
+                sum_aggs_owned.push((col_name, "sum".to_string()));
             }
         }
 
+        let sum_refs: Vec<(&str, &str)> = sum_aggs_owned
+            .iter()
+            .map(|(c, a)| (c.as_str(), a.as_str()))
+            .collect();
+
         match self.dataframe.inner.group_by(self.group_columns.clone()) {
-            Ok(grouped) => match grouped.agg(sum_aggs) {
+            Ok(grouped) => match grouped.agg(sum_refs) {
                 Ok(result) => Ok(PyDataFrame { inner: result }),
                 Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
                     e.to_string(),
@@ -503,16 +510,21 @@ impl PyGroupedDataFrame {
     /// Mean aggregation  
     pub fn mean(&self) -> PyResult<PyDataFrame> {
         let column_names = self.dataframe.inner.column_names();
-        let mut mean_aggs = Vec::new();
+        let mut mean_aggs_owned: Vec<(String, String)> = Vec::new();
 
         for col_name in column_names {
-            if col_name != &self.group_columns[0] {
-                mean_aggs.push((col_name.as_str(), "mean"));
+            if col_name.as_str() != self.group_columns[0].as_str() {
+                mean_aggs_owned.push((col_name, "mean".to_string()));
             }
         }
 
+        let mean_refs: Vec<(&str, &str)> = mean_aggs_owned
+            .iter()
+            .map(|(c, a)| (c.as_str(), a.as_str()))
+            .collect();
+
         match self.dataframe.inner.group_by(self.group_columns.clone()) {
-            Ok(grouped) => match grouped.agg(mean_aggs) {
+            Ok(grouped) => match grouped.agg(mean_refs) {
                 Ok(result) => Ok(PyDataFrame { inner: result }),
                 Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
                     e.to_string(),
@@ -527,16 +539,21 @@ impl PyGroupedDataFrame {
     /// Count aggregation
     pub fn count(&self) -> PyResult<PyDataFrame> {
         let column_names = self.dataframe.inner.column_names();
-        let mut count_aggs = Vec::new();
+        let mut count_aggs_owned: Vec<(String, String)> = Vec::new();
 
         for col_name in column_names {
-            if col_name != &self.group_columns[0] {
-                count_aggs.push((col_name.as_str(), "count"));
+            if col_name.as_str() != self.group_columns[0].as_str() {
+                count_aggs_owned.push((col_name, "count".to_string()));
             }
         }
 
+        let count_refs: Vec<(&str, &str)> = count_aggs_owned
+            .iter()
+            .map(|(c, a)| (c.as_str(), a.as_str()))
+            .collect();
+
         match self.dataframe.inner.group_by(self.group_columns.clone()) {
-            Ok(grouped) => match grouped.agg(count_aggs) {
+            Ok(grouped) => match grouped.agg(count_refs) {
                 Ok(result) => Ok(PyDataFrame { inner: result }),
                 Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
                     e.to_string(),
@@ -551,16 +568,21 @@ impl PyGroupedDataFrame {
     /// Min aggregation
     pub fn min(&self) -> PyResult<PyDataFrame> {
         let column_names = self.dataframe.inner.column_names();
-        let mut min_aggs = Vec::new();
+        let mut min_aggs_owned: Vec<(String, String)> = Vec::new();
 
         for col_name in column_names {
-            if col_name != &self.group_columns[0] {
-                min_aggs.push((col_name.as_str(), "min"));
+            if col_name.as_str() != self.group_columns[0].as_str() {
+                min_aggs_owned.push((col_name, "min".to_string()));
             }
         }
 
+        let min_refs: Vec<(&str, &str)> = min_aggs_owned
+            .iter()
+            .map(|(c, a)| (c.as_str(), a.as_str()))
+            .collect();
+
         match self.dataframe.inner.group_by(self.group_columns.clone()) {
-            Ok(grouped) => match grouped.agg(min_aggs) {
+            Ok(grouped) => match grouped.agg(min_refs) {
                 Ok(result) => Ok(PyDataFrame { inner: result }),
                 Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
                     e.to_string(),
@@ -575,16 +597,21 @@ impl PyGroupedDataFrame {
     /// Max aggregation
     pub fn max(&self) -> PyResult<PyDataFrame> {
         let column_names = self.dataframe.inner.column_names();
-        let mut max_aggs = Vec::new();
+        let mut max_aggs_owned: Vec<(String, String)> = Vec::new();
 
         for col_name in column_names {
-            if col_name != &self.group_columns[0] {
-                max_aggs.push((col_name.as_str(), "max"));
+            if col_name.as_str() != self.group_columns[0].as_str() {
+                max_aggs_owned.push((col_name, "max".to_string()));
             }
         }
 
+        let max_refs: Vec<(&str, &str)> = max_aggs_owned
+            .iter()
+            .map(|(c, a)| (c.as_str(), a.as_str()))
+            .collect();
+
         match self.dataframe.inner.group_by(self.group_columns.clone()) {
-            Ok(grouped) => match grouped.agg(max_aggs) {
+            Ok(grouped) => match grouped.agg(max_refs) {
                 Ok(result) => Ok(PyDataFrame { inner: result }),
                 Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
                     e.to_string(),
@@ -965,7 +992,7 @@ pub struct PyDataFrame {
 impl PyDataFrame {
     #[new]
     pub fn new(_py: Python, columns_dict: &Bound<'_, PyDict>) -> PyResult<Self> {
-        let mut df_columns = HashMap::new();
+        let mut df_columns = IndexMap::new();
 
         for item in columns_dict.iter() {
             let key: String = item.0.extract()?;
@@ -973,17 +1000,13 @@ impl PyDataFrame {
             df_columns.insert(key, series.inner);
         }
 
-        match DataFrame::new(df_columns) {
-            Ok(df) => Ok(PyDataFrame { inner: df }),
-            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                e.to_string(),
-            )),
-        }
+        let df = DataFrame::new(df_columns);
+        Ok(PyDataFrame { inner: df })
     }
 
     #[staticmethod]
     pub fn from_dict(_py: Python, data: &Bound<'_, PyDict>) -> PyResult<Self> {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         for (key, value) in data.iter() {
             let name: String = key.extract()?;
             let series = if let Ok(values) = value.extract::<Vec<i32>>() {
@@ -1003,12 +1026,8 @@ impl PyDataFrame {
             columns.insert(name, series);
         }
 
-        match DataFrame::new(columns) {
-            Ok(df) => Ok(PyDataFrame { inner: df }),
-            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                e.to_string(),
-            )),
-        }
+        let df = DataFrame::new(columns);
+        Ok(PyDataFrame { inner: df })
     }
 
     /// Get the number of rows
@@ -1023,7 +1042,7 @@ impl PyDataFrame {
 
     /// Get column names
     pub fn column_names(&self) -> Vec<String> {
-        self.inner.column_names().into_iter().cloned().collect()
+        self.inner.column_names()
     }
 
     /// Get a column as PySeries
@@ -1062,6 +1081,23 @@ impl PyDataFrame {
     }
 
     /// Group by operations
+    /// Reshape the DataFrame from long to wide format
+    pub fn pivot(
+        &self,
+        values: &str,
+        index: Vec<String>,
+        columns: &str,
+        agg_fn: &str,
+    ) -> PyResult<Self> {
+        use crate::dataframe::Pivot;
+        match self.inner.pivot(values, index, columns, agg_fn) {
+            Ok(result) => Ok(PyDataFrame { inner: result }),
+            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                e.to_string(),
+            )),
+        }
+    }
+
     pub fn group_by(&self, columns: Vec<String>) -> PyResult<PyGroupedDataFrame> {
         // For now, just return a PyGroupedDataFrame with the same data
         Ok(PyGroupedDataFrame {
@@ -1223,11 +1259,11 @@ impl PyDataFrame {
     /// Filter by row indices
     pub fn filter_by_indices(&self, indices: Vec<usize>) -> PyResult<Self> {
         // Create a new DataFrame with only the specified rows
-        let mut new_series = std::collections::HashMap::new();
+        let mut new_series = indexmap::IndexMap::new();
         let column_names = self.inner.column_names();
 
         for column_name in column_names {
-            if let Some(series) = self.inner.get_column(column_name) {
+            if let Some(series) = self.inner.get_column(&column_name) {
                 match series.filter(&indices) {
                     Ok(filtered_series) => {
                         new_series.insert(column_name.clone(), filtered_series);
@@ -1241,12 +1277,8 @@ impl PyDataFrame {
             }
         }
 
-        match DataFrame::new(new_series) {
-            Ok(df) => Ok(PyDataFrame { inner: df }),
-            Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                e.to_string(),
-            )),
-        }
+        let df = DataFrame::new(new_series);
+        Ok(PyDataFrame { inner: df })
     }
 
     /// Add a computed column
@@ -1303,6 +1335,7 @@ impl PyDataFrame {
             PyJoinType::Inner => crate::dataframe::join::JoinType::Inner,
             PyJoinType::Left => crate::dataframe::join::JoinType::Left,
             PyJoinType::Right => crate::dataframe::join::JoinType::Right,
+            PyJoinType::Outer => crate::dataframe::join::JoinType::Outer,
         };
 
         match self.inner.join(&other.inner, on_column, jt) {

@@ -16,9 +16,9 @@ use std::fmt;
 /// ```rust
 /// use veloxx::dataframe::DataFrame;
 /// use veloxx::series::Series;
-/// use std::collections::HashMap;
+/// use indexmap::IndexMap;
 ///
-/// let mut columns = HashMap::new();
+/// let mut columns = IndexMap::new();
 /// columns.insert("name".to_string(), Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string())]));
 /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(30), Some(24)]));
 /// columns.insert("score".to_string(), Series::new_f64("score", vec![Some(85.5), Some(92.123)]));
@@ -30,19 +30,18 @@ use std::fmt;
 /// This would print a formatted table similar to:
 ///
 /// ```text
-/// age            name           score          
+/// name           age            score          
 /// --------------- --------------- ---------------
-/// 30             Alice          85.50          
-/// 24             Bob            92.12          
+/// Alice          30             85.50          
+/// Bob            24             92.12          
 /// ```
 impl fmt::Display for DataFrame {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.row_count == 0 {
+        if self.row_count() == 0 {
             return write!(f, "Empty DataFrame");
         }
 
-        let mut column_names: Vec<&String> = self.columns.keys().collect();
-        column_names.sort_unstable(); // Ensure consistent column order
+        let column_names: Vec<&String> = self.columns.keys().collect();
 
         // Print header
         for name in &column_names {
@@ -55,7 +54,7 @@ impl fmt::Display for DataFrame {
         writeln!(f)?;
 
         // Print data
-        for i in 0..self.row_count {
+        for i in 0..self.row_count() {
             for name in &column_names {
                 let series = self.columns.get(*name).unwrap();
                 let value_str = match series {

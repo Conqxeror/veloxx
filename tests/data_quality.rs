@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::data_quality::{ColumnSchema, Constraint, DataProfiler, Schema, SchemaValidator};
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
@@ -6,14 +6,14 @@ use veloxx::types::{DataType, Value};
 
 #[test]
 fn test_validate() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(30)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
-    let mut schema_columns = HashMap::new();
+    let mut schema_columns = IndexMap::new();
     schema_columns.insert(
         "age".to_string(),
         ColumnSchema {

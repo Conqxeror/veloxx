@@ -7,6 +7,7 @@ use arrow::array::Float64Array;
 use std::sync::Arc;
 use veloxx::arrow::series::ArrowSeries;
 use veloxx::performance::{
+use indexmap::IndexMap;
     advanced_parallel::{
         parallel_fused_add_mul_advanced, parallel_simd_add_advanced, parallel_simd_sum_advanced,
     },

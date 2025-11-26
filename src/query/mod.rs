@@ -1,8 +1,8 @@
 use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::types::Value;
+use indexmap::IndexMap;
 use std::cmp::Ordering;
-use std::collections::HashMap;
 
 /// Ultra-fast query engine with SIMD-accelerated predicate evaluation
 pub struct UltraFastQueryEngine;
@@ -116,7 +116,7 @@ impl UltraFastQueryEngine {
         query: QueryBuilder,
     ) -> Result<DataFrame, Box<dyn std::error::Error>> {
         // Start with all rows selected
-        let row_count = df.row_count;
+        let row_count = df.row_count();
         let mut mask = vec![true; row_count];
 
         // Apply WHERE conditions with predicate pushdown
@@ -302,7 +302,7 @@ impl UltraFastQueryEngine {
         df: &DataFrame,
         mask: &[bool],
     ) -> Result<DataFrame, Box<dyn std::error::Error>> {
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for (col_name, series) in &df.columns {
             let filtered_series = match series {
@@ -376,12 +376,10 @@ impl UltraFastQueryEngine {
             new_columns.insert(col_name.clone(), filtered_series);
         }
 
-        // Count the number of rows that passed the filter
-        let new_row_count = mask.iter().filter(|&&x| x).count();
+        // Count the number of rows that passed the filter (not used by caller, so skip)
 
         Ok(DataFrame {
             columns: new_columns,
-            row_count: new_row_count,
         })
     }
 
@@ -390,12 +388,12 @@ impl UltraFastQueryEngine {
         df: DataFrame,
         order_specs: &[OrderBySpec],
     ) -> Result<DataFrame, Box<dyn std::error::Error>> {
-        if df.row_count == 0 {
+        if df.row_count() == 0 {
             return Ok(df);
         }
 
         // Create indices and sort them
-        let mut indices: Vec<usize> = (0..df.row_count).collect();
+        let mut indices: Vec<usize> = (0..df.row_count()).collect();
 
         indices.sort_by(|&a, &b| {
             for spec in order_specs {
@@ -442,7 +440,7 @@ impl UltraFastQueryEngine {
         });
 
         // Reorder all columns based on sorted indices
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for (col_name, series) in df.columns {
             let reordered_series = match series {
@@ -508,7 +506,6 @@ impl UltraFastQueryEngine {
 
         Ok(DataFrame {
             columns: new_columns,
-            row_count: df.row_count,
         })
     }
 
@@ -517,11 +514,11 @@ impl UltraFastQueryEngine {
         df: DataFrame,
         limit: usize,
     ) -> Result<DataFrame, Box<dyn std::error::Error>> {
-        if limit >= df.row_count {
+        if limit >= df.row_count() {
             return Ok(df);
         }
 
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for (col_name, series) in df.columns {
             let limited_series = match series {
@@ -557,7 +554,6 @@ impl UltraFastQueryEngine {
 
         Ok(DataFrame {
             columns: new_columns,
-            row_count: limit,
         })
     }
 
@@ -566,7 +562,7 @@ impl UltraFastQueryEngine {
         df: DataFrame,
         select_columns: &[String],
     ) -> Result<DataFrame, Box<dyn std::error::Error>> {
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for col_name in select_columns {
             if let Some(series) = df.columns.get(col_name) {
@@ -576,7 +572,6 @@ impl UltraFastQueryEngine {
 
         Ok(DataFrame {
             columns: new_columns,
-            row_count: df.row_count,
         })
     }
 
@@ -586,7 +581,7 @@ impl UltraFastQueryEngine {
         aggregations: &[AggregationSpec],
         mask: &[bool],
     ) -> Result<DataFrame, Box<dyn std::error::Error>> {
-        let mut result_columns = HashMap::new();
+        let mut result_columns = IndexMap::new();
 
         for agg_spec in aggregations {
             let series = df
@@ -809,7 +804,6 @@ impl UltraFastQueryEngine {
 
         Ok(DataFrame {
             columns: result_columns,
-            row_count: 1,
         })
     }
 }

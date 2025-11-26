@@ -371,7 +371,7 @@ impl UltraFastQueryEngine {
     }
 
     fn apply_filter(&self, df: &DataFrame, mask: &[bool]) -> Result<DataFrame, Box<dyn std::error::Error>> {
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for (col_name, series) in &df.columns {
             let filtered_series = match series {
@@ -507,7 +507,7 @@ impl UltraFastQueryEngine {
         });
 
         // Reorder all columns based on sorted indices
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for (col_name, series) in df.columns {
             let reordered_series = match series {
@@ -582,7 +582,7 @@ impl UltraFastQueryEngine {
             return Ok(df);
         }
 
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for (col_name, series) in df.columns {
             let limited_series = match series {
@@ -623,7 +623,7 @@ impl UltraFastQueryEngine {
     }
 
     fn apply_select(&self, df: DataFrame, select_columns: &[String]) -> Result<DataFrame, Box<dyn std::error::Error>> {
-        let mut new_columns = HashMap::new();
+        let mut new_columns = IndexMap::new();
 
         for col_name in select_columns {
             if let Some(series) = df.columns.get(col_name) {
