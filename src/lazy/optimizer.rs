@@ -188,12 +188,12 @@ mod tests {
     use crate::lazy::{col, lit, BinaryOperator};
     use crate::series::Series;
     use crate::types::Value;
-    use std::collections::HashMap;
+    use indexmap::IndexMap;
 
     #[test]
     fn test_predicate_pushdown() {
         // Create a test DataFrame
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "a".to_string(),
             Series::new_i32("a", vec![Some(1), Some(2), Some(3)]),
@@ -202,7 +202,7 @@ mod tests {
             "b".to_string(),
             Series::new_f64("b", vec![Some(1.0), Some(2.0), Some(3.0)]),
         );
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
 
         // Create a lazy DataFrame with filter
         let lazy_df = crate::lazy::LazyDataFrame::from_dataframe(df).filter(
@@ -225,7 +225,7 @@ mod tests {
     #[test]
     fn test_projection_pushdown() {
         // Create a test DataFrame
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "a".to_string(),
             Series::new_i32("a", vec![Some(1), Some(2), Some(3)]),
@@ -234,7 +234,7 @@ mod tests {
             "b".to_string(),
             Series::new_f64("b", vec![Some(1.0), Some(2.0), Some(3.0)]),
         );
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
 
         // Create a lazy DataFrame with projection
         let lazy_df = crate::lazy::LazyDataFrame::from_dataframe(df).select(vec![col("a")]);

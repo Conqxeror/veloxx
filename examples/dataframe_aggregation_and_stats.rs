@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a DataFrame for grouping and aggregation examples
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "city".to_string(),
         Series::new_string(
@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             vec![Some(10), Some(15), Some(20), Some(5), Some(12), Some(30)],
         ),
     );
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("Original DataFrame:\n{}", df);
     // Group by 'city' and calculate sum of sales and mean of quantity
     println!("\n--- Group by 'city' (sum of sales, mean of quantity) ---");

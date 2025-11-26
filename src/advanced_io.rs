@@ -18,13 +18,13 @@
 //! ```rust,no_run
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::HashMap;
+//! use indexmap::IndexMap;
 //!
 //! # #[cfg(feature = "advanced_io")]
 //! # {
 //! use veloxx::advanced_io::{ParquetReader, ParquetWriter, DatabaseConnector};
 //!
-//! let mut columns = HashMap::new();
+//! let mut columns = IndexMap::new();
 //! columns.insert(
 //!     "id".to_string(),
 //!     Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -50,11 +50,10 @@ use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::types::DataType;
 use crate::VeloxxError;
-use std::collections::HashMap;
+
 use std::path::Path;
 
-#[cfg(feature = "advanced_io")]
-use parquet::file::reader::{FileReader, SerializedFileReader};
+// use parquet::file::reader::{FileReader, SerializedFileReader}; // Removed unused import
 
 /// Parquet file reader for high-performance columnar data access
 pub struct ParquetReader {
@@ -103,29 +102,13 @@ impl ParquetReader {
     /// ```
     #[cfg(feature = "advanced_io")]
     pub async fn read_dataframe<P: AsRef<Path>>(&self, path: P) -> Result<DataFrame, VeloxxError> {
-        let file = std::fs::File::open(path.as_ref()).map_err(|e| {
-            VeloxxError::InvalidOperation(format!("Failed to open Parquet file: {}", e))
-        })?;
+        let path_buf = path.as_ref().to_path_buf();
+        let path_str = path_buf.to_string_lossy().to_string();
 
-        let reader = SerializedFileReader::new(file).map_err(|e| {
-            VeloxxError::InvalidOperation(format!("Failed to create Parquet reader: {}", e))
-        })?;
-
-        let metadata = reader.metadata();
-        let _schema = metadata.file_metadata().schema();
-
-        // For now, return a placeholder implementation
-        // In a full implementation, we would parse the Parquet schema and data
-        let mut columns = HashMap::new();
-        columns.insert(
-            "placeholder".to_string(),
-            Series::new_string(
-                "placeholder",
-                vec![Some("Parquet reading not fully implemented".to_string())],
-            ),
-        );
-
-        DataFrame::new(columns)
+        // Use spawn_blocking to run the synchronous parquet reader
+        tokio::task::spawn_blocking(move || crate::io::arrow::read_parquet_to_dataframe(&path_str))
+            .await
+            .map_err(|e| VeloxxError::InvalidOperation(format!("Task join error: {}", e)))?
     }
 
     #[cfg(not(feature = "advanced_io"))]
@@ -210,11 +193,11 @@ impl ParquetWriter {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::advanced_io::ParquetWriter;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -229,17 +212,18 @@ impl ParquetWriter {
     #[cfg(feature = "advanced_io")]
     pub async fn write_dataframe<P: AsRef<Path>>(
         &self,
-        _dataframe: &DataFrame,
+        dataframe: &DataFrame,
         path: P,
     ) -> Result<(), VeloxxError> {
-        // Placeholder implementation
-        tokio::fs::write(path, "Parquet writing not fully implemented")
-            .await
-            .map_err(|e| {
-                VeloxxError::InvalidOperation(format!("Failed to write Parquet file: {}", e))
-            })?;
+        let path_buf = path.as_ref().to_path_buf();
+        let path_str = path_buf.to_string_lossy().to_string();
+        let df_clone = dataframe.clone();
 
-        Ok(())
+        tokio::task::spawn_blocking(move || {
+            crate::io::arrow::write_parquet_from_dataframe(&df_clone, &path_str)
+        })
+        .await
+        .map_err(|e| VeloxxError::InvalidOperation(format!("Task join error: {}", e)))?
     }
 
     #[cfg(not(feature = "advanced_io"))]
@@ -376,13 +360,13 @@ impl JsonStreamer {
         _batch_size: usize,
     ) -> Result<Vec<DataFrame>, VeloxxError> {
         // Placeholder implementation - in reality would parse JSON incrementally
-        let mut columns = std::collections::HashMap::new();
+        let mut columns = indexmap::IndexMap::new();
         columns.insert(
             "json_data".to_string(),
             Series::new_string("json_data", vec![Some(json_str.to_string())]),
         );
 
-        let df = DataFrame::new(columns)?;
+        let df = DataFrame::new(columns);
         Ok(vec![df])
     }
 
@@ -460,7 +444,7 @@ impl DatabaseConnector {
     #[cfg(feature = "advanced_io")]
     pub async fn query(&self, query: &str) -> Result<DataFrame, VeloxxError> {
         // Placeholder implementation - in a real implementation this would use self.connection_string
-        let mut columns = std::collections::HashMap::new();
+        let mut columns = indexmap::IndexMap::new();
         columns.insert(
             "query_result".to_string(),
             Series::new_string(
@@ -472,7 +456,7 @@ impl DatabaseConnector {
             ),
         );
 
-        DataFrame::new(columns)
+        Ok(DataFrame::new(columns))
     }
 
     #[cfg(not(feature = "advanced_io"))]
@@ -495,11 +479,11 @@ impl DatabaseConnector {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::advanced_io::DatabaseConnector;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -671,11 +655,8 @@ impl AsyncFileOps {
         let mut csv_content = String::new();
 
         // Write header
-        let column_names: Vec<&str> = dataframe
-            .column_names()
-            .iter()
-            .map(|s| s.as_str())
-            .collect();
+        let col_names_owned = dataframe.column_names();
+        let column_names: Vec<&str> = col_names_owned.iter().map(|s| s.as_str()).collect();
         csv_content.push_str(&column_names.join(","));
         csv_content.push('\n');
 
@@ -723,12 +704,13 @@ impl AsyncFileOps {
     /// DataFrame containing the JSON data
     #[cfg(feature = "advanced_io")]
     pub async fn read_json_async<P: AsRef<Path>>(path: P) -> Result<DataFrame, VeloxxError> {
-        let content = tokio::fs::read_to_string(path).await.map_err(|e| {
-            VeloxxError::InvalidOperation(format!("Failed to read JSON file: {}", e))
-        })?;
-
-        // Use existing JSON parsing logic
-        DataFrame::from_json(&content)
+        let path_str = path.as_ref().to_string_lossy().to_string();
+        tokio::task::spawn_blocking(move || {
+            let parser = crate::io::json::UltraFastJsonParser::new();
+            parser.read_file(&path_str)
+        })
+        .await
+        .map_err(|e| VeloxxError::InvalidOperation(format!("Task join error: {}", e)))?
     }
 
     #[cfg(not(feature = "advanced_io"))]
@@ -774,7 +756,7 @@ impl AsyncFileOps {
                 }
                 first_field = false;
 
-                let series = dataframe.get_column(column_name).unwrap();
+                let series = dataframe.get_column(&column_name).unwrap();
                 json_content.push_str(&format!("\"{}\":", column_name));
 
                 match series.get_value(i) {

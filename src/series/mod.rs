@@ -8,6 +8,8 @@ use arrow::array::{
 };
 #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
 use arrow::datatypes::{DataType as ArrowDataType, TimeUnit};
+#[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+use std::sync::Arc;
 
 // SIMD trait imports - only for native targets
 // Note: we use concrete traits in method scopes to minimize compile-time coupling
@@ -99,6 +101,343 @@ impl Series {
     pub fn is_numeric(&self) -> bool {
         matches!(self, Series::I32(_, _, _) | Series::F64(_, _, _))
     }
+
+    /// Element-wise equality comparison between two series. Returns a Bool series mask.
+    pub fn equal(&self, other: &Series) -> Result<Series, VeloxxError> {
+        if self.len() != other.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Series lengths must match for comparison".to_string(),
+            ));
+        }
+
+        let mut result: Vec<Option<bool>> = Vec::with_capacity(self.len());
+
+        for i in 0..self.len() {
+            let a = self.get_value(i);
+            let b = other.get_value(i);
+            match (a, b) {
+                (Some(Value::I32(av)), Some(Value::I32(bv))) => result.push(Some(av == bv)),
+                (Some(Value::F64(av)), Some(Value::F64(bv))) => {
+                    result.push(Some((av - bv).abs() < f64::EPSILON))
+                }
+                (Some(Value::Bool(av)), Some(Value::Bool(bv))) => result.push(Some(av == bv)),
+                (Some(Value::String(av)), Some(Value::String(bv))) => result.push(Some(av == bv)),
+                (Some(Value::DateTime(av)), Some(Value::DateTime(bv))) => {
+                    result.push(Some(av == bv))
+                }
+                _ => result.push(None),
+            }
+        }
+        Ok(Series::new_bool("expected", result))
+    }
+
+    /// Element-wise greater-than comparison between two numeric series. Returns a Bool series mask.
+    pub fn gt(&self, other: &Series) -> Result<Series, VeloxxError> {
+        if self.len() != other.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Series lengths must match for comparison".to_string(),
+            ));
+        }
+
+        let mut result: Vec<Option<bool>> = Vec::with_capacity(self.len());
+        for i in 0..self.len() {
+            match (self.get_numeric_f64(i), other.get_numeric_f64(i)) {
+                (Some(av), Some(bv)) => result.push(Some(av > bv)),
+                _ => result.push(None),
+            }
+        }
+        Ok(Series::new_bool("expected", result))
+    }
+
+    /// Element-wise logical AND for boolean series.
+    pub fn and(&self, other: &Series) -> Result<Series, VeloxxError> {
+        if self.len() != other.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Series lengths must match for logical operations".to_string(),
+            ));
+        }
+
+        let mut result: Vec<Option<bool>> = Vec::with_capacity(self.len());
+        for i in 0..self.len() {
+            match (self.get_value(i), other.get_value(i)) {
+                (Some(Value::Bool(a)), Some(Value::Bool(b))) => result.push(Some(a && b)),
+                _ => result.push(None),
+            }
+        }
+        Ok(Series::new_bool("expected_and", result))
+    }
+
+    /// Element-wise logical OR for boolean series.
+    /// Element-wise logical NOT for boolean series.
+    pub fn not(&self) -> Result<Series, VeloxxError> {
+        match self {
+            Series::Bool(name, values, validity) => {
+                let mut new_values = Vec::with_capacity(values.len());
+                for v in values {
+                    new_values.push(!v);
+                }
+                Ok(Series::Bool(
+                    format!("!{}", name),
+                    new_values,
+                    validity.clone(),
+                ))
+            }
+            _ => Err(VeloxxError::InvalidOperation(
+                "Not operation only supported for boolean series".to_string(),
+            )),
+        }
+    }
+
+    pub fn or(&self, other: &Series) -> Result<Series, VeloxxError> {
+        if self.len() != other.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Series lengths must match for logical operations".to_string(),
+            ));
+        }
+
+        let mut result: Vec<Option<bool>> = Vec::with_capacity(self.len());
+        for i in 0..self.len() {
+            match (self.get_value(i), other.get_value(i)) {
+                (Some(Value::Bool(a)), Some(Value::Bool(b))) => result.push(Some(a || b)),
+                _ => result.push(None),
+            }
+        }
+        Ok(Series::new_bool("expected_or", result))
+    }
+
+    /// Filter a series using a boolean mask series (element-wise filter). Keeps values where mask is Some(true).
+    pub fn filter_by_mask(&self, mask: &Series) -> Result<Self, VeloxxError> {
+        if self.len() != mask.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Mask length must equal series length".to_string(),
+            ));
+        }
+
+        match mask {
+            Series::Bool(_, values, validity) => match self {
+                Series::I32(name, vals, vmap) => {
+                    let mut out: Vec<Option<i32>> = Vec::new();
+                    for i in 0..vals.len() {
+                        if validity[i] && values[i] {
+                            if vmap[i] {
+                                out.push(Some(vals[i]));
+                            } else {
+                                out.push(None);
+                            }
+                        }
+                    }
+                    Ok(Series::new_i32(name, out))
+                }
+                Series::F64(name, vals, vmap) => {
+                    let mut out: Vec<Option<f64>> = Vec::new();
+                    for i in 0..vals.len() {
+                        if validity[i] && values[i] {
+                            if vmap[i] {
+                                out.push(Some(vals[i]));
+                            } else {
+                                out.push(None);
+                            }
+                        }
+                    }
+                    Ok(Series::new_f64(name, out))
+                }
+                Series::String(name, vals, vmap) => {
+                    let mut out: Vec<Option<String>> = Vec::new();
+                    for i in 0..vals.len() {
+                        if validity[i] && values[i] {
+                            if vmap[i] {
+                                out.push(Some(vals[i].clone()));
+                            } else {
+                                out.push(None);
+                            }
+                        }
+                    }
+                    Ok(Series::new_string(name, out))
+                }
+                Series::Bool(name, vals, vmap) => {
+                    let mut out: Vec<Option<bool>> = Vec::new();
+                    for i in 0..vals.len() {
+                        if validity[i] && values[i] {
+                            if vmap[i] {
+                                out.push(Some(vals[i]));
+                            } else {
+                                out.push(None);
+                            }
+                        }
+                    }
+                    Ok(Series::new_bool(name, out))
+                }
+                Series::DateTime(name, vals, vmap) => {
+                    let mut out: Vec<Option<i64>> = Vec::new();
+                    for i in 0..vals.len() {
+                        if validity[i] && values[i] {
+                            if vmap[i] {
+                                out.push(Some(vals[i]));
+                            } else {
+                                out.push(None);
+                            }
+                        }
+                    }
+                    Ok(Series::new_datetime(name, out))
+                }
+            },
+            _ => Err(VeloxxError::InvalidOperation(
+                "Mask must be a boolean Series".to_string(),
+            )),
+        }
+    }
+
+    /// Element-wise subtraction using Arrow-like behavior on numeric series
+    pub fn arrow_sub(&self, other: &Series) -> Result<Series, VeloxxError> {
+        if self.len() != other.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Series lengths must match".to_string(),
+            ));
+        }
+
+        match (self, other) {
+            (Series::I32(_, a_vals, a_map), Series::I32(_, b_vals, b_map)) => {
+                let mut out: Vec<Option<i32>> = Vec::with_capacity(a_vals.len());
+                for i in 0..a_vals.len() {
+                    if a_map[i] && b_map[i] {
+                        out.push(Some(a_vals[i] - b_vals[i]));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_i32("sub", out))
+            }
+            (Series::F64(_, a_vals, a_map), Series::F64(_, b_vals, b_map)) => {
+                let mut out: Vec<Option<f64>> = Vec::with_capacity(a_vals.len());
+                for i in 0..a_vals.len() {
+                    if a_map[i] && b_map[i] {
+                        out.push(Some(a_vals[i] - b_vals[i]));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_f64("sub", out))
+            }
+            _ => Err(VeloxxError::InvalidOperation(
+                "Subtraction requires matching numeric series".to_string(),
+            )),
+        }
+    }
+
+    /// Element-wise multiplication for numeric series
+    pub fn arrow_mul(&self, other: &Series) -> Result<Series, VeloxxError> {
+        if self.len() != other.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Series lengths must match".to_string(),
+            ));
+        }
+
+        match (self, other) {
+            (Series::I32(_, a_vals, a_map), Series::I32(_, b_vals, b_map)) => {
+                let mut out: Vec<Option<i32>> = Vec::with_capacity(a_vals.len());
+                for i in 0..a_vals.len() {
+                    if a_map[i] && b_map[i] {
+                        out.push(Some(a_vals[i] * b_vals[i]));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_i32("mul", out))
+            }
+            (Series::F64(_, a_vals, a_map), Series::F64(_, b_vals, b_map)) => {
+                let mut out: Vec<Option<f64>> = Vec::with_capacity(a_vals.len());
+                for i in 0..a_vals.len() {
+                    if a_map[i] && b_map[i] {
+                        out.push(Some(a_vals[i] * b_vals[i]));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_f64("mul", out))
+            }
+            _ => Err(VeloxxError::InvalidOperation(
+                "Multiplication requires matching numeric series".to_string(),
+            )),
+        }
+    }
+
+    /// Element-wise division for numeric series
+    pub fn arrow_div(&self, other: &Series) -> Result<Series, VeloxxError> {
+        if self.len() != other.len() {
+            return Err(VeloxxError::InvalidOperation(
+                "Series lengths must match".to_string(),
+            ));
+        }
+
+        match (self, other) {
+            (Series::I32(_, a_vals, a_map), Series::I32(_, b_vals, b_map)) => {
+                let mut out: Vec<Option<i32>> = Vec::with_capacity(a_vals.len());
+                for i in 0..a_vals.len() {
+                    if a_map[i] && b_map[i] {
+                        // integer division
+                        out.push(Some(a_vals[i] / b_vals[i]));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_i32("div", out))
+            }
+            (Series::F64(_, a_vals, a_map), Series::F64(_, b_vals, b_map)) => {
+                let mut out: Vec<Option<f64>> = Vec::with_capacity(a_vals.len());
+                for i in 0..a_vals.len() {
+                    if a_map[i] && b_map[i] {
+                        out.push(Some(a_vals[i] / b_vals[i]));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_f64("div", out))
+            }
+            _ => Err(VeloxxError::InvalidOperation(
+                "Division requires matching numeric series".to_string(),
+            )),
+        }
+    }
+
+    /// Convert string series to uppercase
+    pub fn to_uppercase(&self) -> Result<Series, VeloxxError> {
+        match self {
+            Series::String(name, vals, bitmap) => {
+                let mut out: Vec<Option<String>> = Vec::with_capacity(vals.len());
+                for i in 0..vals.len() {
+                    if bitmap[i] {
+                        out.push(Some(vals[i].to_uppercase()));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_string(name, out))
+            }
+            _ => Err(VeloxxError::InvalidOperation(
+                "Uppercase only supported for string series".to_string(),
+            )),
+        }
+    }
+
+    /// Convert string series to lowercase
+    pub fn to_lowercase(&self) -> Result<Series, VeloxxError> {
+        match self {
+            Series::String(name, vals, bitmap) => {
+                let mut out: Vec<Option<String>> = Vec::with_capacity(vals.len());
+                for i in 0..vals.len() {
+                    if bitmap[i] {
+                        out.push(Some(vals[i].to_lowercase()));
+                    } else {
+                        out.push(None);
+                    }
+                }
+                Ok(Series::new_string(name, out))
+            }
+            _ => Err(VeloxxError::InvalidOperation(
+                "Lowercase only supported for string series".to_string(),
+            )),
+        }
+    }
     /// Returns numeric value as f64 at index if present and valid, else None
     fn get_numeric_f64(&self, index: usize) -> Option<f64> {
         match self {
@@ -139,6 +478,19 @@ impl Series {
             Series::F64(_, values, validity) => {
                 if index < values.len() && validity[index] {
                     Some(values[index])
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_string(&self, index: usize) -> Option<&String> {
+        match self {
+            Series::String(_, values, validity) => {
+                if index < values.len() && validity[index] {
+                    Some(&values[index])
                 } else {
                     None
                 }
@@ -392,6 +744,49 @@ impl Series {
         }
     }
 
+    /// Convert Series to Arrow array (requires `arrow` feature, not available in WASM)
+    #[cfg(all(feature = "arrow", not(target_arch = "wasm32")))]
+    pub fn to_arrow_array(&self) -> ArrayRef {
+        match self {
+            Series::I32(_, values, bitmap) => {
+                let iter = values
+                    .iter()
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| if b { Some(v) } else { None });
+                Arc::new(Int32Array::from_iter(iter))
+            }
+            Series::F64(_, values, bitmap) => {
+                let iter = values
+                    .iter()
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| if b { Some(v) } else { None });
+                Arc::new(Float64Array::from_iter(iter))
+            }
+            Series::Bool(_, values, bitmap) => {
+                let iter = values
+                    .iter()
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| if b { Some(v) } else { None });
+                Arc::new(BooleanArray::from_iter(iter))
+            }
+            Series::String(_, values, bitmap) => {
+                let iter =
+                    values
+                        .iter()
+                        .zip(bitmap.iter())
+                        .map(|(v, &b)| if b { Some(v.clone()) } else { None });
+                Arc::new(StringArray::from_iter(iter))
+            }
+            Series::DateTime(_, values, bitmap) => {
+                let iter = values
+                    .iter()
+                    .zip(bitmap.iter())
+                    .map(|(&v, &b)| if b { Some(v) } else { None });
+                Arc::new(TimestampNanosecondArray::from_iter(iter))
+            }
+        }
+    }
+
     pub fn concat(series_list: Vec<Series>) -> Result<Self, VeloxxError> {
         if series_list.is_empty() {
             return Err(VeloxxError::InvalidOperation(
@@ -484,7 +879,7 @@ impl Series {
         let name = format!("{}_value_counts", self.name());
         match self {
             Series::I32(_, values, bitmap) => {
-                let mut counts = std::collections::HashMap::new();
+                let mut counts = indexmap::IndexMap::new();
                 for (&v, &b) in values.iter().zip(bitmap.iter()) {
                     if b {
                         *counts.entry(v).or_insert(0usize) += 1;
@@ -504,7 +899,7 @@ impl Series {
                 Ok(Series::I32(name, unique_counts, unique_bitmap))
             }
             Series::F64(_, values, bitmap) => {
-                let mut counts = std::collections::HashMap::new();
+                let mut counts = indexmap::IndexMap::new();
                 for (&v, &b) in values.iter().zip(bitmap.iter()) {
                     if b {
                         *counts.entry(v.to_bits()).or_insert(0usize) += 1;
@@ -880,9 +1275,103 @@ impl Series {
         let unique_series = self.unique()?;
         Ok(unique_series.len())
     }
+
+    pub fn filter(&self, indices: &[usize]) -> Result<Self, VeloxxError> {
+        match self {
+            Series::I32(name, values, bitmap) => {
+                let mut new_values = Vec::with_capacity(indices.len());
+                let mut new_bitmap = Vec::with_capacity(indices.len());
+                for &idx in indices {
+                    if idx < values.len() {
+                        new_values.push(values[idx]);
+                        new_bitmap.push(bitmap[idx]);
+                    } else {
+                        return Err(VeloxxError::InvalidOperation(format!(
+                            "Index {} out of bounds",
+                            idx
+                        )));
+                    }
+                }
+                Ok(Series::I32(name.clone(), new_values, new_bitmap))
+            }
+            Series::F64(name, values, bitmap) => {
+                let mut new_values = Vec::with_capacity(indices.len());
+                let mut new_bitmap = Vec::with_capacity(indices.len());
+                for &idx in indices {
+                    if idx < values.len() {
+                        new_values.push(values[idx]);
+                        new_bitmap.push(bitmap[idx]);
+                    } else {
+                        return Err(VeloxxError::InvalidOperation(format!(
+                            "Index {} out of bounds",
+                            idx
+                        )));
+                    }
+                }
+                Ok(Series::F64(name.clone(), new_values, new_bitmap))
+            }
+            Series::Bool(name, values, bitmap) => {
+                let mut new_values = Vec::with_capacity(indices.len());
+                let mut new_bitmap = Vec::with_capacity(indices.len());
+                for &idx in indices {
+                    if idx < values.len() {
+                        new_values.push(values[idx]);
+                        new_bitmap.push(bitmap[idx]);
+                    } else {
+                        return Err(VeloxxError::InvalidOperation(format!(
+                            "Index {} out of bounds",
+                            idx
+                        )));
+                    }
+                }
+                Ok(Series::Bool(name.clone(), new_values, new_bitmap))
+            }
+            Series::String(name, values, bitmap) => {
+                let mut new_values = Vec::with_capacity(indices.len());
+                let mut new_bitmap = Vec::with_capacity(indices.len());
+                for &idx in indices {
+                    if idx < values.len() {
+                        new_values.push(values[idx].clone());
+                        new_bitmap.push(bitmap[idx]);
+                    } else {
+                        return Err(VeloxxError::InvalidOperation(format!(
+                            "Index {} out of bounds",
+                            idx
+                        )));
+                    }
+                }
+                Ok(Series::String(name.clone(), new_values, new_bitmap))
+            }
+            Series::DateTime(name, values, bitmap) => {
+                let mut new_values = Vec::with_capacity(indices.len());
+                let mut new_bitmap = Vec::with_capacity(indices.len());
+                for &idx in indices {
+                    if idx < values.len() {
+                        new_values.push(values[idx]);
+                        new_bitmap.push(bitmap[idx]);
+                    } else {
+                        return Err(VeloxxError::InvalidOperation(format!(
+                            "Index {} out of bounds",
+                            idx
+                        )));
+                    }
+                }
+                Ok(Series::DateTime(name.clone(), new_values, new_bitmap))
+            }
+        }
+    }
+
+    // NOTE: series -> f64 vector conversion implementation moved to `series::arithmetic`
+    // to keep arithmetic and filtering logic centralized. Use `to_vec_f64()` from
+    // `src/series/arithmetic.rs` which handles nulls via the bitmap.
 }
 
 pub mod aggregations;
 pub mod arithmetic;
 pub mod ops;
 pub mod time_series;
+
+#[allow(unused_imports)]
+pub use aggregations::*;
+#[allow(unused_imports)]
+pub use arithmetic::*;

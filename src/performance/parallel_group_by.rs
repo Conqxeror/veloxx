@@ -66,16 +66,16 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::series::Series as ArrowSeries; // Use unified Series for tests to avoid module path issues
+    use crate::series::Series;
 
     #[test]
     fn test_parallel_group_by_series() {
         // Create test data
-        let series1 = ArrowSeries::new_i32("series1", vec![Some(1), Some(2), Some(3)]);
+        let series1 = Series::new_i32("series1", vec![Some(1), Some(2), Some(3)]);
 
-        let series2 = ArrowSeries::new_i32("series2", vec![Some(4), Some(5), Some(6)]);
+        let series2 = Series::new_i32("series2", vec![Some(4), Some(5), Some(6)]);
 
-        let series3 = ArrowSeries::new_i32("series1", vec![Some(7), Some(8), Some(9)]);
+        let series3 = Series::new_i32("series1", vec![Some(7), Some(8), Some(9)]);
 
         let data = vec![series1, series2, series3];
 

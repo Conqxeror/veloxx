@@ -20,13 +20,13 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::HashMap;
+//! use indexmap::IndexMap;
 //!
 //! # #[cfg(feature = "distributed")]
 //! # {
 //! use veloxx::distributed::{ParallelProcessor, DistributedDataFrame, ArrowInterop};
 //!
-//! let mut columns = HashMap::new();
+//! let mut columns = IndexMap::new();
 //! columns.insert(
 //!     "values".to_string(),
 //!     Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]),
@@ -88,9 +88,9 @@ impl DistributedDataFrame {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::distributed::DistributedDataFrame;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -144,14 +144,14 @@ impl DistributedDataFrame {
         start_row: usize,
         end_row: usize,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut partition_columns = std::collections::HashMap::new();
+        let mut partition_columns = indexmap::IndexMap::new();
 
         for (column_name, series) in &dataframe.columns {
             let sliced_series = Self::slice_series(series, start_row, end_row)?;
             partition_columns.insert(column_name.clone(), sliced_series);
         }
 
-        DataFrame::new(partition_columns)
+        Ok(DataFrame::new(partition_columns))
     }
 
     fn slice_series(
@@ -309,9 +309,9 @@ impl ParallelProcessor {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::distributed::{DistributedDataFrame, ParallelProcessor};
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "values".to_string(),
     ///     Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
@@ -577,9 +577,9 @@ impl ArrowInterop {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::distributed::ArrowInterop;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "id".to_string(),
     ///     Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -658,7 +658,7 @@ impl ArrowInterop {
     /// DataFrame containing the data
     #[cfg(feature = "distributed")]
     pub fn arrow_to_dataframe(record_batch: &RecordBatch) -> Result<DataFrame, VeloxxError> {
-        let mut columns = std::collections::HashMap::new();
+        let mut columns = indexmap::IndexMap::new();
         let schema = record_batch.schema();
 
         for (i, field) in schema.fields().iter().enumerate() {
@@ -765,7 +765,7 @@ impl ArrowInterop {
             columns.insert(column_name, series);
         }
 
-        DataFrame::new(columns)
+        Ok(DataFrame::new(columns))
     }
 
     #[cfg(not(feature = "distributed"))]
@@ -798,7 +798,7 @@ impl MemoryMappedOps {
         // In a real implementation, this would use memory mapping for efficient large file access
 
         // For now, simulate by creating a distributed DataFrame
-        let mut columns = std::collections::HashMap::new();
+        let mut columns = indexmap::IndexMap::new();
         columns.insert(
             "mmap_data".to_string(),
             Series::new_string(
@@ -807,7 +807,7 @@ impl MemoryMappedOps {
             ),
         );
 
-        let df = DataFrame::new(columns)?;
+        let df = DataFrame::new(columns);
         DistributedDataFrame::from_dataframe(df, 1)
     }
 
@@ -916,11 +916,11 @@ impl TaskScheduler {
 mod tests {
     use super::*;
     use crate::series::Series;
-    use std::collections::HashMap;
+    use indexmap::IndexMap;
 
     #[test]
     fn test_distributed_dataframe_creation() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "id".to_string(),
             Series::new_i32(
@@ -929,7 +929,7 @@ mod tests {
             ),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let distributed_df = DistributedDataFrame::from_dataframe(df, 3).unwrap();
 
         assert_eq!(distributed_df.partition_count(), 3);
@@ -938,13 +938,13 @@ mod tests {
 
     #[test]
     fn test_distributed_dataframe_collect() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let distributed_df = DistributedDataFrame::from_dataframe(df.clone(), 2).unwrap();
         let collected_df = distributed_df.collect().unwrap();
 
@@ -954,13 +954,13 @@ mod tests {
 
     #[test]
     fn test_parallel_processor() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let distributed_df = DistributedDataFrame::from_dataframe(df, 2).unwrap();
         let processor = ParallelProcessor::new();
 
@@ -973,13 +973,13 @@ mod tests {
 
     #[test]
     fn test_parallel_aggregation() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "values".to_string(),
             Series::new_i32("values", vec![Some(1), Some(2), Some(3), Some(4)]),
         );
 
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
         let distributed_df = DistributedDataFrame::from_dataframe(df, 2).unwrap();
         let processor = ParallelProcessor::new();
 

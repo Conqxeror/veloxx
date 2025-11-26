@@ -23,9 +23,9 @@ mod high_performance_tests {
         let data: Vec<Option<f64>> = (0..size).map(|i| Some(i as f64)).collect();
         let series = Series::new_f64("values", data);
 
-        let mut columns = std::collections::HashMap::new();
+        let mut columns = indexmap::IndexMap::new();
         columns.insert("values".to_string(), series);
-        let df = DataFrame::new(columns).expect("DataFrame creation should succeed");
+        let df = DataFrame::new(columns);
 
         // Test vectorized filtering
         let start = Instant::now();
@@ -133,10 +133,10 @@ mod high_performance_tests {
         let cat_series = Series::new_string("category", cat_data);
         let val_series = Series::new_f64("value", value_data);
 
-        let mut columns = std::collections::HashMap::new();
+        let mut columns = indexmap::IndexMap::new();
         columns.insert("category".to_string(), cat_series);
         columns.insert("value".to_string(), val_series);
-        let df = DataFrame::new(columns).expect("DataFrame creation should succeed");
+        let df = DataFrame::new(columns);
 
         // Test group by with sum
         let start = Instant::now();
@@ -245,10 +245,10 @@ mod high_performance_tests {
         let series = Series::new_f64("values", data);
         let cat_series = Series::new_string("category", category_data);
 
-        let mut columns = std::collections::HashMap::new();
+        let mut columns = indexmap::IndexMap::new();
         columns.insert("values".to_string(), series);
         columns.insert("category".to_string(), cat_series);
-        let df = DataFrame::new(columns).expect("DataFrame creation should succeed");
+        let df = DataFrame::new(columns);
 
         // Test operations that should benefit from parallel processing
         let start = Instant::now();

@@ -6,7 +6,7 @@ use crate::series::Series;
 #[cfg(test)]
 use crate::types::Value;
 #[cfg(test)]
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 impl DataFrame {
     /// Applies rolling mean to specified numeric columns in the DataFrame.
@@ -28,11 +28,11 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("price".to_string(), Series::new_f64("price", vec![Some(10.0), Some(15.0), Some(12.0), Some(18.0)]));
-    /// let df = DataFrame::new(columns).unwrap();
+    /// let df = DataFrame::new(columns);
     ///
     /// let result = df.rolling_mean(vec!["price".to_string()], 3).unwrap();
     /// ```
@@ -52,7 +52,7 @@ impl DataFrame {
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Applies rolling sum to specified numeric columns in the DataFrame.
@@ -84,7 +84,7 @@ impl DataFrame {
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Applies rolling minimum to specified numeric columns in the DataFrame.
@@ -116,7 +116,7 @@ impl DataFrame {
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Applies rolling maximum to specified numeric columns in the DataFrame.
@@ -148,7 +148,7 @@ impl DataFrame {
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Applies rolling standard deviation to specified numeric columns in the DataFrame.
@@ -180,7 +180,7 @@ impl DataFrame {
             new_columns.insert(rolling_series.name().to_string(), rolling_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Calculates percentage change between consecutive values for specified numeric columns.
@@ -201,11 +201,11 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("price".to_string(), Series::new_f64("price", vec![Some(100.0), Some(110.0), Some(99.0)]));
-    /// let df = DataFrame::new(columns).unwrap();
+    /// let df = DataFrame::new(columns);
     ///
     /// let result = df.pct_change(vec!["price".to_string()]).unwrap();
     /// ```
@@ -221,7 +221,7 @@ impl DataFrame {
             new_columns.insert(pct_change_series.name().to_string(), pct_change_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Calculates cumulative sum for specified numeric columns.
@@ -248,7 +248,7 @@ impl DataFrame {
             new_columns.insert(cumsum_series.name().to_string(), cumsum_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 }
 
@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_rolling_mean() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "price".to_string(),
             Series::new_f64(
@@ -273,7 +273,7 @@ mod tests {
                 vec![Some(100), Some(150), Some(120), Some(180), Some(200)],
             ),
         );
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
 
         let result = df
             .rolling_mean(vec!["price".to_string(), "volume".to_string()], 3)
@@ -282,10 +282,10 @@ mod tests {
         assert_eq!(result.column_count(), 4); // original 2 + 2 new rolling mean columns
         assert!(result
             .column_names()
-            .contains(&&"price_rolling_mean_3".to_string()));
+            .contains(&"price_rolling_mean_3".to_string()));
         assert!(result
             .column_names()
-            .contains(&&"volume_rolling_mean_3".to_string()));
+            .contains(&"volume_rolling_mean_3".to_string()));
 
         let price_rolling = result.get_column("price_rolling_mean_3").unwrap();
 
@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_pct_change() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "price".to_string(),
             Series::new_f64(
@@ -313,14 +313,14 @@ mod tests {
                 vec![Some(100.0), Some(110.0), Some(99.0), Some(108.9)],
             ),
         );
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
 
         let result = df.pct_change(vec!["price".to_string()]).unwrap();
 
         assert_eq!(result.column_count(), 2); // original 1 + 1 new pct_change column
         assert!(result
             .column_names()
-            .contains(&&"price_pct_change".to_string()));
+            .contains(&"price_pct_change".to_string()));
 
         let pct_change = result.get_column("price_pct_change").unwrap();
 
@@ -350,17 +350,17 @@ mod tests {
 
     #[test]
     fn test_dataframe_cumsum() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "sales".to_string(),
             Series::new_i32("sales", vec![Some(10), Some(20), Some(15), Some(25)]),
         );
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
 
         let result = df.cumsum(vec!["sales".to_string()]).unwrap();
 
         assert_eq!(result.column_count(), 2); // original 1 + 1 new cumsum column
-        assert!(result.column_names().contains(&&"sales_cumsum".to_string()));
+        assert!(result.column_names().contains(&"sales_cumsum".to_string()));
 
         let cumsum = result.get_column("sales_cumsum").unwrap();
 
@@ -408,12 +408,12 @@ mod tests {
 
     #[test]
     fn test_dataframe_rolling_operations_error() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "price".to_string(),
             Series::new_f64("price", vec![Some(10.0), Some(15.0)]),
         );
-        let df = DataFrame::new(columns).unwrap();
+        let df = DataFrame::new(columns);
 
         // Test with non-existent column
         let result = df.rolling_mean(vec!["non_existent".to_string()], 2);

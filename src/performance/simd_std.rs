@@ -409,11 +409,11 @@ impl StdSimdOps<i32> for [i32] {
 
 /// Optimized SIMD operations using the `wide` crate
 pub mod optimized {
-    use crate::VeloxxError;
     #[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
     use wide::f64x4;
 
     /// Perform SIMD sum reduction more efficiently
+    use crate::VeloxxError;
     pub fn std_simd_sum_optimized(values: &[f64]) -> Result<f64, VeloxxError> {
         let len = values.len();
         let simd_len = len / 4;

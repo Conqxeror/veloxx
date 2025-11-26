@@ -3,6 +3,8 @@
 //! This module provides parallel implementations of data operations
 //! for improved performance on multi-core systems.
 
+#[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
+use crate::performance::optimized_simd::OptimizedSimdOps;
 use crate::series::Series;
 use crate::types::Value;
 use crate::VeloxxError;
@@ -14,8 +16,37 @@ pub struct ParallelAggregations;
 impl ParallelAggregations {
     /// Parallel sum calculation for numeric series
     pub fn par_sum(series: &Series) -> Result<Value, VeloxxError> {
+        const PARALLEL_THRESHOLD: usize = 500_000;
+
         match series {
             Series::I32(_, values, bitmap) => {
+                // Check for nulls - fast path if no nulls (all true)
+                // Checking all bits might be slow? But faster than filtering.
+                // Actually, we can just check if we can rely on 0s?
+                // Let's assume we must check.
+                let has_nulls = bitmap.iter().any(|&b| !b);
+
+                if !has_nulls {
+                    #[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
+                    {
+                        if values.len() < PARALLEL_THRESHOLD {
+                            return Ok(Value::I32(values.optimized_simd_sum()));
+                        } else {
+                            let sum: i32 = values
+                                .par_chunks(16 * 1024)
+                                .map(|chunk| chunk.optimized_simd_sum())
+                                .sum();
+                            return Ok(Value::I32(sum));
+                        }
+                    }
+                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))] 
+                    {
+                        let sum: i32 = values.par_iter().sum();
+                        return Ok(Value::I32(sum));
+                    }
+                }
+
+                // Fallback for nulls
                 let sum: i32 = values
                     .par_iter()
                     .zip(bitmap.par_iter())
@@ -24,6 +55,28 @@ impl ParallelAggregations {
                 Ok(Value::I32(sum))
             }
             Series::F64(_, values, bitmap) => {
+                let has_nulls = bitmap.iter().any(|&b| !b);
+
+                if !has_nulls {
+                    #[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
+                    {
+                        if values.len() < PARALLEL_THRESHOLD {
+                            return Ok(Value::F64(values.optimized_simd_sum()));
+                        } else {
+                            let sum: f64 = values
+                                .par_chunks(16 * 1024)
+                                .map(|chunk| chunk.optimized_simd_sum())
+                                .sum();
+                            return Ok(Value::F64(sum));
+                        }
+                    }
+                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))] 
+                    {
+                        let sum: f64 = values.par_iter().sum();
+                        return Ok(Value::F64(sum));
+                    }
+                }
+
                 let sum: f64 = values
                     .par_iter()
                     .zip(bitmap.par_iter())
@@ -167,7 +220,6 @@ impl ParallelSort {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::series::Series;
 
     #[test]
     fn test_parallel_sum() {

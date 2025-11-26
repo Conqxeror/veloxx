@@ -37,12 +37,12 @@ impl CsvReader {
 
     pub fn read_string(&self, _s: &str) -> Option<DataFrame> {
         // ...existing code...
-        Some(DataFrame::new(std::collections::HashMap::new()).unwrap())
+        Some(DataFrame::new(indexmap::IndexMap::new()))
     }
 
     pub fn stream_string(&self, _s: &str, _n: usize) -> Option<DataFrame> {
         // ...existing code...
-        Some(DataFrame::new(std::collections::HashMap::new()).unwrap())
+        Some(DataFrame::new(indexmap::IndexMap::new()))
     }
 }
 

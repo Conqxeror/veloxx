@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ];
 
     // Create DataFrame
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "date".to_string(),
         Series::new_string(
@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     columns.insert("price".to_string(), Series::new_f64("price", prices));
     columns.insert("volume".to_string(), Series::new_i32("volume", volumes));
 
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
 
     println!("Original Stock Data:");
     println!("{}\n", df);

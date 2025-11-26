@@ -132,9 +132,9 @@ fn test_value_ordering() {
 
 #[test]
 fn test_value_hash() {
-    use std::collections::HashMap;
+    use indexmap::IndexMap;
 
-    let mut map = HashMap::new();
+    let mut map = IndexMap::new();
     map.insert(Value::I32(42), "forty-two");
     map.insert(Value::String("hello".to_string()), "greeting");
     map.insert(Value::Null, "nothing");

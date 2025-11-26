@@ -15,19 +15,23 @@
 
 ---
 
-> 🚀 **v0.3.2 Released!** Production polish, docs overhaul, and security audit hardening.
+> 🚀 **v0.4.0 Released!** Major performance overhaul with SIMD acceleration, Pivot, and Outer Join support.
 
 Veloxx is a **blazing-fast**, ultra-lightweight data processing and analytics library in Rust, with seamless bindings for Python and WebAssembly. Built from the ground up for **maximum performance**, featuring advanced SIMD acceleration, memory optimization, and parallel processing that often **outperforms industry leaders**.
 
 ## 🏆 **Performance Highlights**
 
-**Parallel median, quantile & percentile calculation**: Now uses Rayon for fast computation on large datasets
-**25.9x faster** group-by operations: 1,466.3M rows/sec
-**172x faster** filtering: 538.3M elements/sec  
-**2-12x faster** joins: 400,000M rows/sec
-**Industry-leading I/O**: CSV 93,066K rows/sec, JSON 8,722K objects/sec
-**Advanced SIMD**: 2,489.4M rows/sec query processing
-**Memory optimized**: 422.1MB/s compression, 13.8M allocs/sec
+*   **SIMD Acceleration**: Vectorized aggregation (`sum`, `mean`, `min`, `max`) now **30-90x faster** than scalar implementations.
+*   **Parallel Processing**: Hybrid execution strategy using Rayon for large datasets (>500k rows), achieving near-linear scaling.
+*   **Optimized I/O**: Multi-threaded memory-mapped CSV reading and zero-copy Parquet integration.
+*   **Lazy Evaluation**: Refined Query Optimizer with predicate pushdown for efficient filtering.
+
+## ✨ New Features (v0.4.0)
+
+*   **Pivot**: Reshape DataFrames from long to wide format with aggregation.
+*   **Outer Join**: Full support for `Left`, `Right`, `Inner`, and `Outer` joins.
+*   **Deterministic Columns**: Refactored internal storage to guarantee consistent column ordering.
+*   **Python Bindings**: Updated `PyDataFrame` with `pivot` and `outer_join` support.
 
 ---
 
@@ -55,9 +59,9 @@ Veloxx is a **blazing-fast**, ultra-lightweight data processing and analytics li
 - **Memory-efficient** storage with advanced compression
 
 ### **High-Performance Operations**
-- 🚀 **Ultra-fast analytics**: filtering, joining, grouping, aggregation
+- 🚀 **Ultra-fast analytics**: filtering, joining, grouping, aggregation, **pivoting**
 - 📊 **Advanced statistics**: correlation, regression, time-series analysis
-- � **Parallel processing**: Multi-threaded execution with work-stealing
+-  **Parallel processing**: Multi-threaded execution with work-stealing
 - 🧮 **Vectorized math**: SIMD-accelerated arithmetic operations
 
 ### **Advanced I/O & Integration**
@@ -74,7 +78,7 @@ Veloxx is a **blazing-fast**, ultra-lightweight data processing and analytics li
 
 ### **Multi-Language Support**
 - 🦀 **Rust**: Native, zero-cost abstractions
-- � **Python**: PyO3 bindings with NumPy integration  
+-  **Python**: PyO3 bindings with NumPy integration  
 - 🌐 **WebAssembly**: Browser and Node.js support
 - 📦 **Easy installation**: Available on crates.io, PyPI, npm
 
@@ -84,7 +88,7 @@ Veloxx is a **blazing-fast**, ultra-lightweight data processing and analytics li
 
 ```toml
 [dependencies]
-veloxx = "0.3.2"
+veloxx = "0.4.0"
 ```
 
 ```rust
@@ -102,7 +106,8 @@ let grouped = df.group_by(vec!["category"]).agg(vec![("amount", "sum")])?;
 import veloxx
 
 df = veloxx.PyDataFrame({"name": veloxx.PySeries("name", ["Alice", "Bob"])})
-filtered = df.filter([...])
+filtered = df.filter(...)
+pivoted = df.pivot(values="score", index=["name"], columns="subject", agg_fn="mean")
 ```
 
 ### JavaScript/Wasm

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::conditions::Condition;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
@@ -7,7 +7,7 @@ use veloxx::types::Value;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. DataFrame Creation
     println!("--- DataFrame Creation ---");
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "name".to_string(),
         Series::new_string(
@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ],
         ),
     );
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("Initial DataFrame:\n{}", df);
 
     // 2. Filtering a DataFrame
@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 8. Appending DataFrames
     println!("\n--- Appending DataFrames ---");
-    let mut columns_more = HashMap::new();
+    let mut columns_more = IndexMap::new();
     columns_more.insert(
         "name".to_string(),
         Series::new_string(
@@ -108,7 +108,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             vec![Some("Paris".to_string()), Some("London".to_string())],
         ),
     );
-    let df_more = DataFrame::new(columns_more)?;
+    let df_more = DataFrame::new(columns_more);
     let appended_df = df.append(&df_more)?;
     println!("Appended DataFrame:\n{}", appended_df);
 

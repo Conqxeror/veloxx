@@ -103,7 +103,7 @@ impl MemoryMappedCsvParser {
         }
 
         // Build DataFrame with type inference
-        let mut dataframe_columns = std::collections::HashMap::new();
+        let mut dataframe_columns = indexmap::IndexMap::new();
         for (i, header) in headers.iter().enumerate() {
             if let Some(column_data) = columns_data.get(i) {
                 let series = if self.infer_types {
@@ -119,7 +119,7 @@ impl MemoryMappedCsvParser {
             }
         }
 
-        DataFrame::new(dataframe_columns)
+        Ok(DataFrame::new(dataframe_columns))
     }
 
     /// Process a chunk of data with vectorized line parsing

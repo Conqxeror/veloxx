@@ -174,23 +174,23 @@ impl UltraFastJoin {
 
         // Copy left columns with "left_" prefix
         for col_name in left_df.column_names() {
-            if let Some(left_series) = left_df.get_column(col_name) {
+            if let Some(left_series) = left_df.get_column(&col_name) {
                 let result_series =
-                    Self::extract_rows_from_series(left_series, result_pairs, true, col_name)?;
+                    Self::extract_rows_from_series(left_series, result_pairs, true, &col_name)?;
                 result_columns.insert(format!("left_{}", col_name), result_series);
             }
         }
 
         // Copy right columns with "right_" prefix
         for col_name in right_df.column_names() {
-            if let Some(right_series) = right_df.get_column(col_name) {
+            if let Some(right_series) = right_df.get_column(&col_name) {
                 let result_series =
-                    Self::extract_rows_from_series(right_series, result_pairs, false, col_name)?;
+                    Self::extract_rows_from_series(right_series, result_pairs, false, &col_name)?;
                 result_columns.insert(format!("right_{}", col_name), result_series);
             }
         }
 
-        DataFrame::new(result_columns)
+        Ok(DataFrame::new(result_columns.into_iter().collect()))
     }
 
     /// Extract specific rows from a series based on join results
@@ -297,12 +297,7 @@ mod tests {
             "value".to_string(),
             Series::new_i32("value", values.into_iter().map(Some).collect()),
         );
-        DataFrame::new(
-            columns
-                .into_iter()
-                .collect::<std::collections::HashMap<_, _>>(),
-        )
-        .unwrap()
+        DataFrame::new(columns.into_iter().collect())
     }
 
     #[test]

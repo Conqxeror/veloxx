@@ -3,7 +3,7 @@
 //! This example shows the structure for window function operations.
 //! The actual implementations are placeholders until the window_functions feature is fully implemented.
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn create_sales_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
 
     // Sales representative
     columns.insert(
@@ -156,11 +156,11 @@ fn create_sales_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
         ),
     );
 
-    Ok(DataFrame::new(columns)?)
+    Ok(DataFrame::new(columns))
 }
 
 fn create_timeseries_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
 
     // Timestamps (daily data for 2 weeks)
     let base_timestamp = 1678886400; // March 15, 2023
@@ -221,7 +221,7 @@ fn create_timeseries_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
         ),
     );
 
-    Ok(DataFrame::new(columns)?)
+    Ok(DataFrame::new(columns))
 }
 
 fn ranking_functions_example(_df: &DataFrame) -> Result<(), Box<dyn std::error::Error>> {

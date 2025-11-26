@@ -90,6 +90,7 @@ use crate::performance::simd_eq_str;
 use crate::performance::simd_string::simd_eq_str;
 use crate::{dataframe::DataFrame, series::Series, types::Value, VeloxxError};
 // use bincode::{config, decode_from_slice, encode_to_vec};
+use indexmap::IndexMap;
 use std::collections::HashMap;
 
 // Helper struct to reduce argument count for dense groupby
@@ -116,9 +117,9 @@ struct DenseGroupByParams<'a> {
 /// ```rust
 /// use veloxx::dataframe::DataFrame;
 /// use veloxx::series::Series;
-/// use std::collections::HashMap;
+/// use indexmap::IndexMap;
 ///
-/// let mut columns = HashMap::new();
+/// let mut columns = IndexMap::new();
 /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string())]));
 /// columns.insert("sales".to_string(), Series::new_f64("sales", vec![Some(100.0), Some(150.0), Some(200.0)]));
 /// let df = DataFrame::new(columns).unwrap();
@@ -138,7 +139,7 @@ impl<'a> GroupedDataFrame<'a> {
     /// Aggregate sum for all non-group columns and return a new DataFrame
     pub fn agg_sum(&self) -> Result<DataFrame, VeloxxError> {
         // Collect all non-group columns
-        let all_columns: Vec<String> = self.dataframe.column_names().into_iter().cloned().collect();
+        let all_columns: Vec<String> = self.dataframe.column_names();
         let agg_columns: Vec<String> = all_columns
             .into_iter()
             .filter(|col| !self.group_columns.contains(col))
@@ -174,9 +175,9 @@ impl<'a> GroupedDataFrame<'a> {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::dataframe::group_by::GroupedDataFrame;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("category".to_string(), Series::new_string("category", vec![Some("A".to_string()), Some("B".to_string()), Some("A".to_string())]));
     /// columns.insert("value".to_string(), Series::new_i32("value", vec![Some(10), Some(20), Some(30)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -212,7 +213,8 @@ impl<'a> GroupedDataFrame<'a> {
             .collect();
 
         // Merge into groups HashMap serially
-        let mut groups: HashMap<Vec<String>, Vec<usize>> = HashMap::with_capacity(row_count);
+        let mut groups: std::collections::HashMap<Vec<String>, Vec<usize>> =
+            HashMap::with_capacity(row_count);
         for (key, i) in key_row_pairs {
             // Use SIMD string comparison for string/categorical keys
             let mut matching_key = None;
@@ -274,10 +276,10 @@ impl<'a> GroupedDataFrame<'a> {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::dataframe::group_by::GroupedDataFrame;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string())]));
     /// columns.insert("sales".to_string(), Series::new_f64("sales", vec![Some(100.0), Some(150.0), Some(200.0)]));
     /// columns.insert("quantity".to_string(), Series::new_i32("quantity", vec![Some(10), Some(15), Some(20)]));
@@ -343,16 +345,13 @@ impl<'a> GroupedDataFrame<'a> {
         // Use our optimized dense groupby implementation
         match self.fast_groupby_dense(group_series, value_series, group_col, value_col) {
             Ok(result_columns) => {
-                let row_count = result_columns
+                let _row_count = result_columns
                     .values()
                     .next()
                     .map(|series| series.len())
                     .unwrap_or(0);
 
-                Ok(Some(DataFrame {
-                    columns: result_columns,
-                    row_count,
-                }))
+                Ok(Some(DataFrame::new(result_columns)))
             }
             Err(_) => Ok(None), // Fall back to regular implementation
         }
@@ -365,7 +364,7 @@ impl<'a> GroupedDataFrame<'a> {
         value_series: &Series,
         group_col_name: &str,
         value_col_name: &str,
-    ) -> Result<std::collections::HashMap<String, Series>, VeloxxError> {
+    ) -> Result<indexmap::IndexMap<String, Series>, VeloxxError> {
         match (group_series, value_series) {
             (Series::I32(_, group_values, group_bitmap), Series::F64(_, values, value_bitmap)) => {
                 // Check for dense small-range optimization opportunity
@@ -433,7 +432,7 @@ impl<'a> GroupedDataFrame<'a> {
     fn dense_parallel_groupby(
         &self,
         params: DenseGroupByParams,
-    ) -> Result<std::collections::HashMap<String, Series>, VeloxxError> {
+    ) -> Result<indexmap::IndexMap<String, Series>, VeloxxError> {
         if params.group_values.len() != params.values.len() {
             return Err(VeloxxError::InvalidOperation(
                 "Group and value arrays must have same length".to_string(),
@@ -467,7 +466,7 @@ impl<'a> GroupedDataFrame<'a> {
                 }
             }
 
-            let mut result = std::collections::HashMap::new();
+            let mut result = indexmap::IndexMap::new();
             result.insert(
                 params.group_col_name.to_string(),
                 Series::I32(
@@ -477,9 +476,9 @@ impl<'a> GroupedDataFrame<'a> {
                 ),
             );
             result.insert(
-                params.value_col_name.to_string(),
+                format!("{}_sum", params.value_col_name),
                 Series::F64(
-                    params.value_col_name.to_string(),
+                    format!("{}_sum", params.value_col_name),
                     sum_values.clone(),
                     vec![true; sum_values.len()],
                 ),
@@ -540,7 +539,7 @@ impl<'a> GroupedDataFrame<'a> {
             }
         }
 
-        let mut result = std::collections::HashMap::new();
+        let mut result = indexmap::IndexMap::new();
         result.insert(
             params.group_col_name.to_string(),
             Series::I32(
@@ -550,9 +549,9 @@ impl<'a> GroupedDataFrame<'a> {
             ),
         );
         result.insert(
-            params.value_col_name.to_string(),
+            format!("{}_sum", params.value_col_name),
             Series::F64(
-                params.value_col_name.to_string(),
+                format!("{}_sum", params.value_col_name),
                 sum_values.clone(),
                 vec![true; sum_values.len()],
             ),
@@ -569,7 +568,7 @@ impl<'a> GroupedDataFrame<'a> {
         value_bitmap: &[bool],
         group_col_name: &str,
         value_col_name: &str,
-    ) -> Result<HashMap<String, Series>, VeloxxError> {
+    ) -> Result<IndexMap<String, Series>, VeloxxError> {
         #[cfg(not(target_arch = "wasm32"))]
         use fxhash::FxHashMap;
         #[cfg(target_arch = "wasm32")]
@@ -610,7 +609,7 @@ impl<'a> GroupedDataFrame<'a> {
         group_keys.sort_unstable();
         let sum_values: Vec<f64> = group_keys.iter().map(|&k| groups[&k].0).collect();
 
-        let mut result = std::collections::HashMap::new();
+        let mut result = indexmap::IndexMap::new();
         result.insert(
             group_col_name.to_string(),
             Series::I32(
@@ -620,9 +619,9 @@ impl<'a> GroupedDataFrame<'a> {
             ),
         );
         result.insert(
-            value_col_name.to_string(),
+            format!("{}_sum", value_col_name),
             Series::F64(
-                value_col_name.to_string(),
+                format!("{}_sum", value_col_name),
                 sum_values.clone(),
                 vec![true; sum_values.len()],
             ),
@@ -643,7 +642,7 @@ impl<'a> GroupedDataFrame<'a> {
             }
         }
         use rayon::prelude::*;
-        let mut new_columns: HashMap<String, Series> = HashMap::new();
+        let mut new_columns: IndexMap<String, Series> = IndexMap::new();
         // Use direct Vec<String> group keys
         let group_keys: &Vec<Vec<String>> = &self.group_keys;
 
@@ -892,6 +891,6 @@ impl<'a> GroupedDataFrame<'a> {
             new_columns.insert(new_series_name, new_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 }

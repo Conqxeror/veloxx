@@ -246,7 +246,7 @@ impl Series {
                 }
                 valid_values.sort_unstable();
                 let len = valid_values.len();
-                let median = if len % 2 == 0 {
+                let median = if len.is_multiple_of(2) {
                     (valid_values[len / 2 - 1] + valid_values[len / 2]) as f64 / 2.0
                 } else {
                     valid_values[len / 2] as f64
@@ -266,7 +266,7 @@ impl Series {
                 }
                 valid_values.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                 let len = valid_values.len();
-                let median = if len % 2 == 0 {
+                let median = if len.is_multiple_of(2) {
                     (valid_values[len / 2 - 1] + valid_values[len / 2]) / 2.0
                 } else {
                     valid_values[len / 2]

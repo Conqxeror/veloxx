@@ -39,10 +39,10 @@ pub use wasm::{WasmDataFrame, WasmSeries};
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::HashMap;
+//! use indexmap::IndexMap;
 //!
 //!
-//! let mut columns = HashMap::new();
+//! let mut columns = IndexMap::new();
 //! columns.insert(
 //!     "name".to_string(),
 //!     Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string())]),
@@ -63,10 +63,10 @@ pub use wasm::{WasmDataFrame, WasmSeries};
 //! use veloxx::series::Series;
 //! use veloxx::conditions::Condition;
 //! use veloxx::types::Value;
-//! use std::collections::HashMap;
+//! use indexmap::IndexMap;
 //!
 //!
-//! let mut columns = HashMap::new();
+//! let mut columns = IndexMap::new();
 //! columns.insert(
 //!     "name".to_string(),
 //!     Series::new_string("name", vec![Some("Alice".to_string()), Some("Bob".to_string()), Some("Charlie".to_string())]),
@@ -88,10 +88,10 @@ pub use wasm::{WasmDataFrame, WasmSeries};
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::HashMap;
+//! use indexmap::IndexMap;
 //!
 //!
-//! let mut columns = HashMap::new();
+//! let mut columns = IndexMap::new();
 //! columns.insert(
 //!     "city".to_string(),
 //!     Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string())]),
@@ -332,7 +332,7 @@ mod tests {
     use crate::conditions::Condition;
     use crate::dataframe::DataFrame;
     use crate::error::VeloxxError;
-    use std::collections::HashMap;
+    use indexmap::IndexMap;
 
     use crate::series::Series;
     use crate::types::Value;
@@ -366,7 +366,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_new_mismatched_lengths() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert("col1".to_string(), Series::new_i32("col1", vec![Some(1)]));
         columns.insert(
             "col2".to_string(),
@@ -384,7 +384,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_get_column() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "col1".to_string(),
             Series::new_i32("col1", vec![Some(1), Some(2)]),
@@ -407,7 +407,7 @@ mod tests {
 
     #[test]
     fn test_dataframe_display() {
-        let mut columns = HashMap::new();
+        let mut columns = IndexMap::new();
         columns.insert(
             "col1".to_string(),
             Series::new_i32("col1", vec![Some(1), None, Some(3)]),
@@ -715,7 +715,7 @@ mod tests {
 #[cfg(feature = "wasm")]
 pub mod wasm {
     use crate::{DataFrame, Series, Value, DataType, Condition};
-    use std::collections::HashMap;
+    use indexmap::IndexMap;
     use wasm_bindgen::prelude::*;
 
     #[wasm_bindgen]
@@ -730,7 +730,7 @@ pub mod wasm {
             let data: serde_json::Value = serde_wasm_bindgen::from_value(data)
                 .map_err(|e| JsValue::from_str(&format!("Failed to parse data: {}", e)))?;
             
-            let mut columns = HashMap::new();
+            let mut columns = IndexMap::new();
             
             if let Some(obj) = data.as_object() {
                 for (name, values) in obj {
@@ -778,7 +778,7 @@ pub mod wasm {
         #[wasm_bindgen]
         pub fn select(&self, columns: Vec<String>) -> Result<WasmDataFrame, JsValue> {
             // For now, create a new DataFrame with selected columns
-            let mut new_columns = HashMap::new();
+            let mut new_columns = IndexMap::new();
             for col_name in columns {
                 if let Some(column) = self.inner.get_column(&col_name) {
                     new_columns.insert(col_name, column.clone());

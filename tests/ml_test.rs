@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::ml::LinearRegression;
 use veloxx::series::Series;
 
 #[test]
 fn test_linear_regression() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", vec![Some(1.0), Some(2.0), Some(3.0)]),
@@ -18,7 +18,7 @@ fn test_linear_regression() {
         "target".to_string(),
         Series::new_f64("target", vec![Some(3.0), Some(5.0), Some(7.0)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let mut model = LinearRegression::new();
     let fitted_model = model.fit(&df, "target", &["feature1", "feature2"]).unwrap();
@@ -47,9 +47,8 @@ fn test_linear_regression() {
 
 #[test]
 fn test_linear_regression_empty_dataframe() {
-    let columns = HashMap::new();
-    let df = DataFrame::new(columns).unwrap();
-
+    let columns = IndexMap::new();
+    let df = DataFrame::new(columns);
     let mut model = LinearRegression::new();
     let result = model.fit(&df, "target", &["feature1"]);
 
@@ -59,13 +58,12 @@ fn test_linear_regression_empty_dataframe() {
 
 #[test]
 fn test_linear_regression_missing_target_column() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", vec![Some(1.0), Some(2.0)]),
     );
-    let df = DataFrame::new(columns).unwrap();
-
+    let df = DataFrame::new(columns);
     let mut model = LinearRegression::new();
     let result = model.fit(&df, "nonexistent_target", &["feature1"]);
 
@@ -75,13 +73,12 @@ fn test_linear_regression_missing_target_column() {
 
 #[test]
 fn test_linear_regression_missing_feature_column() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "target".to_string(),
         Series::new_f64("target", vec![Some(1.0), Some(2.0)]),
     );
-    let df = DataFrame::new(columns).unwrap();
-
+    let df = DataFrame::new(columns);
     let mut model = LinearRegression::new();
     let result = model.fit(&df, "target", &["nonexistent_feature"]);
 
@@ -91,7 +88,7 @@ fn test_linear_regression_missing_feature_column() {
 
 #[test]
 fn test_linear_regression_with_nulls() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", vec![Some(1.0), None, Some(3.0)]),
@@ -100,8 +97,7 @@ fn test_linear_regression_with_nulls() {
         "target".to_string(),
         Series::new_f64("target", vec![Some(2.0), Some(4.0), None]),
     );
-    let df = DataFrame::new(columns).unwrap();
-
+    let df = DataFrame::new(columns);
     let mut model = LinearRegression::new();
     let result = model.fit(&df, "target", &["feature1"]);
 
@@ -122,7 +118,7 @@ fn test_linear_regression_with_nulls() {
 
 #[test]
 fn test_linear_regression_single_feature() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "x".to_string(),
         Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -131,8 +127,7 @@ fn test_linear_regression_single_feature() {
         "y".to_string(),
         Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(6.0), Some(8.0)]),
     );
-    let df = DataFrame::new(columns).unwrap();
-
+    let df = DataFrame::new(columns);
     let mut model = LinearRegression::new();
     let fitted_model = model.fit(&df, "y", &["x"]).unwrap();
 
@@ -151,7 +146,7 @@ fn test_linear_regression_single_feature() {
 
 #[test]
 fn test_linear_regression_multiple_features() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "x1".to_string(),
         Series::new_f64("x1", vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0)]),
@@ -164,7 +159,7 @@ fn test_linear_regression_multiple_features() {
         "y".to_string(),
         Series::new_f64("y", vec![Some(5.0), Some(8.0), Some(11.0), Some(14.0)]),
     ); // y = 2*x1 + 1*x2 + 0
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let mut model = LinearRegression::new();
     let fitted_model = model.fit(&df, "y", &["x1", "x2"]).unwrap();
@@ -184,7 +179,7 @@ fn test_linear_regression_multiple_features() {
 
 #[test]
 fn test_linear_regression_prediction_different_data() {
-    let mut train_columns = HashMap::new();
+    let mut train_columns = IndexMap::new();
     train_columns.insert(
         "x".to_string(),
         Series::new_f64("x", vec![Some(1.0), Some(2.0), Some(3.0)]),
@@ -193,14 +188,14 @@ fn test_linear_regression_prediction_different_data() {
         "y".to_string(),
         Series::new_f64("y", vec![Some(2.0), Some(4.0), Some(6.0)]),
     );
-    let train_df = DataFrame::new(train_columns).unwrap();
+    let train_df = DataFrame::new(train_columns);
 
-    let mut test_columns = HashMap::new();
+    let mut test_columns = IndexMap::new();
     test_columns.insert(
         "x".to_string(),
         Series::new_f64("x", vec![Some(4.0), Some(5.0)]),
     );
-    let test_df = DataFrame::new(test_columns).unwrap();
+    let test_df = DataFrame::new(test_columns);
 
     let mut model = LinearRegression::new();
     let fitted_model = model.fit(&train_df, "y", &["x"]).unwrap();

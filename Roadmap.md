@@ -1,6 +1,6 @@
-# LuminarData Development Roadmap
+# Veloxx Development Roadmap
 
-This document outlines the development roadmap for the LuminarData library, a lightweight, high-performance data processing and analytics library for Rust.
+This document outlines the development roadmap for the Veloxx library, a lightweight, high-performance data processing and analytics library for Rust.
 
 ## Phase 1: Core Functionality (MVP)
 

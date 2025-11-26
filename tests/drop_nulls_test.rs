@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
 
@@ -14,10 +14,10 @@ fn test_drop_nulls_with_mixed_data() {
             Some("d".to_string()),
         ],
     );
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert("col1".to_string(), series1);
     columns.insert("col2".to_string(), series2);
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     let cleaned_df = df.drop_nulls(None).unwrap();
 

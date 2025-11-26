@@ -214,7 +214,6 @@ impl CompressedColumn {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::series::Series;
 
     #[test]
     fn test_run_length_compression() {

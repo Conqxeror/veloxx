@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::join::JoinType;
 use veloxx::dataframe::DataFrame;
 use veloxx::series::Series;
@@ -6,7 +6,7 @@ use veloxx::series::Series;
 #[test]
 fn test_inner_join() {
     // Create first DataFrame
-    let mut columns1 = HashMap::new();
+    let mut columns1 = IndexMap::new();
     columns1.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -22,10 +22,10 @@ fn test_inner_join() {
             ],
         ),
     );
-    let df1 = DataFrame::new(columns1).unwrap();
+    let df1 = DataFrame::new(columns1);
 
     // Create second DataFrame
-    let mut columns2 = HashMap::new();
+    let mut columns2 = IndexMap::new();
     columns2.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(4)]),
@@ -34,7 +34,7 @@ fn test_inner_join() {
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(30), Some(35)]),
     );
-    let df2 = DataFrame::new(columns2).unwrap();
+    let df2 = DataFrame::new(columns2);
 
     // Perform inner join
     let result = df1.join(&df2, "id", JoinType::Inner).unwrap();
@@ -53,7 +53,7 @@ fn test_inner_join() {
 #[test]
 fn test_left_join() {
     // Create first DataFrame
-    let mut columns1 = HashMap::new();
+    let mut columns1 = IndexMap::new();
     columns1.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -69,10 +69,10 @@ fn test_left_join() {
             ],
         ),
     );
-    let df1 = DataFrame::new(columns1).unwrap();
+    let df1 = DataFrame::new(columns1);
 
     // Create second DataFrame
-    let mut columns2 = HashMap::new();
+    let mut columns2 = IndexMap::new();
     columns2.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -81,7 +81,7 @@ fn test_left_join() {
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(30)]),
     );
-    let df2 = DataFrame::new(columns2).unwrap();
+    let df2 = DataFrame::new(columns2);
 
     // Perform left join
     let result = df1.join(&df2, "id", JoinType::Left).unwrap();
@@ -94,7 +94,7 @@ fn test_left_join() {
 #[test]
 fn test_right_join() {
     // Create first DataFrame
-    let mut columns1 = HashMap::new();
+    let mut columns1 = IndexMap::new();
     columns1.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -106,10 +106,10 @@ fn test_right_join() {
             vec![Some("Alice".to_string()), Some("Bob".to_string())],
         ),
     );
-    let df1 = DataFrame::new(columns1).unwrap();
+    let df1 = DataFrame::new(columns1);
 
     // Create second DataFrame
-    let mut columns2 = HashMap::new();
+    let mut columns2 = IndexMap::new();
     columns2.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2), Some(3)]),
@@ -118,7 +118,7 @@ fn test_right_join() {
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(30), Some(35)]),
     );
-    let df2 = DataFrame::new(columns2).unwrap();
+    let df2 = DataFrame::new(columns2);
 
     // Perform right join
     let result = df1.join(&df2, "id", JoinType::Right).unwrap();
@@ -131,7 +131,7 @@ fn test_right_join() {
 #[test]
 fn test_join_with_no_matches() {
     // Create first DataFrame
-    let mut columns1 = HashMap::new();
+    let mut columns1 = IndexMap::new();
     columns1.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(2)]),
@@ -143,10 +143,10 @@ fn test_join_with_no_matches() {
             vec![Some("Alice".to_string()), Some("Bob".to_string())],
         ),
     );
-    let df1 = DataFrame::new(columns1).unwrap();
+    let df1 = DataFrame::new(columns1);
 
     // Create second DataFrame with no matching IDs
-    let mut columns2 = HashMap::new();
+    let mut columns2 = IndexMap::new();
     columns2.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(3), Some(4)]),
@@ -155,7 +155,7 @@ fn test_join_with_no_matches() {
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(30)]),
     );
-    let df2 = DataFrame::new(columns2).unwrap();
+    let df2 = DataFrame::new(columns2);
 
     // Perform inner join - should result in empty DataFrame
     let result = df1.join(&df2, "id", JoinType::Inner).unwrap();
@@ -166,7 +166,7 @@ fn test_join_with_no_matches() {
 #[test]
 fn test_join_with_nulls() {
     // Create first DataFrame with null values
-    let mut columns1 = HashMap::new();
+    let mut columns1 = IndexMap::new();
     columns1.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), None, Some(3)]),
@@ -182,10 +182,10 @@ fn test_join_with_nulls() {
             ],
         ),
     );
-    let df1 = DataFrame::new(columns1).unwrap();
+    let df1 = DataFrame::new(columns1);
 
     // Create second DataFrame
-    let mut columns2 = HashMap::new();
+    let mut columns2 = IndexMap::new();
     columns2.insert(
         "id".to_string(),
         Series::new_i32("id", vec![Some(1), Some(3)]),
@@ -194,7 +194,7 @@ fn test_join_with_nulls() {
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(35)]),
     );
-    let df2 = DataFrame::new(columns2).unwrap();
+    let df2 = DataFrame::new(columns2);
 
     // Perform inner join
     let result = df1.join(&df2, "id", JoinType::Inner).unwrap();
@@ -206,13 +206,13 @@ fn test_join_with_nulls() {
 #[test]
 fn test_join_nonexistent_column() {
     // Create DataFrames
-    let mut columns1 = HashMap::new();
+    let mut columns1 = IndexMap::new();
     columns1.insert("id".to_string(), Series::new_i32("id", vec![Some(1)]));
-    let df1 = DataFrame::new(columns1).unwrap();
+    let df1 = DataFrame::new(columns1);
 
-    let mut columns2 = HashMap::new();
+    let mut columns2 = IndexMap::new();
     columns2.insert("id".to_string(), Series::new_i32("id", vec![Some(1)]));
-    let df2 = DataFrame::new(columns2).unwrap();
+    let df2 = DataFrame::new(columns2);
 
     // Try to join on non-existent column
     let result = df1.join(&df2, "nonexistent", JoinType::Inner);

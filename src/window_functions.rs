@@ -20,13 +20,13 @@
 //! ```rust
 //! use veloxx::dataframe::DataFrame;
 //! use veloxx::series::Series;
-//! use std::collections::HashMap;
+//! use indexmap::IndexMap;
 //!
 //! # #[cfg(feature = "window_functions")]
 //! # {
 //! use veloxx::window_functions::{WindowFunction, WindowSpec, RankingFunction};
 //!
-//! let mut columns = HashMap::new();
+//! let mut columns = IndexMap::new();
 //! columns.insert(
 //!     "sales".to_string(),
 //!     Series::new_f64("sales", vec![Some(100.0), Some(200.0), Some(150.0), Some(300.0)]),
@@ -60,7 +60,7 @@ use crate::VeloxxError;
 
 #[cfg(feature = "window_functions")]
 use crate::types::Value;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 #[cfg(feature = "window_functions")]
 /// Window specification for defining partitioning, ordering, and frame bounds
@@ -207,9 +207,9 @@ impl WindowFunction {
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
     /// use veloxx::window_functions::{WindowFunction, WindowSpec, RankingFunction};
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert(
     ///     "sales".to_string(),
     ///     Series::new_f64("sales", vec![Some(100.0), Some(200.0), Some(150.0)]),
@@ -224,7 +224,7 @@ impl WindowFunction {
         function: &RankingFunction,
         _window_spec: &WindowSpec,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = HashMap::new();
+        let mut result_columns = IndexMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -240,7 +240,7 @@ impl WindowFunction {
             Series::new_i32(&ranking_column_name, ranking_values),
         );
 
-        DataFrame::new(result_columns)
+        Ok(DataFrame::new(result_columns))
     }
 
     fn calculate_ranking(
@@ -344,7 +344,7 @@ impl WindowFunction {
         function: &AggregateFunction,
         _window_spec: &WindowSpec,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = HashMap::new();
+        let mut result_columns = IndexMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -361,7 +361,7 @@ impl WindowFunction {
             Series::new_f64(&aggregate_column_name, aggregate_values),
         );
 
-        DataFrame::new(result_columns)
+        Ok(DataFrame::new(result_columns))
     }
 
     fn calculate_window_aggregate(
@@ -428,7 +428,7 @@ impl WindowFunction {
         offset: i32,
         _window_spec: &WindowSpec,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = HashMap::new();
+        let mut result_columns = IndexMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -516,7 +516,7 @@ impl WindowFunction {
         };
 
         result_columns.insert(column_name_result, lag_lead_series);
-        DataFrame::new(result_columns)
+        Ok(DataFrame::new(result_columns))
     }
 
     /// Apply moving average with specified window size
@@ -535,7 +535,7 @@ impl WindowFunction {
         column_name: &str,
         window_size: usize,
     ) -> Result<DataFrame, VeloxxError> {
-        let mut result_columns = HashMap::new();
+        let mut result_columns = IndexMap::new();
 
         // Copy original columns
         for (name, series) in &dataframe.columns {
@@ -552,7 +552,7 @@ impl WindowFunction {
             Series::new_f64(&moving_avg_column_name, moving_avg_values),
         );
 
-        DataFrame::new(result_columns)
+        Ok(DataFrame::new(result_columns))
     }
 
     fn calculate_moving_average(

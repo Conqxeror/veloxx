@@ -1,0 +1,1224 @@
+    Checking veloxx v0.3.2 (D:\Projects\Veloxx\veloxx)
+error: expected item after attributes
+   --> src\advanced_io.rs:709:5
+    |
+581 |   impl AsyncFileOps {
+    |                     - while parsing this item list starting here
+...
+700 | /     /// Read a JSON file asynchronously
+701 | |     ///
+702 | |     /// # Arguments
+703 | |     ///
+...   |
+707 | |     ///
+708 | |     /// DataFrame containing the JSON data
+    | |__________________________________________- other attributes here
+709 |       #[cfg(feature = "advanced_io")]
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+793 |   }
+    |   - the item list ends here
+
+error[E0432]: unresolved import `arrow_csv`
+  --> src\io\arrow.rs:15:5
+   |
+15 | use arrow_csv::ReaderBuilder;
+   |     ^^^^^^^^^ use of unresolved module or unlinked crate `arrow_csv`
+   |
+   = help: if you wanted to use a crate named `arrow_csv`, use `cargo add arrow_csv` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `arrow_array`
+ --> src\performance\arrow_simd.rs:4:5
+  |
+4 | use arrow_array::{Float64Array, Int32Array};
+  |     ^^^^^^^^^^^ use of unresolved module or unlinked crate `arrow_array`
+  |
+  = help: if you wanted to use a crate named `arrow_array`, use `cargo add arrow_array` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `arrow_arith`
+  --> src\performance\arrow_simd.rs:16:9
+   |
+16 |     use arrow_arith::numeric;
+   |         ^^^^^^^^^^^ use of unresolved module or unlinked crate `arrow_arith`
+   |
+   = help: if you wanted to use a crate named `arrow_arith`, use `cargo add arrow_arith` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `linfa_nn`
+  --> src\ml.rs:52:5
+   |
+52 | use linfa_nn::distance::L2Dist;
+   |     ^^^^^^^^ use of unresolved module or unlinked crate `linfa_nn`
+   |
+   = help: if you wanted to use a crate named `linfa_nn`, use `cargo add linfa_nn` to add it to your `Cargo.toml`
+
+error[E0432]: unresolved import `arrow_array`
+  --> src\performance\arrow_simd.rs:18:9
+   |
+18 |     use arrow_array::Float64Array;
+   |         ^^^^^^^^^^^ use of unresolved module or unlinked crate `arrow_array`
+   |
+   = help: if you wanted to use a crate named `arrow_array`, use `cargo add arrow_array` to add it to your `Cargo.toml`
+
+warning: unused import: `crate::VeloxxError`
+ --> src\dataframe\mod.rs:4:5
+  |
+4 | use crate::VeloxxError;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unexpected `cfg` condition value: `arrow-io`
+  --> src\dataframe\io.rs:10:15
+   |
+10 |     #[cfg(all(feature = "arrow-io", not(target_arch = "wasm32")))]
+   |               ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `arrow`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow-io` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `arrow-io`
+  --> src\dataframe\io.rs:15:19
+   |
+15 |     #[cfg(not(all(feature = "arrow-io", not(target_arch = "wasm32"))))]
+   |                   ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `arrow`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow-io` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow-io`
+  --> src\dataframe\io.rs:24:9
+   |
+24 |         feature = "arrow-io",
+   |         ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `arrow`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow-io` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unexpected `cfg` condition value: `arrow-io`
+  --> src\dataframe\io.rs:33:9
+   |
+33 |         feature = "arrow-io",
+   |         ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `advanced_io`, `arrow`, `chrono`, `data_quality`, `default`, `distributed`, `full`, `js-sys`, `linfa`, `linfa-clustering`, `linfa-linear`, `linfa-logistic`, `linfa-trees`, `ml`, `ndarray`, `parquet`, `plotters`, `plotters-svg`, `polars`, `pyo3`, `python`, `regex`, `serde-wasm-bindgen`, `serde_json`, `simd`, `sqlx`, `tokio`, `visualization`, `wasm`, `wasm-bindgen`, `wasm-full`, `wide`, and `window_functions`
+   = help: consider adding `arrow-io` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `crate::types::Value`
+  --> src\ml.rs:57:5
+   |
+57 | use crate::types::Value;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `DataType`
+ --> src\series\arithmetic.rs:2:20
+  |
+2 | use crate::types::{DataType, Value};
+  |                    ^^^^^^^^
+
+warning: unused import: `arithmetic::*`
+   --> src\series\mod.rs:934:9
+    |
+934 | pub use arithmetic::*;
+    |         ^^^^^^^^^^^^^
+
+warning: unused import: `aggregations::*`
+   --> src\series\mod.rs:935:9
+    |
+935 | pub use aggregations::*;
+    |         ^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\data_quality.rs:217:45
+    |
+217 |             if !schema.columns.contains_key(column_name) {
+    |                                ------------ ^^^^^^^^^^^ expected `&_`, found `String`
+    |                                |
+    |                                arguments to this method are incorrect
+    |
+    = note: expected reference `&_`
+                  found struct `std::string::String`
+note: method defined here
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\std\src\collections\hash\map.rs:1143:12
+help: consider borrowing here
+    |
+217 |             if !schema.columns.contains_key(&column_name) {
+    |                                             +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+  --> src\dataframe\cleaning.rs:49:56
+   |
+49 |         let row_indices_to_keep: Vec<usize> = (0..self.row_count)
+   |                                                        ^^^^^^^^^ method, not a field
+   |
+help: use parentheses to call the method
+   |
+49 |         let row_indices_to_keep: Vec<usize> = (0..self.row_count())
+   |                                                                 ++
+
+error[E0599]: `&Series` is not an iterator
+  --> src\dataframe\cleaning.rs:59:37
+   |
+59 |             let new_series = series.filter(&row_indices_to_keep)?;
+   |                                     ^^^^^^ `&Series` is not an iterator
+   |
+  ::: src\series\mod.rs:18:1
+   |
+18 | pub enum Series {
+   | --------------- doesn't satisfy `Series: Iterator`
+   |
+   = note: the following trait bounds were not satisfied:
+           `&Series: Iterator`
+           which is required by `&mut &Series: Iterator`
+           `Series: Iterator`
+           which is required by `&mut Series: Iterator`
+note: the trait `Iterator` must be implemented
+  --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\core\src\iter\traits\iterator.rs:39:1
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following traits define an item `filter`, perhaps you need to implement one of them:
+           candidate #1: `futures_util::StreamExt`
+           candidate #2: `rayon::iter::ParallelIterator`
+   = note: the trait `Iterator` defines an item `filter`, but is explicitly unimplemented
+
+error[E0308]: mismatched types
+  --> src\dataframe\cleaning.rs:63:9
+   |
+39 |     pub fn drop_nulls(&self, subset: Option<&[String]>) -> Result<Self, VeloxxError> {
+   |                                                            ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+63 |         DataFrame::new(new_columns)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+63 |         Ok(DataFrame::new(new_columns))
+   |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\cleaning.rs:117:9
+    |
+105 |     pub fn fill_nulls(&self, value: Value) -> Result<Self, VeloxxError> {
+    |                                               ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+117 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+117 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\cleaning.rs:157:9
+    |
+150 |     pub fn interpolate_nulls(&self, column_name: &str) -> Result<Self, VeloxxError> {
+    |                                                           ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+157 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+157 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+  --> src\dataframe\display.rs:40:17
+   |
+40 |         if self.row_count == 0 {
+   |                 ^^^^^^^^^ method, not a field
+   |
+help: use parentheses to call the method
+   |
+40 |         if self.row_count() == 0 {
+   |                          ++
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+  --> src\dataframe\display.rs:58:26
+   |
+58 |         for i in 0..self.row_count {
+   |                          ^^^^^^^^^ method, not a field
+   |
+help: use parentheses to call the method
+   |
+58 |         for i in 0..self.row_count() {
+   |                                   ++
+
+error[E0271]: expected `IntoIter<String>` to be an iterator that yields `&_`, but it yields `String`
+   --> src\dataframe\group_by.rs:141:82
+    |
+141 |         let all_columns: Vec<String> = self.dataframe.column_names().into_iter().cloned().collect();
+    |                                                                                  ^^^^^^ expected `&_`, found `String`
+    |
+    = note: expected reference `&_`
+                  found struct `std::string::String`
+note: required by a bound in `std::iter::Iterator::cloned`
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\core\src\iter\traits\iterator.rs:3465:5
+
+error[E0599]: the method `collect` exists for struct `std::iter::Cloned<std::vec::IntoIter<std::string::String>>`, but its trait bounds were not satisfied
+   --> src\dataframe\group_by.rs:141:91
+    |
+141 |         let all_columns: Vec<String> = self.dataframe.column_names().into_iter().cloned().collect();
+    |                                                                                           ^^^^^^^ method cannot be called due to unsatisfied trait bounds
+    |
+    = note: the following trait bounds were not satisfied:
+            `<std::vec::IntoIter<std::string::String> as Iterator>::Item = &_`
+            which is required by `std::iter::Cloned<std::vec::IntoIter<std::string::String>>: Iterator`
+            `std::iter::Cloned<std::vec::IntoIter<std::string::String>>: Iterator`
+            which is required by `&mut std::iter::Cloned<std::vec::IntoIter<std::string::String>>: Iterator`
+
+error[E0560]: struct `DataFrame` has no field named `row_count`
+   --> src\dataframe\group_by.rs:354:21
+    |
+354 |                     row_count,
+    |                     ^^^^^^^^^ `DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0308]: mismatched types
+   --> src\dataframe\group_by.rs:895:9
+    |
+635 |     fn agg_fallback(&self, aggregations: Vec<(&str, &str)>) -> Result<DataFrame, VeloxxError> {
+    |                                                                ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+895 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+895 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+  --> src\dataframe\io.rs:57:20
+   |
+42 |     pub fn from_csv(path: &str) -> Result<Self, VeloxxError> {
+   |                                    ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+57 |             return DataFrame::new(HashMap::new());
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+57 |             return Ok(DataFrame::new(HashMap::new()));
+   |                    +++                              +
+
+error[E0308]: mismatched types
+   --> src\dataframe\io.rs:155:20
+    |
+153 |     ) -> Result<Self, VeloxxError> {
+    |          ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+154 |         if data.is_empty() {
+155 |             return DataFrame::new(HashMap::new());
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+155 |             return Ok(DataFrame::new(HashMap::new()));
+    |                    +++                              +
+
+error[E0308]: mismatched types
+   --> src\dataframe\io.rs:275:9
+    |
+153 |     ) -> Result<Self, VeloxxError> {
+    |          ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+275 |         DataFrame::new(columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+275 |         Ok(DataFrame::new(columns))
+    |         +++                       +
+
+error[E0308]: mismatched types
+   --> src\dataframe\io.rs:449:9
+    |
+315 |     pub fn from_json(path: &str) -> Result<Self, VeloxxError> {
+    |                                     ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+449 |         DataFrame::new(series_map)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+449 |         Ok(DataFrame::new(series_map))
+    |         +++                          +
+
+error[E0308]: mismatched types
+   --> src\dataframe\join.rs:518:9
+    |
+139 |     ) -> Result<Self, VeloxxError> {
+    |          ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+518 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+518 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+  --> src\dataframe\manipulation.rs:11:48
+   |
+11 |         let row_indices: Vec<usize> = (0..self.row_count)
+   |                                                ^^^^^^^^^ method, not a field
+   |
+help: use parentheses to call the method
+   |
+11 |         let row_indices: Vec<usize> = (0..self.row_count())
+   |                                                         ++
+
+error[E0599]: `&Series` is not an iterator
+  --> src\dataframe\manipulation.rs:19:42
+   |
+19 |             let filtered_series = series.filter(&row_indices)?;
+   |                                          ^^^^^^ `&Series` is not an iterator
+   |
+  ::: src\series\mod.rs:18:1
+   |
+18 | pub enum Series {
+   | --------------- doesn't satisfy `Series: Iterator`
+   |
+   = note: the following trait bounds were not satisfied:
+           `&Series: Iterator`
+           which is required by `&mut &Series: Iterator`
+           `Series: Iterator`
+           which is required by `&mut Series: Iterator`
+note: the trait `Iterator` must be implemented
+  --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\core\src\iter\traits\iterator.rs:39:1
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following traits define an item `filter`, perhaps you need to implement one of them:
+           candidate #1: `futures_util::StreamExt`
+           candidate #2: `rayon::iter::ParallelIterator`
+   = note: the trait `Iterator` defines an item `filter`, but is explicitly unimplemented
+
+error[E0560]: struct `DataFrame` has no field named `row_count`
+  --> src\dataframe\manipulation.rs:24:13
+   |
+24 |             row_count: row_indices.len(),
+   |             ^^^^^^^^^ `DataFrame` does not have this field
+   |
+   = note: all struct fields are already assigned
+
+error[E0308]: mismatched types
+  --> src\dataframe\manipulation.rs:88:9
+   |
+79 |     pub fn select_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
+   |                                                         ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+88 |         DataFrame::new(selected_columns)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+88 |         Ok(DataFrame::new(selected_columns))
+   |         +++                                +
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:129:9
+    |
+122 |     pub fn drop_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
+    |                                                       ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+129 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+129 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:174:13
+    |
+164 |     pub fn rename_column(&self, old_name: &str, new_name: &str) -> Result<Self, VeloxxError> {
+    |                                                                    ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+174 |             DataFrame::new(new_columns)
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+174 |             Ok(DataFrame::new(new_columns))
+    |             +++                           +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:221:17
+    |
+221 |         if self.row_count == 0 {
+    |                 ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+221 |         if self.row_count() == 0 {
+    |                          ++
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:225:73
+    |
+225 |         let mut rows: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count);
+    |                                                                         ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+225 |         let mut rows: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count());
+    |                                                                                  ++
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:226:26
+    |
+226 |         for i in 0..self.row_count {
+    |                          ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+226 |         for i in 0..self.row_count() {
+    |                                   ++
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:229:47
+    |
+229 |                 let series = self.columns.get(*col_name).unwrap();
+    |                                           --- ^^^^^^^^^ expected `&_`, found `String`
+    |                                           |
+    |                                           arguments to this method are incorrect
+    |
+    = note: expected reference `&_`
+                  found struct `std::string::String`
+note: method defined here
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\std\src\collections\hash\map.rs:909:12
+help: consider removing deref here
+    |
+229 -                 let series = self.columns.get(*col_name).unwrap();
+229 +                 let series = self.columns.get(col_name).unwrap();
+    |
+
+error[E0277]: can't compare `std::string::String` with `&std::string::String`
+   --> src\dataframe\manipulation.rs:240:44
+    |
+240 |                     .position(|&name| name == col_name)
+    |                                            ^^ no implementation for `std::string::String == &std::string::String`
+    |
+    = help: the trait `PartialEq<&std::string::String>` is not implemented for `std::string::String`
+help: consider dereferencing here
+    |
+240 |                     .position(|&name| name == *col_name)
+    |                                               +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:277:82
+    |
+277 |             new_columns_data.insert((*col_name).clone(), Vec::with_capacity(self.row_count));
+    |                                                                                  ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+277 |             new_columns_data.insert((*col_name).clone(), Vec::with_capacity(self.row_count()));
+    |                                                                                           ++
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:283:30
+    |
+283 |                     .get_mut(*col_name)
+    |                      ------- ^^^^^^^^^ expected `&_`, found `String`
+    |                      |
+    |                      arguments to this method are incorrect
+    |
+    = note: expected reference `&_`
+                  found struct `std::string::String`
+note: method defined here
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\std\src\collections\hash\map.rs:1171:12
+help: consider removing deref here
+    |
+283 -                     .get_mut(*col_name)
+283 +                     .get_mut(col_name)
+    |
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:372:9
+    |
+220 |     pub fn sort(&self, by_columns: Vec<String>, ascending: bool) -> Result<Self, VeloxxError> {
+    |                                                                     ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+372 |         DataFrame::new(new_series_map)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+372 |         Ok(DataFrame::new(new_series_map))
+    |         +++                              +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:432:72
+    |
+432 |         let mut evaluated_values: Vec<Value> = Vec::with_capacity(self.row_count);
+    |                                                                        ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+432 |         let mut evaluated_values: Vec<Value> = Vec::with_capacity(self.row_count());
+    |                                                                                 ++
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:435:26
+    |
+435 |         for i in 0..self.row_count {
+    |                          ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+435 |         for i in 0..self.row_count() {
+    |                                   ++
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:497:70
+    |
+497 |             None => Series::new_string(new_col_name, vec![None; self.row_count]), // All nulls, default to String
+    |                                                                      ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+497 |             None => Series::new_string(new_col_name, vec![None; self.row_count()]), // All nulls, default to String
+    |                                                                               ++
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:501:9
+    |
+424 |     pub fn with_column(&self, new_col_name: &str, expr: &Expr) -> Result<Self, VeloxxError> {
+    |                                                                   ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+501 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+501 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+   --> src\dataframe\manipulation.rs:548:26
+    |
+548 |         for i in 0..self.row_count {
+    |                          ^^^^^^^^^ method, not a field
+    |
+help: use parentheses to call the method
+    |
+548 |         for i in 0..self.row_count() {
+    |                                   ++
+
+error[E0560]: struct `DataFrame` has no field named `row_count`
+   --> src\dataframe\manipulation.rs:587:13
+    |
+587 |             row_count: filtered_row_count,
+    |             ^^^^^^^^^ `DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0560]: struct `DataFrame` has no field named `row_count`
+   --> src\dataframe\manipulation.rs:628:17
+    |
+628 |                 row_count: 0,
+    |                 ^^^^^^^^^ `DataFrame` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0599]: `Series` is not an iterator
+   --> src\dataframe\manipulation.rs:635:40
+    |
+635 |             let new_series = (*series).filter(row_indices)?;
+    |                                        ^^^^^^ `Series` is not an iterator
+    |
+   ::: src\series\mod.rs:18:1
+    |
+ 18 | pub enum Series {
+    | --------------- method `filter` not found for this enum because it doesn't satisfy `Series: Iterator`
+    |
+    = note: the following trait bounds were not satisfied:
+            `Series: Iterator`
+            which is required by `&mut Series: Iterator`
+note: the trait `Iterator` must be implemented
+   --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\core\src\iter\traits\iterator.rs:39:1
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following traits define an item `filter`, perhaps you need to implement one of them:
+            candidate #1: `Iterator`
+            candidate #2: `futures_util::StreamExt`
+            candidate #3: `rayon::iter::ParallelIterator`
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:639:9
+    |
+624 |     pub fn filter_by_indices(&self, row_indices: &[usize]) -> Result<Self, VeloxxError> {
+    |                                                               ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+639 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+639 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:692:47
+    |
+692 |         let self_column_names: Vec<&String> = self.column_names();
+    |                                ------------   ^^^^^^^^^^^^^^^^^^^ expected `Vec<&String>`, found `Vec<String>`
+    |                                |
+    |                                expected due to this
+    |
+    = note: expected struct `Vec<&std::string::String>`
+               found struct `Vec<std::string::String>`
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:693:48
+    |
+693 |         let other_column_names: Vec<&String> = other.column_names();
+    |                                 ------------   ^^^^^^^^^^^^^^^^^^^^ expected `Vec<&String>`, found `Vec<String>`
+    |                                 |
+    |                                 expected due to this
+    |
+    = note: expected struct `Vec<&std::string::String>`
+               found struct `Vec<std::string::String>`
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:726:9
+    |
+684 |     pub fn append(&self, other: &DataFrame) -> Result<Self, VeloxxError> {
+    |                                                ------------------------- expected `Result<DataFrame, VeloxxError>` because of return type
+...
+726 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+726 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\manipulation.rs:975:9
+    |
+891 |     pub fn describe(&self) -> Result<DataFrame, VeloxxError> {
+    |                               ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+975 |         DataFrame::new(descriptions)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+975 |         Ok(DataFrame::new(descriptions))
+    |         +++                            +
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+    --> src\dataframe\manipulation.rs:1172:75
+     |
+1172 |         let mut result: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count);
+     |                                                                           ^^^^^^^^^ method, not a field
+     |
+help: use parentheses to call the method
+     |
+1172 |         let mut result: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count());
+     |                                                                                    ++
+
+error[E0615]: attempted to take value of method `row_count` on type `&DataFrame`
+    --> src\dataframe\manipulation.rs:1175:26
+     |
+1175 |         for i in 0..self.row_count {
+     |                          ^^^^^^^^^ method, not a field
+     |
+help: use parentheses to call the method
+     |
+1175 |         for i in 0..self.row_count() {
+     |                                   ++
+
+error[E0308]: mismatched types
+    --> src\dataframe\manipulation.rs:1178:47
+     |
+1178 |                 let series = self.columns.get(*col_name).unwrap();
+     |                                           --- ^^^^^^^^^ expected `&_`, found `String`
+     |                                           |
+     |                                           arguments to this method are incorrect
+     |
+     = note: expected reference `&_`
+                   found struct `std::string::String`
+note: method defined here
+    --> /rustc/f8297e351a40c1439a467bbbb6879088047f50b3\library\std\src\collections\hash\map.rs:909:12
+help: consider removing deref here
+     |
+1178 -                 let series = self.columns.get(*col_name).unwrap();
+1178 +                 let series = self.columns.get(col_name).unwrap();
+     |
+
+error[E0308]: mismatched types
+    --> src\dataframe\manipulation.rs:1273:5
+     |
+1227 | fn dense_sequential_groupby(params: DenseSeqGroupByParams) -> Result<DataFrame, VeloxxError> {
+     |                                                               ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+1273 |     DataFrame::new(result)
+     |     ^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+     |
+     = note: expected enum `Result<DataFrame, VeloxxError>`
+              found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+     |
+1273 |     Ok(DataFrame::new(result))
+     |     +++                      +
+
+error[E0308]: mismatched types
+    --> src\dataframe\manipulation.rs:1325:5
+     |
+1284 | ) -> Result<DataFrame, VeloxxError> {
+     |      ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+1325 |     DataFrame::new(result)
+     |     ^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+     |
+     = note: expected enum `Result<DataFrame, VeloxxError>`
+              found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+     |
+1325 |     Ok(DataFrame::new(result))
+     |     +++                      +
+
+error[E0308]: mismatched types
+  --> src\dataframe\sources.rs:63:20
+   |
+61 |     fn to_dataframe(&self) -> Result<DataFrame, VeloxxError> {
+   |                               ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+62 |         if self.is_empty() {
+63 |             return DataFrame::new(HashMap::new());
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+63 |             return Ok(DataFrame::new(HashMap::new()));
+   |                    +++                              +
+
+error[E0308]: mismatched types
+   --> src\dataframe\sources.rs:160:9
+    |
+ 61 |     fn to_dataframe(&self) -> Result<DataFrame, VeloxxError> {
+    |                               ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+160 |         DataFrame::new(columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+160 |         Ok(DataFrame::new(columns))
+    |         +++                       +
+
+error[E0308]: mismatched types
+  --> src\dataframe\time_series.rs:55:9
+   |
+43 |     ) -> Result<DataFrame, VeloxxError> {
+   |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+55 |         DataFrame::new(new_columns)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+55 |         Ok(DataFrame::new(new_columns))
+   |         +++                           +
+
+error[E0308]: mismatched types
+  --> src\dataframe\time_series.rs:87:9
+   |
+75 |     ) -> Result<DataFrame, VeloxxError> {
+   |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+87 |         DataFrame::new(new_columns)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+87 |         Ok(DataFrame::new(new_columns))
+   |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\time_series.rs:119:9
+    |
+107 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+119 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+119 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\time_series.rs:151:9
+    |
+139 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+151 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+151 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\time_series.rs:183:9
+    |
+171 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+183 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+183 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\time_series.rs:224:9
+    |
+212 |     pub fn pct_change(&self, columns: Vec<String>) -> Result<DataFrame, VeloxxError> {
+    |                                                       ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+224 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+224 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+   --> src\dataframe\time_series.rs:251:9
+    |
+239 |     pub fn cumsum(&self, columns: Vec<String>) -> Result<DataFrame, VeloxxError> {
+    |                                                   ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+251 |         DataFrame::new(new_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+251 |         Ok(DataFrame::new(new_columns))
+    |         +++                           +
+
+error[E0308]: mismatched types
+  --> src\io\arrow.rs:54:16
+   |
+40 | pub fn read_csv_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxError> {
+   |                                                  ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+54 |         return DataFrame::new(HashMap::new());
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+54 |         return Ok(DataFrame::new(HashMap::new()));
+   |                +++                              +
+
+error[E0308]: mismatched types
+  --> src\io\arrow.rs:73:5
+   |
+40 | pub fn read_csv_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxError> {
+   |                                                  ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+73 |     DataFrame::new(columns)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+73 |     Ok(DataFrame::new(columns))
+   |     +++                       +
+
+error[E0308]: mismatched types
+  --> src\io\arrow.rs:88:16
+   |
+77 | pub fn read_parquet_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxError> {
+   |                                                      ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+88 |         return DataFrame::new(std::collections::HashMap::new());
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+   |
+   = note: expected enum `Result<DataFrame, VeloxxError>`
+            found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+   |
+88 |         return Ok(DataFrame::new(std::collections::HashMap::new()));
+   |                +++                                                +
+
+error[E0308]: mismatched types
+   --> src\io\arrow.rs:107:5
+    |
+ 77 | pub fn read_parquet_to_dataframe(file_path: &str) -> Result<DataFrame, VeloxxError> {
+    |                                                      ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+107 |     DataFrame::new(columns)
+    |     ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+107 |     Ok(DataFrame::new(columns))
+    |     +++                       +
+
+error[E0308]: mismatched types
+   --> src\io\arrow.rs:138:43
+    |
+138 |         let series = dataframe.get_column(name).unwrap();
+    |                                ---------- ^^^^ expected `&str`, found `String`
+    |                                |
+    |                                arguments to this method are incorrect
+    |
+note: method defined here
+   --> src\dataframe\mod.rs:46:12
+    |
+ 46 |     pub fn get_column(&self, name: &str) -> Option<&Series> {
+    |            ^^^^^^^^^^        ----------
+help: consider borrowing here
+    |
+138 |         let series = dataframe.get_column(&name).unwrap();
+    |                                           +
+
+error[E0308]: mismatched types
+   --> src\io\json.rs:634:9
+    |
+601 |     fn objects_to_dataframe(&self, objects: Vec<JsonObject>) -> Result<DataFrame, VeloxxError> {
+    |                                                                 ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+634 |         DataFrame::new(columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+634 |         Ok(DataFrame::new(columns))
+    |         +++                       +
+
+error[E0599]: no method named `unwrap` found for struct `DataFrame` in the current scope
+  --> src\io\mod.rs:40:63
+   |
+40 |         Some(DataFrame::new(std::collections::HashMap::new()).unwrap())
+   |                                                               ^^^^^^ method not found in `DataFrame`
+   |
+  ::: src\dataframe\mod.rs:17:1
+   |
+17 | pub struct DataFrame {
+   | -------------------- method `unwrap` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `unwrap`, perhaps you need to implement it:
+           candidate #1: `brotli::enc::threading::OwnedRetriever`
+
+error[E0599]: no method named `unwrap` found for struct `DataFrame` in the current scope
+  --> src\io\mod.rs:45:63
+   |
+45 |         Some(DataFrame::new(std::collections::HashMap::new()).unwrap())
+   |                                                               ^^^^^^ method not found in `DataFrame`
+   |
+  ::: src\dataframe\mod.rs:17:1
+   |
+17 | pub struct DataFrame {
+   | -------------------- method `unwrap` not found for this struct
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following trait defines an item `unwrap`, perhaps you need to implement it:
+           candidate #1: `brotli::enc::threading::OwnedRetriever`
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:243:9
+    |
+226 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+243 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+243 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:364:9
+    |
+346 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+364 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+364 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:519:9
+    |
+430 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+519 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+519 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0308]: mismatched types
+   --> src\window_functions.rs:555:9
+    |
+537 |     ) -> Result<DataFrame, VeloxxError> {
+    |          ------------------------------ expected `Result<DataFrame, VeloxxError>` because of return type
+...
+555 |         DataFrame::new(result_columns)
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<DataFrame, VeloxxError>`, found `DataFrame`
+    |
+    = note: expected enum `Result<DataFrame, VeloxxError>`
+             found struct `DataFrame`
+help: try wrapping the expression in `Ok`
+    |
+555 |         Ok(DataFrame::new(result_columns))
+    |         +++                              +
+
+error[E0716]: temporary value dropped while borrowed
+   --> src\dataframe\io.rs:287:43
+    |
+287 |         let mut column_names: Vec<&str> = self.column_names().iter().map(|s| s.as_str()).collect();
+    |                                           ^^^^^^^^^^^^^^^^^^^                                     - temporary value is freed at the end of this statement
+    |                                           |
+    |                                           creates a temporary value which is freed while still in use
+288 |         // Sort column names to ensure consistent ordering
+289 |         column_names.sort();
+    |         ------------ borrow later used here
+    |
+help: consider consuming the `Vec<std::string::String>` when turning it into an `Iterator`
+    |
+287 |         let mut column_names: Vec<&str> = self.column_names().into_iter().map(|s| s.as_str()).collect();
+    |                                                                +++++
+help: consider using a `let` binding to create a longer lived value
+    |
+287 ~         let binding = self.column_names();
+288 ~         let mut column_names: Vec<&str> = binding.iter().map(|s| s.as_str()).collect();
+    |
+
+warning: unused variable: `new_row_count`
+   --> src\query\mod.rs:380:13
+    |
+380 |         let new_row_count = mask.iter().filter(|&&x| x).count();
+    |             ^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+help: if this is intentional, prefix it with an underscore
+    |
+380 |         let _new_row_count = mask.iter().filter(|&&x| x).count();
+    |             +
+help: you might have meant to pattern match on the similarly named constant `SIMD_ALIGNMENT`
+    |
+380 -         let new_row_count = mask.iter().filter(|&&x| x).count();
+380 +         let performance::memory_pool::SIMD_ALIGNMENT = mask.iter().filter(|&&x| x).count();
+    |
+
+error[E0716]: temporary value dropped while borrowed
+   --> src\advanced_io.rs:659:39
+    |
+659 |           let column_names: Vec<&str> = dataframe
+    |  _______________________________________^
+660 | |             .column_names()
+    | |___________________________^ creates a temporary value which is freed while still in use
+...
+663 |               .collect();
+    |                         - temporary value is freed at the end of this statement
+664 |           csv_content.push_str(&column_names.join(","));
+    |                                 ------------ borrow later used here
+    |
+help: consider consuming the `Vec<std::string::String>` when turning it into an `Iterator`
+    |
+661 |             .into_iter()
+    |               +++++
+help: consider using a `let` binding to create a longer lived value
+    |
+659 ~         let binding = dataframe
+660 +             .column_names();
+661 ~         let column_names: Vec<&str> = binding
+    |
+
+Some errors have detailed explanations: E0271, E0277, E0308, E0432, E0433, E0560, E0599, E0615, E0716.
+For more information about an error, try `rustc --explain E0271`.
+warning: `veloxx` (lib) generated 10 warnings
+error: could not compile `veloxx` (lib) due to 78 previous errors; 10 warnings emitted

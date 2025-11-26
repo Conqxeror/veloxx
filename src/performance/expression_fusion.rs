@@ -1,3 +1,9 @@
+use rayon::iter::IntoParallelRefMutIterator;
+
+use rayon::iter::IndexedParallelIterator;
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
+
 // src/performance/expression_fusion.rs
 use crate::VeloxxError;
 
@@ -18,7 +24,7 @@ impl ExpressionFusion {
             ));
         }
 
-        use rayon::prelude::*;
+        
         result.par_iter_mut().enumerate().for_each(|(i, r)| {
             *r = (a[i] + b[i]) * c[i];
         });
@@ -34,7 +40,6 @@ impl ExpressionFusion {
             ));
         }
 
-        use rayon::prelude::*;
         let sum = values
             .par_iter()
             .zip(condition.par_iter())

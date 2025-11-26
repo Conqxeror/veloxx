@@ -281,10 +281,10 @@ impl Hash for Value {
     /// # Examples
     ///
     /// ```rust
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut map = HashMap::new();
+    /// let mut map = IndexMap::new();
     /// map.insert(Value::I32(10), "ten");
     /// map.insert(Value::String("hello".to_string()), "greeting");
     ///

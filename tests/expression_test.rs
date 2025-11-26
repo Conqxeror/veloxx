@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::dataframe::DataFrame;
 use veloxx::expressions::Expr;
 use veloxx::series::Series;
@@ -97,7 +97,7 @@ fn test_not_expression() {
 
 #[test]
 fn test_expression_evaluation() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "age".to_string(),
         Series::new_i32("age", vec![Some(25), Some(30), Some(35)]),
@@ -106,7 +106,7 @@ fn test_expression_evaluation() {
         "score".to_string(),
         Series::new_f64("score", vec![Some(85.5), Some(92.0), Some(78.5)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     // Test column expression evaluation
     let col_expr = Expr::Column("age".to_string());
@@ -121,7 +121,7 @@ fn test_expression_evaluation() {
 
 #[test]
 fn test_arithmetic_expression_evaluation() {
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "a".to_string(),
         Series::new_i32("a", vec![Some(10), Some(20)]),
@@ -130,7 +130,7 @@ fn test_arithmetic_expression_evaluation() {
         "b".to_string(),
         Series::new_i32("b", vec![Some(5), Some(3)]),
     );
-    let df = DataFrame::new(columns).unwrap();
+    let df = DataFrame::new(columns);
 
     // Test addition: a + b
     let add_expr = Expr::Add(

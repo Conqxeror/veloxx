@@ -61,8 +61,6 @@ impl UltraFastGroupBy {
         group_col_name: &str,
         value_col_name: &str,
     ) -> Result<DataFrame, VeloxxError> {
-        use std::collections::HashMap;
-
         let chunk_size = 8192; // Optimized for cache efficiency
         let num_chunks = group_values.len().div_ceil(chunk_size);
 
@@ -103,7 +101,6 @@ impl UltraFastGroupBy {
         values: &[f64],
         value_bitmap: &[bool],
     ) -> std::collections::HashMap<i32, (f64, u32)> {
-        use std::collections::HashMap;
         let mut map = HashMap::with_capacity(group_values.len() / 4); // Estimate groups
 
         #[cfg(target_arch = "x86_64")]
@@ -132,7 +129,6 @@ impl UltraFastGroupBy {
         values: &[f64],
         value_bitmap: &[bool],
     ) -> std::collections::HashMap<i32, (f64, u32)> {
-        use std::collections::HashMap;
         let mut map = HashMap::with_capacity(group_values.len() / 4);
 
         let len = group_values.len();
@@ -191,7 +187,6 @@ impl UltraFastGroupBy {
         group_col_name: &str,
         value_col_name: &str,
     ) -> Result<DataFrame, VeloxxError> {
-        use std::collections::HashMap;
         let mut map = HashMap::new();
 
         for i in 0..group_values.len() {
@@ -221,7 +216,7 @@ impl UltraFastGroupBy {
                 value_col_name.to_string(),
                 Series::F64(value_col_name.to_string(), vec![], vec![]),
             );
-            return DataFrame::new(result);
+            return Ok(DataFrame::new(result.into_iter().collect()));
         }
 
         // Sort keys for consistent output
@@ -256,7 +251,7 @@ impl UltraFastGroupBy {
             ),
         );
 
-        DataFrame::new(result)
+        Ok(DataFrame::new(result.into_iter().collect()))
     }
 }
 

@@ -1,18 +1,24 @@
-//! Ultra-fast CSV parser with SIMD acceleration
-//!
-//! This module provides highly optimized CSV parsing that leverages:
-//! - SIMD-accelerated field detection and extraction
-//! - Vectorized string processing using AVX2 instructions
-//! - Memory-efficient streaming for large files
-//! - Parallel chunk processing for multi-core utilization
-//! - Target: 2-5 million rows/second (2-5x faster than Polars)
+use std::io::BufRead;
+// Ultra-fast CSV parser with SIMD acceleration
+//
+// This module provides highly optimized CSV parsing that leverages:
+// - SIMD-accelerated field detection and extraction
+// - Vectorized string processing using AVX2 instructions
+// - Memory-efficient streaming for large files
+// - Parallel chunk processing for multi-core utilization
+// - Target: 2-5 million rows/second (2-5x faster than Polars)
 
 use crate::dataframe::DataFrame;
 use crate::series::Series;
 use crate::VeloxxError;
+
+use memmap2::Mmap;
+use rayon::prelude::*;
+
+
 // ...existing code...
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+
 
 /// SIMD-accelerated CSV parser for ultra-fast data loading
 ///
@@ -70,15 +76,124 @@ impl UltraFastCsvParser {
         self
     }
 
-    /// Parse CSV from file path
+    /// Parse CSV from file path using memory mapping and parallel processing
     pub fn read_file(&self, path: &str) -> Result<DataFrame, VeloxxError> {
         let file = File::open(path)
             .map_err(|e| VeloxxError::FileIO(format!("Failed to open file: {}", e)))?;
-        let reader = BufReader::new(file);
-        self.read_from_reader(reader)
+
+        // Use memory mapping for large files
+        let mmap = unsafe { Mmap::map(&file).map_err(|e| VeloxxError::FileIO(e.to_string()))? };
+
+        if mmap.is_empty() {
+            return Err(VeloxxError::InvalidOperation("Empty CSV file".to_string()));
+        }
+
+        self.parse_bytes(&mmap)
     }
 
     /// Parse CSV from any BufRead source
+    /// Parallel CSV parsing from byte slice
+    pub fn parse_bytes(&self, bytes: &[u8]) -> Result<DataFrame, VeloxxError> {
+        // 1. Find header end
+        let header_end = bytes
+            .iter()
+            .position(|&b| b == b'\n')
+            .unwrap_or(bytes.len());
+        let header_line = std::str::from_utf8(&bytes[0..header_end]).unwrap_or("");
+        let headers = self.parse_csv_line(header_line)?;
+        let num_columns = headers.len();
+
+        let data_start = if header_end < bytes.len() {
+            header_end + 1
+        } else {
+            bytes.len()
+        };
+        let data_bytes = &bytes[data_start..];
+
+        if data_bytes.is_empty() {
+            return Ok(DataFrame::new(indexmap::IndexMap::new()));
+        }
+
+        // 2. Chunking strategy for parallel processing
+        let num_threads = rayon::current_num_threads();
+        let chunk_size = (data_bytes.len() / num_threads).max(1024 * 1024); // Min 1MB chunks
+
+        // Identify chunk boundaries (newlines)
+        let mut chunk_starts = Vec::with_capacity(num_threads + 1);
+        chunk_starts.push(0);
+
+        let mut current_pos = 0;
+        for _ in 0..num_threads - 1 {
+            let target = current_pos + chunk_size;
+            if target >= data_bytes.len() {
+                break;
+            }
+
+            // Scan forward for newline to align chunk
+            if let Some(newline_pos) = data_bytes[target..].iter().position(|&b| b == b'\n') {
+                let split_point = target + newline_pos + 1;
+                chunk_starts.push(split_point);
+                current_pos = split_point;
+            } else {
+                break;
+            }
+        }
+        chunk_starts.push(data_bytes.len());
+
+        // 3. Parallel Parse
+        let chunks: Vec<&[u8]> = chunk_starts
+            .windows(2)
+            .map(|w| &data_bytes[w[0]..w[1]])
+            .collect();
+
+        let parsed_chunks: Vec<Vec<Vec<String>>> = chunks
+            .par_iter()
+            .map(|chunk| {
+                let mut chunk_cols = vec![Vec::new(); num_columns];
+                let s = std::str::from_utf8(chunk).unwrap_or(""); // naive utf8
+                for line in s.lines() {
+                    if line.trim().is_empty() {
+                        continue;
+                    }
+                    // Reuse parse_csv_line (scalar for now, but parallel across chunks)
+                    if let Ok(fields) = self.parse_csv_line(line) {
+                        if fields.len() == num_columns {
+                            for (i, field) in fields.into_iter().enumerate() {
+                                chunk_cols[i].push(field);
+                            }
+                        }
+                    }
+                }
+                chunk_cols
+            })
+            .collect();
+
+        // 4. Merge Results (Column-wise merge is cheap if we just extend)
+        let mut final_columns_data = vec![Vec::new(); num_columns];
+        for chunk_res in parsed_chunks {
+            for (col_idx, col_data) in chunk_res.into_iter().enumerate() {
+                final_columns_data[col_idx].extend(col_data);
+            }
+        }
+
+        // 5. Create DataFrame
+        let mut dataframe_columns = indexmap::IndexMap::new();
+        for (col_idx, column_name) in headers.iter().enumerate() {
+            let raw_data = &final_columns_data[col_idx];
+            if self.infer_types {
+                let series = self.infer_and_convert_column(column_name, raw_data)?;
+                dataframe_columns.insert(column_name.clone(), series);
+            } else {
+                let string_data: Vec<Option<String>> =
+                    raw_data.iter().map(|s| Some(s.clone())).collect();
+                let series = Series::new_string(column_name, string_data);
+                dataframe_columns.insert(column_name.clone(), series);
+            }
+        }
+
+        Ok(DataFrame::new(dataframe_columns))
+    }
+
     pub fn read_from_reader<R: BufRead>(&self, reader: R) -> Result<DataFrame, VeloxxError> {
         let mut lines = reader.lines();
 
@@ -125,7 +240,7 @@ impl UltraFastCsvParser {
         }
 
         // Convert to typed Series with type inference
-        let mut dataframe_columns = std::collections::HashMap::new();
+        let mut dataframe_columns = indexmap::IndexMap::new();
 
         for (col_idx, column_name) in headers.iter().enumerate() {
             let raw_data = &columns_data[col_idx];
@@ -144,7 +259,7 @@ impl UltraFastCsvParser {
             }
         }
 
-        DataFrame::new(dataframe_columns)
+        Ok(DataFrame::new(dataframe_columns))
     }
 
     /// SIMD-accelerated CSV line parsing
@@ -322,9 +437,9 @@ mod tests {
 
         // Check column names
         let column_names = df.column_names();
-        assert!(column_names.contains(&&"id".to_string()));
-        assert!(column_names.contains(&&"name".to_string()));
-        assert!(column_names.contains(&&"value".to_string()));
+        assert!(column_names.contains(&"id".to_string()));
+        assert!(column_names.contains(&"name".to_string()));
+        assert!(column_names.contains(&"value".to_string()));
     }
 
     #[test]

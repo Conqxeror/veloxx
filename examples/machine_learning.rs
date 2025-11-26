@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use veloxx::{dataframe::DataFrame, error::VeloxxError, series::Series};
 
 #[cfg(feature = "ml")]
@@ -28,11 +28,11 @@ fn linear_regression_example() -> Result<(), VeloxxError> {
         .map(|x| x.as_ref().map(|val| 2.0 * val + 1.0 + (val % 3.0 - 1.0)))
         .collect();
 
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert("x".to_string(), Series::new_f64("x", x_values));
     columns.insert("y".to_string(), Series::new_f64("y", y_values));
 
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("Training data:");
     println!("{}", df);
 
@@ -47,9 +47,9 @@ fn linear_regression_example() -> Result<(), VeloxxError> {
         // Make predictions
         for i in 11..=13 {
             let x_val = i as f64;
-            let mut test_columns = HashMap::new();
+            let mut test_columns = IndexMap::new();
             test_columns.insert("x".to_string(), Series::new_f64("x", vec![Some(x_val)]));
-            let test_df = DataFrame::new(test_columns)?;
+            let test_df = DataFrame::new(test_columns);
 
             let predictions = fitted_model.predict(&test_df, &["x"])?;
             if let Some(prediction) = predictions.first() {
@@ -81,7 +81,7 @@ fn preprocessing_example() -> Result<(), VeloxxError> {
 
     let feature2: Vec<Option<f64>> = vec![Some(1.0), Some(2.0), Some(3.0), Some(4.0), Some(5.0)];
 
-    let mut columns = HashMap::new();
+    let mut columns = IndexMap::new();
     columns.insert(
         "feature1".to_string(),
         Series::new_f64("feature1", feature1),
@@ -91,7 +91,7 @@ fn preprocessing_example() -> Result<(), VeloxxError> {
         Series::new_f64("feature2", feature2),
     );
 
-    let df = DataFrame::new(columns)?;
+    let df = DataFrame::new(columns);
     println!("Original data:");
     println!("{}", df);
 

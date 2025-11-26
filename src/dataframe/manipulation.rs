@@ -8,21 +8,18 @@ impl DataFrame {
     ) -> Result<DataFrame, VeloxxError> {
         use rayon::prelude::*;
         // Step 1: Identify row indices to keep (filtered)
-        let row_indices: Vec<usize> = (0..self.row_count)
+        let row_indices: Vec<usize> = (0..self.row_count())
             .into_par_iter()
             .filter(|&i| condition.evaluate(self, i).unwrap_or(false))
             .collect();
 
         // Step 2: Build filtered DataFrame (zero-copy if possible)
-        let mut filtered_columns = std::collections::HashMap::new();
+        let mut filtered_columns = indexmap::IndexMap::new();
         for (name, series) in &self.columns {
             let filtered_series = series.filter(&row_indices)?;
             filtered_columns.insert(name.clone(), filtered_series);
         }
-        let filtered_df = DataFrame {
-            columns: filtered_columns,
-            row_count: row_indices.len(),
-        };
+        let filtered_df = DataFrame::new(filtered_columns);
 
         // Step 3: Group-by and aggregate on filtered DataFrame
         let grouped_df = filtered_df.group_by(group_columns)?;
@@ -37,7 +34,7 @@ use crate::{
     series::Series,
     types::{DataType, Value},
 };
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 impl DataFrame {
     /// Selects a subset of columns from the `DataFrame`.
@@ -61,9 +58,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2)]));
     /// columns.insert("C".to_string(), Series::new_string("C", vec![Some("x".to_string()), Some("y".to_string())]));
@@ -77,7 +74,7 @@ impl DataFrame {
     /// assert_eq!(names, vec!["A".to_string(), "C".to_string()]);
     /// ```
     pub fn select_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
-        let mut selected_columns = HashMap::new();
+        let mut selected_columns = IndexMap::new();
         for name in names {
             if let Some(series) = self.columns.get(&name) {
                 selected_columns.insert(name, series.clone());
@@ -85,7 +82,7 @@ impl DataFrame {
                 return Err(VeloxxError::ColumnNotFound(name));
             }
         }
-        DataFrame::new(selected_columns)
+        Ok(DataFrame::new(selected_columns))
     }
 
     /// Drops specified columns from the `DataFrame`.
@@ -107,9 +104,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2)]));
     /// columns.insert("C".to_string(), Series::new_string("C", vec![Some("x".to_string()), Some("y".to_string())]));
@@ -120,13 +117,13 @@ impl DataFrame {
     /// assert!(!dropped_df.column_names().contains(&&"B".to_string()));
     /// ```
     pub fn drop_columns(&self, names: Vec<String>) -> Result<Self, VeloxxError> {
-        let mut new_columns: HashMap<String, Series> = self.columns.clone();
+        let mut new_columns: IndexMap<String, Series> = self.columns.clone();
         for name in names {
-            if new_columns.remove(&name).is_none() {
+            if new_columns.swap_remove(&name).is_none() {
                 return Err(VeloxxError::ColumnNotFound(name));
             }
         }
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Renames a column in the `DataFrame`.
@@ -150,9 +147,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_f64("B", vec![Some(1.1), Some(2.2)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -162,8 +159,8 @@ impl DataFrame {
     /// assert!(!renamed_df.column_names().contains(&&"A".to_string()));
     /// ```
     pub fn rename_column(&self, old_name: &str, new_name: &str) -> Result<Self, VeloxxError> {
-        let mut new_columns: HashMap<String, Series> = self.columns.clone();
-        if let Some(mut series) = new_columns.remove(old_name) {
+        let mut new_columns: IndexMap<String, Series> = self.columns.clone();
+        if let Some(mut series) = new_columns.swap_remove(old_name) {
             if new_columns.contains_key(new_name) {
                 return Err(VeloxxError::InvalidOperation(format!(
                     "Column with new name '{new_name}' already exists."
@@ -171,7 +168,7 @@ impl DataFrame {
             }
             series.set_name(new_name);
             new_columns.insert(new_name.to_string(), series);
-            DataFrame::new(new_columns)
+            Ok(DataFrame::new(new_columns))
         } else {
             Err(VeloxxError::ColumnNotFound(old_name.to_string()))
         }
@@ -201,10 +198,10 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("name".to_string(), Series::new_string("name", vec![Some("Bob".to_string()), Some("Alice".to_string()), Some("Charlie".to_string())]));
     /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(25), Some(30), Some(20)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -218,15 +215,15 @@ impl DataFrame {
     /// assert_eq!(sorted_df_name_desc.get_column("name").unwrap().get_value(0), Some(Value::String("Charlie".to_string())));
     /// ```
     pub fn sort(&self, by_columns: Vec<String>, ascending: bool) -> Result<Self, VeloxxError> {
-        if self.row_count == 0 {
+        if self.row_count() == 0 {
             return Ok(self.clone());
         }
 
-        let mut rows: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count);
-        for i in 0..self.row_count {
+        let mut rows: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count());
+        for i in 0..self.row_count() {
             let mut row: Vec<Option<Value>> = Vec::with_capacity(self.column_count());
             for col_name in self.column_names().iter() {
-                let series = self.columns.get(*col_name).unwrap();
+                let series = self.columns.get(col_name).unwrap();
                 row.push(series.get_value(i));
             }
             rows.push(row);
@@ -237,7 +234,7 @@ impl DataFrame {
             .map(|col_name| {
                 self.column_names()
                     .iter()
-                    .position(|&name| name == col_name)
+                    .position(|name| name == col_name)
                     .ok_or(VeloxxError::ColumnNotFound(format!(
                         "Column '{col_name}' not found for sorting."
                     )))
@@ -272,21 +269,21 @@ impl DataFrame {
             std::cmp::Ordering::Equal
         });
 
-        let mut new_columns_data: HashMap<String, Vec<Option<Value>>> = HashMap::new();
+        let mut new_columns_data: IndexMap<String, Vec<Option<Value>>> = IndexMap::new();
         for col_name in self.column_names().iter() {
-            new_columns_data.insert((*col_name).clone(), Vec::with_capacity(self.row_count));
+            new_columns_data.insert(col_name.clone(), Vec::with_capacity(self.row_count()));
         }
 
         for row in rows {
             for (col_idx, col_name) in self.column_names().iter().enumerate() {
                 new_columns_data
-                    .get_mut(*col_name)
+                    .get_mut(col_name)
                     .unwrap()
                     .push(row[col_idx].clone());
             }
         }
 
-        let mut new_series_map: HashMap<String, Series> = HashMap::new();
+        let mut new_series_map: IndexMap<String, Series> = IndexMap::new();
         for (col_name, data_vec) in new_columns_data {
             let original_series = self.columns.get(&col_name).unwrap();
             let new_series = match original_series.data_type() {
@@ -369,7 +366,7 @@ impl DataFrame {
             new_series_map.insert(col_name, new_series);
         }
 
-        DataFrame::new(new_series_map)
+        Ok(DataFrame::new(new_series_map))
     }
 
     /// Adds a new column to the `DataFrame` based on an expression.
@@ -397,9 +394,9 @@ impl DataFrame {
     /// use veloxx::series::Series;
     /// use veloxx::expressions::Expr;
     /// use veloxx::types::Value;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("a".to_string(), Series::new_i32("a", vec![Some(2), Some(3)]));
     /// columns.insert("b".to_string(), Series::new_i32("b", vec![Some(4), Some(5)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -422,17 +419,17 @@ impl DataFrame {
     /// assert!(result.is_err()); // Multiplication may not be supported for all types
     /// ```
     pub fn with_column(&self, new_col_name: &str, expr: &Expr) -> Result<Self, VeloxxError> {
-        let mut new_columns: std::collections::HashMap<String, Series> = self.columns.clone();
+        let mut new_columns: indexmap::IndexMap<String, Series> = self.columns.clone();
         if new_columns.contains_key(new_col_name) {
             return Err(VeloxxError::InvalidOperation(format!(
                 "Column '{new_col_name}' already exists."
             )));
         }
 
-        let mut evaluated_values: Vec<Value> = Vec::with_capacity(self.row_count);
+        let mut evaluated_values: Vec<Value> = Vec::with_capacity(self.row_count());
         let mut inferred_type: Option<crate::types::DataType> = None;
 
-        for i in 0..self.row_count {
+        for i in 0..self.row_count() {
             let evaluated_value = expr.evaluate(self, i)?;
             if inferred_type.is_none() && evaluated_value != Value::Null {
                 inferred_type = Some(evaluated_value.data_type());
@@ -494,11 +491,11 @@ impl DataFrame {
                     })
                     .collect(),
             ),
-            None => Series::new_string(new_col_name, vec![None; self.row_count]), // All nulls, default to String
+            None => Series::new_string(new_col_name, vec![None; self.row_count()]), // All nulls, default to String
         };
 
         new_columns.insert(new_col_name.to_string(), new_series);
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Filters the `DataFrame` based on a given condition.
@@ -523,9 +520,9 @@ impl DataFrame {
     /// use veloxx::series::Series;
     /// use veloxx::conditions::Condition;
     /// use veloxx::types::Value;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(10), Some(20), Some(30)]));
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("NY".to_string()), Some("LA".to_string()), Some("NY".to_string())]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -545,7 +542,7 @@ impl DataFrame {
         // Fallback to row-by-row evaluation for complex conditions
         let mut row_indices_to_keep: Vec<usize> = Vec::new();
 
-        for i in 0..self.row_count {
+        for i in 0..self.row_count() {
             if condition.evaluate(self, i)? {
                 row_indices_to_keep.push(i);
             }
@@ -575,17 +572,14 @@ impl DataFrame {
         let mask = VectorizedFilter::fast_filter_single_column(series, comparison_value, op)?;
 
         // Apply mask to all columns
-        let mut filtered_columns = std::collections::HashMap::new();
+        let mut filtered_columns = indexmap::IndexMap::new();
         for (name, series) in &self.columns {
             let filtered_series = VectorizedFilter::filter_series_with_mask(series, &mask)?;
             filtered_columns.insert(name.clone(), filtered_series);
         }
 
-        let filtered_row_count = mask.iter().filter(|&b| b).count();
-        Ok(Some(Self {
-            columns: filtered_columns,
-            row_count: filtered_row_count,
-        }))
+        let _filtered_row_count = mask.iter().filter(|&b| b).count();
+        Ok(Some(DataFrame::new(filtered_columns)))
     }
 
     /// Filters the `DataFrame` based on a list of row indices.
@@ -608,10 +602,10 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("data".to_string(), Series::new_i32("data", vec![Some(10), Some(20), Some(30), Some(40)]));
     /// let df = DataFrame::new(columns).unwrap();
     ///
@@ -621,22 +615,30 @@ impl DataFrame {
     /// assert_eq!(filtered_df.get_column("data").unwrap().get_value(0), Some(Value::I32(10)));
     /// assert_eq!(filtered_df.get_column("data").unwrap().get_value(1), Some(Value::I32(30)));
     /// ```
-    pub fn filter_by_indices(&self, row_indices: &[usize]) -> Result<Self, VeloxxError> {
-        if row_indices.is_empty() {
-            return Ok(DataFrame {
-                columns: std::collections::HashMap::new(),
-                row_count: 0,
-            });
+    /// Filter DataFrame using a boolean mask Series
+    pub fn filter_by_mask(&self, mask: &Series) -> Result<DataFrame, VeloxxError> {
+        let mut new_columns = indexmap::IndexMap::new();
+
+        for (name, series) in &self.columns {
+            let filtered_series = series.filter_by_mask(mask)?;
+            new_columns.insert(name.clone(), filtered_series);
         }
 
-        let mut new_columns: std::collections::HashMap<String, Series> =
-            std::collections::HashMap::new();
+        Ok(DataFrame::new(new_columns))
+    }
+
+    pub fn filter_by_indices(&self, row_indices: &[usize]) -> Result<Self, VeloxxError> {
+        if row_indices.is_empty() {
+            return Ok(DataFrame::new(indexmap::IndexMap::new()));
+        }
+
+        let mut new_columns: indexmap::IndexMap<String, Series> = indexmap::IndexMap::new();
         for (col_name, series) in self.columns.iter() {
             let new_series = (*series).filter(row_indices)?;
             new_columns.insert(col_name.clone(), new_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Appends another `DataFrame` to the end of this `DataFrame`.
@@ -663,15 +665,15 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut df1_cols = HashMap::new();
+    /// let mut df1_cols = IndexMap::new();
     /// df1_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(1), Some(2)]));
     /// df1_cols.insert("value".to_string(), Series::new_f64("value", vec![Some(10.0), Some(20.0)]));
     /// let df1 = DataFrame::new(df1_cols).unwrap();
     ///
-    /// let mut df2_cols = HashMap::new();
+    /// let mut df2_cols = IndexMap::new();
     /// df2_cols.insert("id".to_string(), Series::new_i32("id", vec![Some(3), Some(4)]));
     /// df2_cols.insert("value".to_string(), Series::new_f64("value", vec![Some(30.0), Some(40.0)]));
     /// let df2 = DataFrame::new(df2_cols).unwrap();
@@ -689,13 +691,13 @@ impl DataFrame {
         }
 
         // Build a mapping of other column names to ensure we match by name, not order
-        let self_column_names: Vec<&String> = self.column_names();
-        let other_column_names: Vec<&String> = other.column_names();
+        let self_column_names: Vec<String> = self.column_names();
+        let other_column_names: Vec<String> = other.column_names();
 
         // Validate that both DataFrames contain the same set of columns and types
         use std::collections::HashSet;
-        let self_set: HashSet<&String> = self_column_names.iter().cloned().collect();
-        let other_set: HashSet<&String> = other_column_names.iter().cloned().collect();
+        let self_set: HashSet<String> = self_column_names.iter().cloned().collect();
+        let other_set: HashSet<String> = other_column_names.iter().cloned().collect();
         if self_set != other_set {
             return Err(VeloxxError::InvalidOperation(
                 "Cannot append DataFrames with different column names.".to_string(),
@@ -714,16 +716,15 @@ impl DataFrame {
         }
 
         // Create appended columns by matching names regardless of order
-        let mut new_columns: std::collections::HashMap<String, Series> =
-            std::collections::HashMap::new();
+        let mut new_columns: indexmap::IndexMap<String, Series> = indexmap::IndexMap::new();
         for col_name in self_column_names.into_iter() {
-            let self_series = self.get_column(col_name).unwrap();
-            let other_series = other.get_column(col_name).unwrap();
+            let self_series = self.get_column(&col_name).unwrap();
+            let other_series = other.get_column(&col_name).unwrap();
             let appended_series = self_series.append(other_series)?;
-            new_columns.insert(col_name.clone(), appended_series);
+            new_columns.insert(col_name, appended_series);
         }
 
-        DataFrame::new(new_columns)
+        Ok(DataFrame::new(new_columns))
     }
 
     /// Groups the `DataFrame` by one or more columns.
@@ -746,9 +747,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("New York".to_string()), Some("London".to_string()), Some("New York".to_string())]));
     /// columns.insert("sales".to_string(), Series::new_f64("sales", vec![Some(100.0), Some(150.0), Some(200.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -873,9 +874,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("age".to_string(), Series::new_i32("age", vec![Some(20), Some(30), Some(25), None, Some(35)]));
     /// columns.insert("city".to_string(), Series::new_string("city", vec![Some("NY".to_string()), Some("LA".to_string()), Some("NY".to_string()), Some("SF".to_string()), None]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -889,8 +890,7 @@ impl DataFrame {
     /// // city           4              null           null           null           null           null           
     /// ```
     pub fn describe(&self) -> Result<DataFrame, VeloxxError> {
-        let mut descriptions: std::collections::HashMap<String, Series> =
-            std::collections::HashMap::new();
+        let mut descriptions: indexmap::IndexMap<String, Series> = indexmap::IndexMap::new();
         let mut counts: Vec<Option<i32>> = Vec::new();
         let mut means: Vec<Option<f64>> = Vec::new();
         let mut std_devs: Vec<Option<f64>> = Vec::new();
@@ -972,7 +972,7 @@ impl DataFrame {
             ),
         );
 
-        DataFrame::new(descriptions)
+        Ok(DataFrame::new(descriptions))
     }
 
     /// Calculates the Pearson correlation coefficient between two columns in the `DataFrame`.
@@ -998,9 +998,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("X".to_string(), Series::new_i32("X", vec![Some(1), Some(2), Some(3), Some(4), Some(5)]));
     /// columns.insert("Y".to_string(), Series::new_f64("Y", vec![Some(2.0), Some(4.0), Some(5.0), Some(4.0), Some(5.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -1010,7 +1010,7 @@ impl DataFrame {
     /// // Expected correlation for these values is approx 0.7746
     /// assert!((correlation - 0.7746).abs() < 0.0001);
     ///
-    /// let mut cols_with_nulls = HashMap::new();
+    /// let mut cols_with_nulls = IndexMap::new();
     /// cols_with_nulls.insert("A".to_string(), Series::new_i32("A", vec![Some(1), None, Some(3)]));
     /// cols_with_nulls.insert("B".to_string(), Series::new_i32("B", vec![Some(10), Some(20), None]));
     /// let df_nulls = DataFrame::new(cols_with_nulls).unwrap();
@@ -1088,9 +1088,9 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("X".to_string(), Series::new_i32("X", vec![Some(1), Some(2), Some(3)]));
     /// columns.insert("Y".to_string(), Series::new_f64("Y", vec![Some(2.0), Some(3.0), Some(4.0)]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -1151,10 +1151,10 @@ impl DataFrame {
     /// ```rust
     /// use veloxx::dataframe::DataFrame;
     /// use veloxx::series::Series;
-    /// use std::collections::HashMap;
+    /// use indexmap::IndexMap;
     /// use veloxx::types::Value;
     ///
-    /// let mut columns = HashMap::new();
+    /// let mut columns = IndexMap::new();
     /// columns.insert("A".to_string(), Series::new_i32("A", vec![Some(1), Some(2)]));
     /// columns.insert("B".to_string(), Series::new_string("B", vec![Some("x".to_string()), None]));
     /// let df = DataFrame::new(columns).unwrap();
@@ -1169,13 +1169,13 @@ impl DataFrame {
     /// // assert_eq!(vec_of_vec[1][1], None);
     /// ```
     pub fn to_vec_of_vec(&self) -> Vec<Vec<Option<Value>>> {
-        let mut result: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count);
+        let mut result: Vec<Vec<Option<Value>>> = Vec::with_capacity(self.row_count());
         let column_names = self.column_names();
 
-        for i in 0..self.row_count {
+        for i in 0..self.row_count() {
             let mut row: Vec<Option<Value>> = Vec::with_capacity(self.column_count());
             for col_name in column_names.iter() {
-                let series = self.columns.get(*col_name).unwrap();
+                let series = self.columns.get(col_name).unwrap();
                 row.push(series.get_value(i));
             }
             result.push(row);
@@ -1252,7 +1252,7 @@ fn dense_sequential_groupby(params: DenseSeqGroupByParams) -> Result<DataFrame, 
         }
     }
 
-    let mut result = std::collections::HashMap::new();
+    let mut result = indexmap::IndexMap::new();
     result.insert(
         params.group_col_name.to_string(),
         Series::I32(
@@ -1270,7 +1270,7 @@ fn dense_sequential_groupby(params: DenseSeqGroupByParams) -> Result<DataFrame, 
         ),
     );
 
-    DataFrame::new(result)
+    Ok(DataFrame::new(result))
 }
 
 /// Fast hashmap groupby implementation for fallback
@@ -1304,7 +1304,7 @@ fn hashmap_groupby_direct(
     group_keys.sort_unstable();
     let sum_values: Vec<f64> = group_keys.iter().map(|&k| groups[&k].0).collect();
 
-    let mut result = std::collections::HashMap::new();
+    let mut result = indexmap::IndexMap::new();
     result.insert(
         group_col_name.to_string(),
         Series::I32(
@@ -1322,5 +1322,5 @@ fn hashmap_groupby_direct(
         ),
     );
 
-    DataFrame::new(result)
+    Ok(DataFrame::new(result))
 }
