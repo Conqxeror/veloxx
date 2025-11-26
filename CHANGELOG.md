@@ -5,6 +5,14 @@ All notable changes to the Veloxx project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-11-26
+
+### 🔧 Build & CI Fixes
+- **WASM Compilation**: Fixed critical compilation errors in WASM bindings (lifetime issues in grouped aggregation).
+- **Benchmark Cleanup**: Removed obsolete benchmark files referencing deleted modules.
+- **Linting**: Resolved numerous Clippy warnings and formatting issues across the codebase.
+- **CI Stability**: Fixed dependencies and configuration for CI workflows.
+
 ## [0.4.0] - 2025-11-26
 
 ### 🚀 Core Performance Engineering
