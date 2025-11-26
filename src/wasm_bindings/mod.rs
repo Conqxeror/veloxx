@@ -320,7 +320,7 @@ impl WasmGroupedDataFrame {
         // Build aggregation spec for all non-group numeric columns
         let column_names = self.dataframe.column_names();
         let mut agg_specs: Vec<(&str, &str)> = Vec::new();
-        for col in column_names {
+        for col in &column_names {
             if !self.group_columns.contains(col) {
                 // Only include numeric columns
                 if let Some(series) = self.dataframe.get_column(col) {
@@ -354,7 +354,7 @@ impl WasmGroupedDataFrame {
     pub fn mean(&self) -> Result<WasmDataFrame, JsValue> {
         let column_names = self.dataframe.column_names();
         let mut agg_specs: Vec<(&str, &str)> = Vec::new();
-        for col in column_names {
+        for col in &column_names {
             if !self.group_columns.contains(col) {
                 if let Some(series) = self.dataframe.get_column(col) {
                     if series.is_numeric() {

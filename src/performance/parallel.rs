@@ -3,6 +3,7 @@
 //! This module provides parallel implementations of data operations
 //! for improved performance on multi-core systems.
 
+#[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
 use crate::performance::optimized_simd::OptimizedSimdOps;
 use crate::series::Series;
 use crate::types::Value;
@@ -26,14 +27,21 @@ impl ParallelAggregations {
                 let has_nulls = bitmap.iter().any(|&b| !b);
 
                 if !has_nulls {
-                    if values.len() < PARALLEL_THRESHOLD {
-                        return Ok(Value::I32(values.optimized_simd_sum()));
-                    } else {
-                        // Parallel SIMD
-                        let sum: i32 = values
-                            .par_chunks(16 * 1024)
-                            .map(|chunk| chunk.optimized_simd_sum())
-                            .sum();
+                    #[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
+                    {
+                        if values.len() < PARALLEL_THRESHOLD {
+                            return Ok(Value::I32(values.optimized_simd_sum()));
+                        } else {
+                            let sum: i32 = values
+                                .par_chunks(16 * 1024)
+                                .map(|chunk| chunk.optimized_simd_sum())
+                                .sum();
+                            return Ok(Value::I32(sum));
+                        }
+                    }
+                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))] 
+                    {
+                        let sum: i32 = values.par_iter().sum();
                         return Ok(Value::I32(sum));
                     }
                 }
@@ -50,13 +58,21 @@ impl ParallelAggregations {
                 let has_nulls = bitmap.iter().any(|&b| !b);
 
                 if !has_nulls {
-                    if values.len() < PARALLEL_THRESHOLD {
-                        return Ok(Value::F64(values.optimized_simd_sum()));
-                    } else {
-                        let sum: f64 = values
-                            .par_chunks(16 * 1024)
-                            .map(|chunk| chunk.optimized_simd_sum())
-                            .sum();
+                    #[cfg(all(feature = "simd", not(target_arch = "wasm32")))]
+                    {
+                        if values.len() < PARALLEL_THRESHOLD {
+                            return Ok(Value::F64(values.optimized_simd_sum()));
+                        } else {
+                            let sum: f64 = values
+                                .par_chunks(16 * 1024)
+                                .map(|chunk| chunk.optimized_simd_sum())
+                                .sum();
+                            return Ok(Value::F64(sum));
+                        }
+                    }
+                    #[cfg(not(all(feature = "simd", not(target_arch = "wasm32"))))] 
+                    {
+                        let sum: f64 = values.par_iter().sum();
                         return Ok(Value::F64(sum));
                     }
                 }
