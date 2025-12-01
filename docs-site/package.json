@@ -16,7 +16,7 @@
   "dependencies": {
     "@docusaurus/core": "^3.0.0",
     "@docusaurus/preset-classic": "^3.0.0",
-    "@docusaurus/theme-search-algolia": "^3.0.0",
+    "@docusaurus/theme-search-algolia": "^3.9.2",
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.0.0",
     "lucide-react": "^0.525.0",
